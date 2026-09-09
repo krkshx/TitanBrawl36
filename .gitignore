@@ -1,0 +1,47 @@
+# C++
+build/
+out/
+install/
+.vs/
+.vscode/
+*.user
+*.suo
+*.sdf
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+
+# Compiled
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+*.pdb
+*.ilk
+*.exp
+
+# Android NDK
+local.properties
+.externalNativeBuild/
+.cxx/
+
+# Python tools
+__pycache__/
+*.pyc
+.venv/
+
+# IDA dumps (large, regenerable)
+tools/out/
+*.idb
+*.i64
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
