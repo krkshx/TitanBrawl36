@@ -179,6 +179,25 @@ void ByteStream::writeString(const std::string* value) {
     }
 }
 
+// @0x608f14 — ByteStream::writeStringReference
+// Same wire layout as writeString but the reference is never null:
+// ByteLength < 900001 required, else Debugger::warning + writeInt(-1).
+// Checksum fold uses K=38 (@0x69a564).
+void ByteStream::writeStringReference(const std::string& value) {
+    const i32 len = static_cast<i32>(value.size());
+    ChecksumEncoder::writeStringReferenceLength(len);
+    if (len >= kMaxStringBytes + 1) {
+        writeIntToByteArray(-1);
+        return;
+    }
+    ensureCapacity(len + 4);
+    writeIntToByteArray(len);
+    if (len > 0) {
+        std::memcpy(buffer_.data() + length_, value.data(), static_cast<std::size_t>(len));
+        length_ += len;
+    }
+}
+
 // @0x61bd08 — ByteStream::writeBytes
 // ChecksumEncoder::writeBytes; null -> writeInt(-1),
 // else writeInt(len) + raw bytes.
@@ -314,6 +333,22 @@ std::optional<std::string> ByteStream::readString() {
     }
     if (readCursor_ + len > length_) {
         throw std::out_of_range("ByteStream::readString past end");
+    }
+    std::string out(reinterpret_cast<const char*>(buffer_.data() + readCursor_),
+                    static_cast<std::size_t>(len));
+    readCursor_ += len;
+    return out;
+}
+
+// @0x28f62c — ByteStream::readStringReference
+// readInt length; negative -> Debugger::warning + empty string (never null).
+std::string ByteStream::readStringReference() {
+    const i32 len = readInt();
+    if (len < 0) {
+        return {};
+    }
+    if (readCursor_ + len > length_) {
+        throw std::out_of_range("ByteStream::readStringReference past end");
     }
     std::string out(reinterpret_cast<const char*>(buffer_.data() + readCursor_),
                     static_cast<std::size_t>(len));

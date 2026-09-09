@@ -43,6 +43,7 @@ public:
     void writeInt(i32 value) override;          // @0x3f3bd0
     void writeVInt(i32 value) override;         // @0x298f64
     void writeString(const std::string* value); // @0x5174d0 (null -> -1)
+    void writeStringReference(const std::string& value); // @0x608f14 (never null)
     void writeBytes(const u8* data, i32 len);   // @0x61bd08 (null -> -1)
     void writeByte(i8 value);
     void writeShort(i16 value);
@@ -53,6 +54,7 @@ public:
     i32 readInt();                         // @0x191dc4
     i32 readVInt();                        // @0x356c40
     std::optional<std::string> readString();
+    std::string readStringReference(); // @0x28f62c (negative len -> "")
     std::vector<u8> readBytes();
 
     // Load a received buffer for decoding (sets cursor to 0).
