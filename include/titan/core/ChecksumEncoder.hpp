@@ -13,6 +13,7 @@
 // - Constants observed:
 //     writeBoolean -> K = 13 (true) / 7 (false)   @0x534690
 //     writeString  -> K = 28 + charLength, 27 if null @0x6ed97c
+//     writeStringReference -> K = 38 + charLength @0x69a564
 //     writeVInt    -> K = 33                      @0x5c50e0
 //     writeInt     -> K = 9                       @0x8a558c
 
@@ -27,6 +28,7 @@ public:
     virtual void writeVInt(i32 value);       // @0x5c50e0
     virtual void writeInt(i32 value);        // @0x8a558c
     virtual void writeStringLength(i32 charLength, bool isNull); // @0x6ed97c shape
+    virtual void writeStringReferenceLength(i32 charLength);     // @0x69a564
 
     [[nodiscard]] u32 checksum() const { return checksum_; }
     void setChecksum(u32 value) { checksum_ = value; }

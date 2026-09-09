@@ -34,4 +34,10 @@ void ChecksumEncoder::writeStringLength(i32 charLength, bool isNull) {
                        : rotated() + static_cast<u32>(charLength) + 28u;
 }
 
+// @0x69a564 — ChecksumEncoder::writeStringReference
+//   state = rotl(state,1) + charLength + 38 (reference is never null)
+void ChecksumEncoder::writeStringReferenceLength(i32 charLength) {
+    checksum_ = rotated() + static_cast<u32>(charLength) + 38u;
+}
+
 } // namespace titan
