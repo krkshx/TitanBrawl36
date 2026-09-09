@@ -50,15 +50,20 @@ void ByteStream::ensureCapacity(i32 extra) {
     }
 }
 
+void ByteStream::putByte(u8 b) {
+    buffer_[static_cast<std::size_t>(length_)] = b;
+    ++length_;
+}
+
 // @0x87bc64 — ByteStream::writeIntToByteArray
 // Big-endian 4 bytes; resets bitOffset (+28 = 0); grows capacity by +104.
 void ByteStream::writeIntToByteArray(i32 value) {
     bitOffset_ = 0;
     ensureCapacity(4);
-    buffer_[static_cast<std::size_t>(length_)++] = static_cast<u8>((value >> 24) & 0xFF); // HIBYTE
-    buffer_[static_cast<std::size_t>(length_)++] = static_cast<u8>((value >> 16) & 0xFF); // BYTE2
-    buffer_[static_cast<std::size_t>(length_)++] = static_cast<u8>((value >> 8) & 0xFF);  // BYTE1
-    buffer_[static_cast<std::size_t>(length_)++] = static_cast<u8>(value & 0xFF);
+    putByte(static_cast<u8>((value >> 24) & 0xFF)); // HIBYTE
+    putByte(static_cast<u8>((value >> 16) & 0xFF)); // BYTE2
+    putByte(static_cast<u8>((value >> 8) & 0xFF));  // BYTE1
+    putByte(static_cast<u8>(value & 0xFF));
 }
 
 // @0x3f3bd0 — ByteStream::writeInt
@@ -75,13 +80,13 @@ void ByteStream::writeBoolean(bool value) {
     ChecksumEncoder::writeBoolean(value);
     const u8 bit = value ? 1u : 0u;
     if (bitOffset_ != 0) {
-        if (bit) {
+        if (bit != 0u) {
             buffer_[static_cast<std::size_t>(length_) - 1u] |= static_cast<u8>(1u << bitOffset_);
         }
     } else {
         ensureCapacity(1);
-        buffer_[static_cast<std::size_t>(length_)++] = 0;
-        if (bit) {
+        putByte(0);
+        if (bit != 0u) {
             buffer_[static_cast<std::size_t>(length_) - 1u] |= static_cast<u8>(1u << 0);
         }
     }
@@ -96,60 +101,59 @@ void ByteStream::writeVInt(i32 value) {
     bitOffset_ = 0;
     ensureCapacity(5);
 
-    auto put = [this](u8 b) { buffer_[static_cast<std::size_t>(length_)++] = b; };
     const auto u = static_cast<u32>(value);
 
     if (value < 0) {
         if (value >= -63) {
-            put(static_cast<u8>((value & 0x3F) | 0x40));
+            putByte(static_cast<u8>((value & 0x3F) | 0x40));
             return;
         }
         if (value >= -8191) {
-            put(static_cast<u8>(value | 0xC0));
-            put(static_cast<u8>((u >> 6) & 0x7F));
+            putByte(static_cast<u8>(value | 0xC0));
+            putByte(static_cast<u8>((u >> 6) & 0x7F));
             return;
         }
         if (value >= -1048575) {
-            put(static_cast<u8>(value | 0xC0));
-            put(static_cast<u8>((u >> 6) | 0x80));
-            put(static_cast<u8>((u >> 13) & 0x7F));
+            putByte(static_cast<u8>(value | 0xC0));
+            putByte(static_cast<u8>((u >> 6) | 0x80));
+            putByte(static_cast<u8>((u >> 13) & 0x7F));
             return;
         }
-        put(static_cast<u8>(value | 0xC0));
-        put(static_cast<u8>((u >> 6) | 0x80));
-        put(static_cast<u8>((u >> 13) | 0x80));
+        putByte(static_cast<u8>(value | 0xC0));
+        putByte(static_cast<u8>((u >> 6) | 0x80));
+        putByte(static_cast<u8>((u >> 13) | 0x80));
         if (value >= -134217727) {
-            put(static_cast<u8>((u >> 20) & 0x7F));
+            putByte(static_cast<u8>((u >> 20) & 0x7F));
         } else {
-            put(static_cast<u8>((u >> 20) | 0x80));
-            put(static_cast<u8>((u >> 27) & 0x0F));
+            putByte(static_cast<u8>((u >> 20) | 0x80));
+            putByte(static_cast<u8>((u >> 27) & 0x0F));
         }
         return;
     }
     if (value > 63) {
         if (value < 0x2000) {
-            put(static_cast<u8>((value & 0x3F) | 0x80));
-            put(static_cast<u8>((u >> 6) & 0x7F));
+            putByte(static_cast<u8>((value & 0x3F) | 0x80));
+            putByte(static_cast<u8>((u >> 6) & 0x7F));
             return;
         }
         if (value < 0x100000) {
-            put(static_cast<u8>((value & 0x3F) | 0x80));
-            put(static_cast<u8>((u >> 6) | 0x80));
-            put(static_cast<u8>((u >> 13) & 0x7F));
+            putByte(static_cast<u8>((value & 0x3F) | 0x80));
+            putByte(static_cast<u8>((u >> 6) | 0x80));
+            putByte(static_cast<u8>((u >> 13) & 0x7F));
             return;
         }
-        put(static_cast<u8>((value & 0x3F) | 0x80));
-        put(static_cast<u8>((u >> 6) | 0x80));
-        put(static_cast<u8>((u >> 13) | 0x80));
+        putByte(static_cast<u8>((value & 0x3F) | 0x80));
+        putByte(static_cast<u8>((u >> 6) | 0x80));
+        putByte(static_cast<u8>((u >> 13) | 0x80));
         if (value <= 0x7FFFFFF) {
-            put(static_cast<u8>((u >> 20) & 0x7F));
+            putByte(static_cast<u8>((u >> 20) & 0x7F));
         } else {
-            put(static_cast<u8>((u >> 20) | 0x80));
-            put(static_cast<u8>((u >> 27) & 0x0F));
+            putByte(static_cast<u8>((u >> 20) | 0x80));
+            putByte(static_cast<u8>((u >> 27) & 0x0F));
         }
         return;
     }
-    put(static_cast<u8>(value & 0x3F));
+    putByte(static_cast<u8>(value & 0x3F));
 }
 
 // @0x5174d0 — ByteStream::writeString
@@ -196,22 +200,21 @@ void ByteStream::writeBytes(const u8* data, i32 len) {
 void ByteStream::writeByte(i8 value) {
     bitOffset_ = 0;
     ensureCapacity(1);
-    buffer_[static_cast<std::size_t>(length_)++] = static_cast<u8>(value);
+    putByte(static_cast<u8>(value));
 }
 
 void ByteStream::writeShort(i16 value) {
     bitOffset_ = 0;
     ensureCapacity(2);
-    buffer_[static_cast<std::size_t>(length_)++] = static_cast<u8>((value >> 8) & 0xFF);
-    buffer_[static_cast<std::size_t>(length_)++] = static_cast<u8>(value & 0xFF);
+    putByte(static_cast<u8>((value >> 8) & 0xFF));
+    putByte(static_cast<u8>(value & 0xFF));
 }
 
 void ByteStream::writeLongLong(i64 value) {
     bitOffset_ = 0;
     ensureCapacity(8);
     for (int shift = 56; shift >= 0; shift -= 8) {
-        buffer_[static_cast<std::size_t>(length_)++] =
-            static_cast<u8>((value >> shift) & 0xFF);
+        putByte(static_cast<u8>((value >> shift) & 0xFF));
     }
 }
 
@@ -221,7 +224,9 @@ u8 ByteStream::readByteRaw() {
     if (readCursor_ >= length_) {
         throw std::out_of_range("ByteStream: read past end");
     }
-    return buffer_[static_cast<std::size_t>(readCursor_)++];
+    const u8 b = buffer_[static_cast<std::size_t>(readCursor_)];
+    ++readCursor_;
+    return b;
 }
 
 // @0x23bc10 — ByteStream::readBoolean
