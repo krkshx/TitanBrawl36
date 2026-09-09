@@ -19,12 +19,19 @@ if(TITAN_WARNINGS_AS_ERRORS)
 endif()
 
 # ---- Library ---------------------------------------------------------------
+# NOTE: src/gen/Registry*.cpp is produced by tools/generate_registry.py
+# from data/ida_shard_*.csv. Re-run the generator after inventory updates.
 add_library(titan_core STATIC
   src/core/ChecksumEncoder.cpp
   src/core/ByteStream.cpp
   src/core/PiranhaMessage.cpp
   src/messages/ResetAccountMessage.cpp
   src/messages/KeepAliveMessages.cpp
+  src/gen/Registry.cpp
+  src/gen/RegistryPart0.cpp
+  src/gen/RegistryPart1.cpp
+  src/gen/RegistryPart2.cpp
+  src/gen/RegistryPart3.cpp
 )
 
 target_include_directories(titan_core PUBLIC
@@ -48,6 +55,10 @@ if(TITAN_BUILD_TESTS)
   add_executable(titan_messages_test tests/test_messages.cpp)
   target_link_libraries(titan_messages_test PRIVATE titan_core)
   add_test(NAME messages COMMAND titan_messages_test)
+
+  add_executable(titan_registry_test tests/test_registry.cpp)
+  target_link_libraries(titan_registry_test PRIVATE titan_core)
+  add_test(NAME registry COMMAND titan_registry_test)
 endif()
 
 # ---- Install (keeps all platforms happy) -----------------------------------
