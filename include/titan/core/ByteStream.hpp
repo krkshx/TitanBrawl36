@@ -67,6 +67,7 @@ public:
 
 private:
     void ensureCapacity(i32 extra);
+    void putByte(u8 b);
     void writeIntToByteArray(i32 value); // @0x87bc64
     [[nodiscard]] u8 readByteRaw();
 
