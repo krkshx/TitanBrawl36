@@ -53,6 +53,27 @@ public:
         if (!child || child->parent_ != this || child->index_ == -1) return;
         removeChildAt(child->index_);
     }
+    // setChildIndex @0x1ca7fc: in-place reorder within this parent only
+    // (a foreign child is a no-op — unlike addChildAt, no reparenting).
+    // Out-of-range targets are ignored (binary assumes valid input).
+    void setChildIndex(DisplayObject* child, int index) {
+        if (!child || child->parent_ != this) return;
+        const int cur = child->index_;
+        if (cur == index || index < 0 || index >= childCount()) return;
+        if (cur < index) {
+            for (int i = cur; i < index; ++i) {
+                children_[i] = children_[i + 1];
+                children_[i]->index_ = i;
+            }
+        } else {
+            for (int i = cur; i > index; --i) {
+                children_[i] = children_[i - 1];
+                children_[i]->index_ = i;
+            }
+        }
+        children_[index] = child;
+        child->index_ = index;
+    }
     // removeAllChildren @0x2bddd8.
     void removeAllChildren() {
         for (auto* c : children_) {

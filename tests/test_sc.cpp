@@ -115,6 +115,27 @@ int main() {
         CHECK(ref.fileName() == "background_basic.sc");
         CHECK(ref.exportName() == "bg");
     }
+    // setChildIndex @0x1ca7fc: reorder in place, foreign child no-op.
+    {
+        titan::sc::Sprite root, other;
+        titan::sc::DisplayObject a, b, c;
+        root.addChild(&a);
+        root.addChild(&b);
+        root.addChild(&c);
+        root.setChildIndex(&c, 0);
+        CHECK(root.children()[0] == &c && root.children()[2] == &b);
+        CHECK(c.index_ == 0 && a.index_ == 1 && b.index_ == 2);
+        root.setChildIndex(&c, 0); // already there -> no-op
+        CHECK(root.children()[0] == &c);
+        root.setChildIndex(&a, 2);
+        CHECK(root.children()[2] == &a && a.index_ == 2);
+        titan::sc::DisplayObject foreign;
+        other.addChild(&foreign);
+        root.setChildIndex(&foreign, 0); // foreign parent -> no-op
+        CHECK(root.childCount() == 3 && foreign.parent_ == &other);
+        root.setChildIndex(&a, 99); // out of range -> no-op
+        CHECK(a.index_ == 2);
+    }
 
     if (failures == 0) std::puts("sc: all ok");
     return failures == 0 ? 0 : 1;

@@ -88,6 +88,7 @@ REIMPLEMENTED = {
     "_ZNK9MovieClip19getNameOfChild_cstrEPK13DisplayObject",
     "_ZN9MovieClip15setChildVisibleERK6Stringb",
     "_ZN9MovieClip15setChildVisibleEPKcb",
+    "_ZN6Sprite13setChildIndexEP13DisplayObjecti",
     "_ZN17LogicClientAvatar15addFreeDiamondsEii",
     "_ZN17LogicClientAvatar15addPaidDiamondsEii",
     "_ZNK9MovieClip15getCurrentFrameEv",

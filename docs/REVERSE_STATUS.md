@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2149 reimplemented, 9717 third-party, 25198 pending**
+Registry (compiled in): **2150 reimplemented, 9717 third-party, 25197 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2149 fns | `src/` + tests |
-| Game code pending | 25198 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2150 fns | `src/` + tests |
+| Game code pending | 25197 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -78,6 +78,7 @@ Registry (compiled in): **2149 reimplemented, 9717 third-party, 25198 pending**
 - Hero levels: `getHeroLevel @0x2b9b74` (slot-5 count + 1),
   `setHeroLevel @0x8a2ae0` (= setCommodityCount), `getLevelUpCost
   @0x708b44` (ints17_ table).
+- HomeMode owns DataTables now (gold helper) for material resolution.
 - Avatar economy core: `get/setCommodityCount` (`@0x32922c`/`@0x7c7bc8`)
   + `commodityCountChangeHelper` (`@0x5c3590`, resource-cap via
   `LogicResourceData::getCap`, INT_MAX guard, delta==0 no-op).
@@ -91,7 +92,8 @@ Registry (compiled in): **2149 reimplemented, 9717 third-party, 25198 pending**
   (takes const Sprite* like the binary; null-safe) + `MovieClip`
   (`getNameOfChild @0x266cb0`, `setChildVisible @0x24417c`; overloads
   covered by one impl; frames pending) + `getCurrentFrame @0x715800`
-  + `MovieClipRef`.
+  + `MovieClipRef` + `setChildIndex @0x1ca7fc` (in-place reorder,
+  foreign/out-of-range no-ops).
 - Gameplay wave (part 3): `LogicDeleteNotificationCommand::execute
   @0x961cc4` + `LogicClientHome::removeNotification @0x8f73e4` (match by
   base +8 int, ownership transfer).

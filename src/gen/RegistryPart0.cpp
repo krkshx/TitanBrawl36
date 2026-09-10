@@ -2799,7 +2799,7 @@ extern const Entry kPart0[] = {
     {0x01CA774, Status::Pending, "_ZN11SentryTitan8shutdownEv", "SentryTitan8shutdownEv"},
     {0x01CA778, Status::ThirdPartyExternal, "_ZNSt6__ndk110__function6__funcIZN8TestCase18swipeAllDirectionsEP13DisplayObjectE4$_23NS_9allocatorIS5_EEFbvEED0Ev", "global"},
     {0x01CA77C, Status::ThirdPartyExternal, "_ZN5titan3com9supercell5titan11SupercellId9setObjPtrEl", "titan3com9supercell5titan11SupercellId9setObjPtr"},
-    {0x01CA7FC, Status::Pending, "_ZN6Sprite13setChildIndexEP13DisplayObjecti", "Sprite13setChildIndexEP13DisplayObjecti"},
+    {0x01CA7FC, Status::Reimplemented, "_ZN6Sprite13setChildIndexEP13DisplayObjecti", "Sprite13setChildIndexEP13DisplayObjecti"},
     {0x01CA87C, Status::Pending, "_ZNK13LogicDataSlot4saveEv", "LogicDataSlot4saveEv"},
     {0x01CA920, Status::Pending, "_ZN17LogicAvatarChange6encodeEP15ChecksumEncoder", "LogicAvatarChange6encodeEP15ChecksumEncoder"},
     {0x01CA924, Status::ThirdPartyExternal, "_ZNK6icu_5813UnicodeString10doHashCodeEv", "icu_5813UnicodeString10doHashCodeEv"},
