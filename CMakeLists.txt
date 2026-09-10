@@ -31,6 +31,10 @@ add_library(titan_core STATIC
   src/messages/MsgBatch01.cpp
   src/messages/MsgBatch02.cpp
   src/messages/MsgBatch03.cpp
+  src/messages/MsgBatch04.cpp
+  src/messages/MsgBatch05.cpp
+  src/messages/MsgBatch06.cpp
+  src/messages/MsgBatch07.cpp
   src/gen/Registry.cpp
   src/gen/RegistryPart0.cpp
   src/gen/RegistryPart1.cpp

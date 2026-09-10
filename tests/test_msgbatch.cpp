@@ -4,6 +4,10 @@
 #include "titan/messages/MsgBatch01.hpp"
 #include "titan/messages/MsgBatch02.hpp"
 #include "titan/messages/MsgBatch03.hpp"
+#include "titan/messages/MsgBatch04.hpp"
+#include "titan/messages/MsgBatch05.hpp"
+#include "titan/messages/MsgBatch06.hpp"
+#include "titan/messages/MsgBatch07.hpp"
 
 #include <cstdio>
 
@@ -115,6 +119,58 @@ int main() {
         AllianceListMessage back;
         roundTrip<AllianceListMessage>([](AllianceListMessage&) {}, back);
         CHECK(back.headers_.empty());
+    }
+    // Wave 2 spot checks.
+    {
+        ROUNDTRIP(EndClientTurnMessage, back,
+                  m.flag_ = true; m.tick_ = 12; m.checksum_ = 34;
+                  m.payload_ = std::vector<u8>({1, 2, 3}));
+        CHECK(back.flag_ && back.tick_ == 12 && back.checksum_ == 34);
+        CHECK(back.payload_.has_value() && back.payload_->size() == 3);
+        CHECK(back.commands_.empty());
+    }
+    {
+        ROUNDTRIP(FriendOnlineStatusMessage, back,
+                  m.avatarIds_.push_back(LogicLong{5, 6}));
+        CHECK(back.avatarIds_.size() == 1 && back.avatarIds_[0].low == 6);
+    }
+    {
+        ROUNDTRIP(GlobalChatLineMessage, back,
+                  m.message_ = std::string("gg"); m.senderLevel_ = 9;
+                  m.playerId_ = LogicLong{7, 8});
+        CHECK(back.message_.value() == "gg" && back.senderLevel_ == 9);
+    }
+    {
+        ROUNDTRIP(MatchmakeRequestMessage, back,
+                  m.eventRef_ = DataReference{2, 3}; m.vints_[0] = 1);
+        CHECK(back.eventRef_->classId == 2 && back.vints_[0] == 1);
+    }
+    {
+        // LoginOk short variant: decode stops at end without crashing.
+        LoginOkMessage full;
+        full.accountId_ = LogicLong{1, 1};
+        full.homeId_ = LogicLong{2, 2};
+        try {
+            full.encode(); // throws: compressed_ pending
+        } catch (const pending_reverse&) {}
+        LoginOkMessage cut;
+        cut.stream().setBuffer(full.stream().data(), 60); // scalar prefix only
+        cut.decode();
+        CHECK(!cut.hasTail1_);
+    }
+    {
+        ROUNDTRIP(RankedMatchBanHeroMessage, back,
+                  m.charRef_ = DataReference{4, 5}; m.slot_ = 2);
+        CHECK(back.hasSlot_ && back.slot_ == 2);
+        // Old short variant without slot.
+        RankedMatchBanHeroMessage wo;
+        wo.charRef_ = DataReference{4, 5};
+        wo.stream().writeVInt(4);
+        wo.stream().writeVInt(5);
+        RankedMatchBanHeroMessage back2;
+        back2.stream().setBuffer(wo.stream().data(), wo.stream().size());
+        back2.decode();
+        CHECK(!back2.hasSlot_);
     }
 
     if (failures == 0) std::puts("msgbatch: all ok");
