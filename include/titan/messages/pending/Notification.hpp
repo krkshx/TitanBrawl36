@@ -1,12 +1,14 @@
 #pragma once
 
-// Notification — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(Notification) placeholder.
+// Notification — the binary's base is BaseNotification
+// (encode @0x7beae0, decode @0x605478); alias kept so existing users
+// (LogicClientHome) don't churn. Concrete types come from
+// game/NotificationFactory.hpp.
 
-#include "titan/messages/Nested.hpp"
+#include "titan/game/BaseNotification.hpp"
 
 namespace titan {
 
-TITAN_PENDING_ENTRY(Notification);
+using Notification = BaseNotification;
 
 } // namespace titan

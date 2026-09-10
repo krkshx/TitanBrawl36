@@ -484,3 +484,5 @@ LatencyTestConfiguration
 PlayAgainStatus
 StatusChangeEntry
 LogicTencentAntiAddictionInstruction
+BaseNotification
+FreeTextNotification

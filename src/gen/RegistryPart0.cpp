@@ -5786,7 +5786,7 @@ extern const Entry kPart0[] = {
     {0x02B1BFC, Status::Reimplemented, "_ZN25GoHomeFromSpectateMessage6decodeEv", "GoHomeFromSpectateMessage6decodeEv"},
     {0x02B1C00, Status::Pending, "_ZN34LogicDeviceLinkCodeResponseMessage19setCodeValidSecondsEi", "LogicDeviceLinkCodeResponseMessage19setCodeValid"},
     {0x02B1C08, Status::Pending, "_ZN12LogicTileMap11destroyTileEiibP21LogicBattleModeServer", "LogicTileMap11destroyTileEiibP21LogicBattleModeS"},
-    {0x02B1CF4, Status::Pending, "_ZN20FreeTextNotification6encodeEP15ChecksumEncoder", "FreeTextNotification6encodeEP15ChecksumEncoder"},
+    {0x02B1CF4, Status::Reimplemented, "_ZN20FreeTextNotification6encodeEP15ChecksumEncoder", "FreeTextNotification6encodeEP15ChecksumEncoder"},
     {0x02B1D28, Status::ThirdPartyExternal, "_ZNKSt6__ndk110__function6__funcIZN11scTaskQueue3runIZN6scglTF12_GLOBAL__N_111convertGLTFEP7SCWFileRKN2fx4gltf8DocumentERK6StringE3$_0EENS_13invoke_resultIT_JEE4typeESI_EUlvE_NS_9allocatorISL_EEFvvEE6targetERKSt9type_info", "global"},
     {0x02B1D44, Status::Reimplemented, "_ZNK18LeaderboardMessage14getMessageTypeEv", "LeaderboardMessage14getMessageTypeEv"},
     {0x02B1D4C, Status::Pending, "_ZN22TeamCreatedStreamEntryC2Ev", "TeamCreatedStreamEntryC2Ev"},

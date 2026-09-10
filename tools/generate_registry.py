@@ -168,6 +168,8 @@ REIMPLEMENTED_EXTRA = {
     "LatencyTestConfiguration": ("6encodeE", "6decodeE"),
     "PlayAgainStatus": ("6encodeE", "6decodeE"),
     "StatusChangeEntry": ("6encodeE", "6decodeE"),
+    "BaseNotification": ("6encodeE", "6decodeE"),
+    "FreeTextNotification": ("6encodeE", "6decodeE"),
     "LogicTencentAntiAddictionInstruction": ("6encodeE", "6decodeE"),
     "BattleLogPlayerEntry": ("6encodeE", "6decodeE"),
     "BrawlTvChannelInfo": ("6encodeE", "6decodeE"),

@@ -1,6 +1,9 @@
 // LogicClientHome bodies (see LogicClientHome.hpp).
 
 #include "titan/game/LogicClientHome.hpp"
+#include "titan/game/NotificationFactory.hpp"
+
+#include <string>
 
 namespace titan {
 
@@ -13,6 +16,7 @@ void LogicClientHome::encode(ByteStream& s) const {
     s.writeVInt(static_cast<i32>(notifications_.size()));
     for (const auto& [type, n] : notifications_) {
         s.writeVInt(type);
+        if (!n) throw pending_reverse("LogicClientHome needs Notification");
         n->encode(s);
     }
     s.writeVInt(v76_);
@@ -37,7 +41,8 @@ void LogicClientHome::decode(ByteStream& s) {
     notifications_.clear();
     for (i32 i = 0; i < n; ++i) {
         const i32 type = s.readVInt();
-        auto notif = std::make_unique<Notification>();
+        auto notif = createNotificationByType(type);
+        if (!notif) throw pending_reverse("notification type " + std::to_string(type));
         notif->decode(s);
         notifications_.emplace_back(type, std::move(notif));
     }

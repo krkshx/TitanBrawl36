@@ -62,6 +62,7 @@
 #include "titan/game/LogicOfferBundle.hpp"
 #include "titan/game/LogicQuests.hpp"
 #include "titan/game/LobbyInfoEntry.hpp"
+#include "titan/game/NotificationFactory.hpp"
 #include "titan/game/ProLeagueSeasonData.hpp"
 #include "titan/game/QuestData.hpp"
 #include "titan/game/ReleaseEntry.hpp"
@@ -1215,6 +1216,62 @@ int main() {
             back);
         CHECK(back.v8_ == 1 && back.s16_ == "a" && back.s48_ == "c");
         CHECK(back.v64_ == 64 && back.s72_ == "d");
+    }
+    // Notifications (@0x7beae0/@0x605478, FreeText @0x2b1cf4/@0x8b24a8, type 81).
+    {
+        CHECK(createNotificationByType(81) != nullptr);
+        CHECK(createNotificationByType(999) == nullptr);
+        CHECK(createNotificationByType(81)->notificationType() == 81);
+        FreeTextNotification back;
+        entryRoundTrip<FreeTextNotification>(
+            [](FreeTextNotification& e) {
+                e.v8_ = 1;
+                e.b12_ = true;
+                e.v16_ = 2;
+                e.s24_ = std::string("hi");
+                e.v48_ = 48;
+            },
+            back);
+        CHECK(back.v8_ == 1 && back.b12_ && back.v16_ == 2);
+        CHECK(back.s24_.value() == "hi" && back.v48_ == 48);
+    }
+    {
+        // ClientHome with a live notification (closes the home loop).
+        LogicClientHome back;
+        entryRoundTrip<LogicClientHome>(
+            [](LogicClientHome& h) {
+                h.daily_ = std::make_unique<LogicDailyData>();
+                h.daily_->forced_ = std::make_unique<ForcedDrops>();
+                h.conf_ = std::make_unique<LogicConfData>();
+                auto n = createNotificationByType(81);
+                n->v8_ = 5;
+                h.notifications_.emplace_back(81, std::move(n));
+            },
+            back);
+        CHECK(back.daily_ && back.conf_);
+        CHECK(back.notifications_.size() == 1);
+        CHECK(back.notifications_[0].first == 81);
+        CHECK(back.notifications_[0].second->v8_ == 5);
+    }
+    {
+        // Unknown notification types still throw loudly.
+        LogicClientHome back;
+        LogicClientHome h;
+        h.daily_ = std::make_unique<LogicDailyData>();
+        h.daily_->forced_ = std::make_unique<ForcedDrops>();
+        h.conf_ = std::make_unique<LogicConfData>();
+        h.notifications_.emplace_back(63, std::make_unique<BaseNotification>());
+        bool threw = false;
+        try {
+            ByteStream enc;
+            h.encode(enc);
+            ByteStream d;
+            d.setBuffer(enc.data(), enc.size());
+            back.decode(d);
+        } catch (const pending_reverse&) {
+            threw = true;
+        }
+        CHECK(threw);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {
