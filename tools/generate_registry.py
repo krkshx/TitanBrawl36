@@ -156,6 +156,10 @@ REIMPLEMENTED_EXTRA = {
     "TeamMemberEntry": ("6encodeE", "6decodeE"),
     "TeamInviteEntry": ("6encodeE", "6decodeE"),
     "TeamJoinRequest": ("6encodeE", "6decodeE"),
+    "LogicRankedMatch": ("6encodeE", "6decodeE"),
+    "LogicRankedMatchPlayer": ("6encodeE", "6decodeE"),
+    "RewardEntry": ("6encodeE", "6decodeE"),
+    "TeamInvitation": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

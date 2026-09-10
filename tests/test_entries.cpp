@@ -22,10 +22,13 @@
 #include "titan/game/LogicHeroUpgrades.hpp"
 #include "titan/game/LogicMilestoneProgress.hpp"
 #include "titan/game/LogicPlayer.hpp"
+#include "titan/game/LogicRankedMatch.hpp"
+#include "titan/game/LogicRankedMatchPlayer.hpp"
 #include "titan/game/LogicRankedSeason.hpp"
 #include "titan/game/LogicRankRewardConfig.hpp"
 #include "titan/game/TeamEntry.hpp"
 #include "titan/game/TeamInviteEntry.hpp"
+#include "titan/game/TeamInvitation.hpp"
 #include "titan/game/TeamJoinRequest.hpp"
 #include "titan/game/TeamMemberEntry.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
@@ -49,6 +52,7 @@
 #include "titan/game/ProLeagueSeasonData.hpp"
 #include "titan/game/QuestData.hpp"
 #include "titan/game/ReleaseEntry.hpp"
+#include "titan/game/RewardEntry.hpp"
 #include "titan/game/TimedIntValueEntry.hpp"
 #include "titan/game/VanityItemEntry.hpp"
 #include "titan/game/VanityItemProp.hpp"
@@ -969,6 +973,68 @@ int main() {
         TeamEntry back;
         entryRoundTrip<TeamEntry>([](TeamEntry&) {}, back);
         CHECK(!back.battleMap_ && !back.intList_ && back.members_.empty());
+    }
+    // RankedMatch + misc wave (@0x25999c, @0x400e0c/@0x47c4c8, @0x5515b4, @0x27b558).
+    {
+        LogicRankedMatchPlayer back;
+        entryRoundTrip<LogicRankedMatchPlayer>(
+            [](LogicRankedMatchPlayer& e) {
+                e.id8_ = LogicLong{1, 1};
+                e.display_ = std::make_unique<PlayerDisplayData>();
+                e.v24_ = 24;
+                e.ref40_ = DataReference{16, 2};
+                e.b80_ = true;
+            },
+            back);
+        CHECK(back.id8_.low == 1 && back.display_ && back.v24_ == 24);
+        CHECK(back.ref40_.has_value() && !back.ref56_ && back.b80_);
+    }
+    {
+        LogicRankedMatch back;
+        entryRoundTrip<LogicRankedMatch>(
+            [](LogicRankedMatch& e) {
+                e.uuid_.hi_ = 7;
+                e.b40_ = true;
+                e.players_.emplace();
+                auto p = std::make_unique<LogicRankedMatchPlayer>();
+                p->v32_ = 9;
+                e.players_->push_back(std::move(p));
+                e.v56_ = 56;
+            },
+            back);
+        CHECK(back.uuid_.hi_ == 7 && !back.ref32_ && back.b40_);
+        CHECK(back.players_.has_value() && back.players_->size() == 1);
+        CHECK(back.players_->at(0)->v32_ == 9 && back.v56_ == 56);
+    }
+    {
+        // Null players list round-trips as -1.
+        LogicRankedMatch back;
+        entryRoundTrip<LogicRankedMatch>([](LogicRankedMatch&) {}, back);
+        CHECK(!back.players_.has_value());
+    }
+    {
+        RewardEntry back;
+        entryRoundTrip<RewardEntry>(
+            [](RewardEntry& e) {
+                e.v0_ = 1;
+                e.b32_ = true;
+                e.offer_ = std::make_unique<LogicGemOffer>();
+                e.offer_->v0_ = 4;
+            },
+            back);
+        CHECK(back.v0_ == 1 && back.b32_ && !back.offer2_);
+        CHECK(back.offer_ && back.offer_->v0_ == 4);
+    }
+    {
+        TeamInvitation back;
+        entryRoundTrip<TeamInvitation>(
+            [](TeamInvitation& e) {
+                e.id0_ = LogicLong{9, 9};
+                e.friend_ = std::make_unique<FriendEntry>();
+                e.friend_->ints_[0] = 3;
+            },
+            back);
+        CHECK(back.id0_.low == 9 && back.friend_ && back.friend_->ints_[0] == 3);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

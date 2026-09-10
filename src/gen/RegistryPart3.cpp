@@ -852,7 +852,7 @@ extern const Entry kPart3[] = {
     {0x094B218, Status::ThirdPartyExternal, "_hb_face_get_upem", "global"},
     {0x094B24C, Status::Pending, "_ZN8Skeleton10initializeEPK7SCWFilePK6Stringi", "Skeleton10initializeEPK7SCWFilePK6Stringi"},
     {0x094B6F8, Status::Pending, "_ZN9BitStream15readIntMax32767Ev", "BitStream15readIntMax32767Ev"},
-    {0x094BAA8, Status::Pending, "_ZN14TeamInvitation8destructEv", "TeamInvitation8destructEv"},
+    {0x094BAA8, Status::Reimplemented, "_ZN14TeamInvitation8destructEv", "TeamInvitation8destructEv"},
     {0x094BB00, Status::Pending, "_ZNK9MovieClip7getHashEv", "MovieClip7getHashEv"},
     {0x094BB08, Status::Pending, "_ZN20LogicCharacterServer33triggerCharacterBuffingProjectileEPK19LogicProjectileDataiiiiii", "LogicCharacterServer33triggerCharacterBuffingPro"},
     {0x094BBCC, Status::Pending, "_ZThn96_N16DebugInputWindow13buttonClickedEP12CustomButton", "global"},

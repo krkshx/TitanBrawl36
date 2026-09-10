@@ -1,12 +1,6 @@
 #pragma once
 
-// RewardEntry — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(RewardEntry) placeholder.
+// RewardEntry — reversed (see game/RewardEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(RewardEntry);
-
-} // namespace titan
+#include "titan/game/RewardEntry.hpp"

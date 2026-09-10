@@ -1,12 +1,6 @@
 #pragma once
 
-// TeamInvitation — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(TeamInvitation) placeholder.
+// TeamInvitation — reversed (see game/TeamInvitation.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(TeamInvitation);
-
-} // namespace titan
+#include "titan/game/TeamInvitation.hpp"
