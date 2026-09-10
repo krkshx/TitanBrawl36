@@ -2,6 +2,7 @@
 
 #include "titan/sc/Debugger.hpp"
 #include "titan/sc/DisplayObject.hpp"
+#include "titan/sc/Sprite.hpp"
 
 #include <cstdio>
 
@@ -44,6 +45,34 @@ int main() {
         CHECK(!o.isVisible());
         o.setVisibleRecursive(true);
         CHECK(o.isVisible());
+    }
+    // Sprite children (@0x2b0b90/@0x687b14/@0x27bcb4/@0x2bddd8/@0x35ae34).
+    {
+        titan::sc::Sprite root;
+        titan::sc::DisplayObject a, b, c;
+        CHECK(root.childCount() == 0 && a.parent_ == nullptr && a.index_ == -1);
+        root.addChild(&a);
+        root.addChild(&b);
+        CHECK(root.childCount() == 2 && a.index_ == 0 && b.index_ == 1);
+        CHECK(a.parent_ == &root && root.children()[1] == &b);
+        root.addChildAt(&c, 1); // insert middle, followers shift
+        CHECK(root.childCount() == 3 && c.index_ == 1 && b.index_ == 2);
+        CHECK(root.children()[0] == &a && root.children()[2] == &b);
+        root.removeChildAt(0); // detach head
+        CHECK(a.parent_ == nullptr && a.index_ == -1);
+        CHECK(root.childCount() == 2 && c.index_ == 0 && b.index_ == 1);
+        root.removeChild(&c);
+        CHECK(root.childCount() == 1 && c.parent_ == nullptr);
+        root.removeAllChildren();
+        CHECK(root.childCount() == 0 && b.parent_ == nullptr && b.index_ == -1);
+    }
+    {
+        // Reparenting detaches from the old parent first.
+        titan::sc::Sprite r1, r2;
+        titan::sc::DisplayObject a;
+        r1.addChild(&a);
+        r2.addChild(&a);
+        CHECK(r1.childCount() == 0 && r2.childCount() == 1 && a.parent_ == &r2);
     }
 
     if (failures == 0) std::puts("sc: all ok");

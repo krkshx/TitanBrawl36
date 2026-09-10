@@ -266,7 +266,7 @@ extern const Entry kPart3[] = {
     {0x092BB50, Status::ThirdPartyExternal, "_Z39Java_com_supercell_titan_GameApp_updateP7_JNIEnvP7_jclass", "Java_com_supercell_titan_GameApp_updateP7_JNIEnv"},
     {0x092BB58, Status::ThirdPartyExternal, "_ZNSt6__ndk110__function6__funcIZN19EnvironmentRenderer6renderER9Matrix2x3R14ColorTransformifE3$_4NS_9allocatorIS7_EEFvvEEclEv", "global"},
     {0x092BBB8, Status::Reimplemented, "_ZN26CreateAccountFailedMessage6encodeEv", "CreateAccountFailedMessage6encodeEv"},
-    {0x092BBE0, Status::Pending, "_ZN6Sprite11removeChildEP13DisplayObject", "Sprite11removeChildEP13DisplayObject"},
+    {0x092BBE0, Status::Reimplemented, "_ZN6Sprite11removeChildEP13DisplayObject", "Sprite11removeChildEP13DisplayObject"},
     {0x092BC08, Status::Reimplemented, "_ZN22SubmitPlayerMapMessage6decodeEv", "SubmitPlayerMapMessage6decodeEv"},
     {0x092BC30, Status::Pending, "_ZN26LogicVanityItemSeenCommand6decodeEP10ByteStream", "LogicVanityItemSeenCommand6decodeEP10ByteStream"},
     {0x092BC60, Status::Pending, "_ZN12TitanWebView18setShowProgressBarEb", "TitanWebView18setShowProgressBarEb"},

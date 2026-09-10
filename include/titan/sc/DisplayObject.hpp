@@ -13,6 +13,8 @@
 
 namespace titan::sc {
 
+class Sprite;
+
 class DisplayObject {
 public:
     DisplayObject() = default;
@@ -45,6 +47,12 @@ public:
     [[nodiscard]] bool isVisible() const { return visible_; }
     void setVisible(bool v) { visible_ = v; }
     void setVisibleRecursive(bool v) { visible_ = v; }
+
+    // Child bookkeeping (used by Sprite): parent @+48 (null detached),
+    // index @+56 (-1 detached). See Sprite::addChildAt @0x687b14.
+    // Public like all port data fields (never serialized).
+    Sprite* parent_ = nullptr; // +48
+    int index_ = -1; // +56
 
 private:
     bool visible_ = true; // +8

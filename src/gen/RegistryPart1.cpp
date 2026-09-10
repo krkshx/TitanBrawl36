@@ -6088,7 +6088,7 @@ extern const Entry kPart1[] = {
     {0x05C32CC, Status::Pending, "_ZNK12scZlibFilter8compressEPKvm", "scZlibFilter8compressEPKvm"},
     {0x05C3430, Status::Pending, "_ZN15LeaderboardPageD2Ev", "LeaderboardPageD2Ev"},
     {0x05C3584, Status::Pending, "_ZNK28LogicGameObjectManagerServer25createGameObjectByClassIDEPK9LogicDatai", "LogicGameObjectManagerServer25createGameObjectBy"},
-    {0x05C3590, Status::Pending, "_ZN17LogicClientAvatar26commodityCountChangeHelperEiPK9LogicDataiibi", "LogicClientAvatar26commodityCountChangeHelperEiP"},
+    {0x05C3590, Status::Reimplemented, "_ZN17LogicClientAvatar26commodityCountChangeHelperEiPK9LogicDataiibi", "LogicClientAvatar26commodityCountChangeHelperEiP"},
     {0x05C3820, Status::Pending, "_ZN23LogicReflectableFactoryC2Ev", "LogicReflectableFactoryC2Ev"},
     {0x05C3834, Status::Pending, "_ZNK6scFile8getFlagsEv", "scFile8getFlagsEv"},
     {0x05C3844, Status::Pending, "_ZN10LogicGoals21canUnlockRewardOfTypeEiiiii", "LogicGoals21canUnlockRewardOfTypeEiiiii"},

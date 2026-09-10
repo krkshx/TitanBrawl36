@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2129 reimplemented, 9717 third-party, 25218 pending**
+Registry (compiled in): **2138 reimplemented, 9717 third-party, 25209 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2129 fns | `src/` + tests |
-| Game code pending | 25218 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2138 fns | `src/` + tests |
+| Game code pending | 25209 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -74,10 +74,16 @@ Registry (compiled in): **2129 reimplemented, 9717 third-party, 25218 pending**
   Avatar wire audit: ids are vint pairs (`encodeLogicLong`, were fixed
   ints), tail has 12 vints (+184/+188/+200 were missing), flag_ was
   nameSetByUser — all fixed and covered.
+- Avatar economy core: `get/setCommodityCount` (`@0x32922c`/`@0x7c7bc8`)
+  + `commodityCountChangeHelper` (`@0x5c3590`, resource-cap via
+  `LogicResourceData::getCap`, INT_MAX guard, delta==0 no-op).
 - sc engine (part 2): `DisplayObject` transform core (C2 `@0x529c3c`,
   x@+32/y@+36, scaleX@+16/scaleY@+28, all accessors verified) + visible
   flag @+8 (`setVisibleRecursive @0x9448f4` sets only self despite
-  the name).
+  the name) + `Sprite` children (`addChild @0x2b0b90`, `addChildAt
+  @0x687b14`, `removeChildAt @0x27bcb4`, `removeChild @0x92bbe0`,
+  `removeAllChildren @0x2bddd8`, `getChildrenArray @0x35ae34`;
+  parent @+48 / index @+56 bookkeeping).
 - Gameplay wave (part 3): `LogicDeleteNotificationCommand::execute
   @0x961cc4` + `LogicClientHome::removeNotification @0x8f73e4` (match by
   base +8 int, ownership transfer).
