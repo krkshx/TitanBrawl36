@@ -85,16 +85,31 @@ def load_reimplemented_classes():
 REIMPLEMENTED_CLASSES = load_reimplemented_classes()
 
 
+REIMPLEMENTED_METHODS = ("6encodeEv", "6decodeEv", "14getMessageTypeEv",
+                        "18getServiceNodeTypeEv", "20getMessageTypeNameEv",
+                        "8destructEv")
+
+
+def class_of(name):
+    # Returns the class name for _ZN<len><Class>... / _ZNK<len><Class>...
+    # (greedy-safe: the length prefix disambiguates).
+    m = re.match(r"_ZNK?(\d+)([A-Za-z_][A-Za-z0-9_]*)", name)
+    if not m:
+        return None
+    length = int(m.group(1))
+    cls = m.group(2)[:length]
+    if len(cls) != length:
+        return None
+    return cls
+
+
 def status_of(name):
     if name in REIMPLEMENTED:
         return "Reimplemented"
-    m = re.match(r"_ZN?K?(?:\d+)([A-Za-z_][A-Za-z0-9_]*)(.*)$", name)
-    if m and m.group(1) in REIMPLEMENTED_CLASSES:
-        # Only the protocol surface we actually reimplement counts;
-        # ctors/dtors/helpers of the same class stay Pending.
-        tail = m.group(2)
-        if re.search(r"6encodeEv|6decodeEv|14getMessageTypeEv|"
-                     r"18getServiceNodeTypeEv|20getMessageTypeNameEv|8destructEv", tail):
+    cls = class_of(name)
+    if cls is not None and cls in REIMPLEMENTED_CLASSES:
+        rest = name.split(cls, 1)[1]
+        if any(rest.startswith(t) or rest == t for t in REIMPLEMENTED_METHODS):
             return "Reimplemented"
     for marker in THIRD_PARTY_MARKERS:
         if marker in name:
