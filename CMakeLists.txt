@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # ---- Options ---------------------------------------------------------------
 option(TITAN_BUILD_TESTS "Build self-check tests" ON)
 option(TITAN_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
+option(TITAN_WITH_SODIUM "Enable libsodium session crypto" OFF)
 
 if(TITAN_WARNINGS_AS_ERRORS)
   if(MSVC)
@@ -24,6 +25,7 @@ endif()
 add_library(titan_core STATIC
   src/core/ChecksumEncoder.cpp
   src/core/ByteStream.cpp
+  src/core/BitStream.cpp
   src/core/PiranhaMessage.cpp
   src/messages/ResetAccountMessage.cpp
   src/messages/KeepAliveMessages.cpp
@@ -43,7 +45,10 @@ add_library(titan_core STATIC
   src/messages/MsgBatch13.cpp
   src/messages/MsgBatch14.cpp
   src/game/LogicCompressedString.cpp
+  src/game/DataTables.cpp
   src/gen/MessageFactory.cpp
+  src/gen/LogicCommands.cpp
+  src/crypto/Encrypter.cpp
   src/gen/Registry.cpp
   src/gen/RegistryPart0.cpp
   src/gen/RegistryPart1.cpp
@@ -60,6 +65,26 @@ if(MSVC)
   target_compile_options(titan_core PRIVATE /W4)
 else()
   target_compile_options(titan_core PRIVATE -Wall -Wextra)
+endif()
+
+if(TITAN_WITH_SODIUM)
+  find_package(PkgConfig QUIET)
+  if(PkgConfig_FOUND)
+    pkg_check_modules(SODIUM libsodium)
+  endif()
+  if(SODIUM_FOUND)
+    target_include_directories(titan_core PRIVATE ${SODIUM_INCLUDE_DIRS})
+    target_link_libraries(titan_core PUBLIC ${SODIUM_LIBRARIES})
+    target_compile_definitions(titan_core PUBLIC TITAN_WITH_SODIUM)
+  else()
+    find_library(SODIUM_LIB sodium)
+    if(SODIUM_LIB)
+      target_link_libraries(titan_core PUBLIC ${SODIUM_LIB})
+      target_compile_definitions(titan_core PUBLIC TITAN_WITH_SODIUM)
+    else()
+      message(WARNING "TITAN_WITH_SODIUM=ON but libsodium not found; crypto disabled")
+    endif()
+  endif()
 endif()
 
 # ---- Tests -----------------------------------------------------------------
@@ -84,6 +109,18 @@ if(TITAN_BUILD_TESTS)
   add_executable(titan_factory_test tests/test_factory.cpp)
   target_link_libraries(titan_factory_test PRIVATE titan_core)
   add_test(NAME factory COMMAND titan_factory_test)
+
+  add_executable(titan_bitstream_test tests/test_bitstream.cpp)
+  target_link_libraries(titan_bitstream_test PRIVATE titan_core)
+  add_test(NAME bitstream COMMAND titan_bitstream_test)
+
+  add_executable(titan_crypto_test tests/test_crypto.cpp)
+  target_link_libraries(titan_crypto_test PRIVATE titan_core)
+  add_test(NAME crypto COMMAND titan_crypto_test)
+
+  add_executable(titan_datatables_test tests/test_datatables.cpp)
+  target_link_libraries(titan_datatables_test PRIVATE titan_core)
+  add_test(NAME datatables COMMAND titan_datatables_test)
 endif()
 
 # ---- Install (keeps all platforms happy) -----------------------------------
