@@ -51,8 +51,11 @@ public:
 
     // --- readers ---
     bool readBoolean();                    // @0x23bc10
+    i8 readByte();
+    i16 readShort();
     i32 readInt();                         // @0x191dc4
     i32 readVInt();                        // @0x356c40
+    i64 readLongLong();
     std::optional<std::string> readString();
     std::string readStringReference(); // @0x28f62c (negative len -> "")
     std::vector<u8> readBytes();

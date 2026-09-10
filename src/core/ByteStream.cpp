@@ -272,6 +272,25 @@ i32 ByteStream::readInt() {
     return static_cast<i32>((b0 << 24) | (b1 << 16) | (b2 << 8) | b3);
 }
 
+i8 ByteStream::readByte() {
+    bitOffset_ = 0;
+    return static_cast<i8>(readByteRaw());
+}
+
+i16 ByteStream::readShort() {
+    bitOffset_ = 0;
+    const u32 hi = readByteRaw();
+    const u32 lo = readByteRaw();
+    return static_cast<i16>((hi << 8) | lo);
+}
+
+i64 ByteStream::readLongLong() {
+    bitOffset_ = 0;
+    i64 v = 0;
+    for (int i = 0; i < 8; ++i) v = (v << 8) | readByteRaw();
+    return v;
+}
+
 // @0x356c40 — ByteStream::readVInt.
 // First byte: low 6 bits payload, 0x40 = negative, 0x80 = continuation.
 // Continuation bytes carry 7 bits; the negative path sign-extends the
