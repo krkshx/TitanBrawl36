@@ -1,12 +1,13 @@
 #pragma once
 
-// BattlePlayerMap — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(BattlePlayerMap) placeholder.
+// BattlePlayerMap — reversed as LogicBattlePlayerMap
+// (see game/LogicBattlePlayerMap.hpp). Alias kept so existing users
+// (EventData, StartLoadingMessage) don't churn.
 
-#include "titan/messages/Nested.hpp"
+#include "titan/game/LogicBattlePlayerMap.hpp"
 
 namespace titan {
 
-TITAN_PENDING_ENTRY(BattlePlayerMap);
+using BattlePlayerMap = LogicBattlePlayerMap;
 
 } // namespace titan

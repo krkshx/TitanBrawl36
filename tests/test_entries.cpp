@@ -22,6 +22,12 @@
 #include "titan/game/LogicHeroUpgrades.hpp"
 #include "titan/game/LogicMilestoneProgress.hpp"
 #include "titan/game/LogicPlayer.hpp"
+#include "titan/game/LogicRankedSeason.hpp"
+#include "titan/game/LogicRankRewardConfig.hpp"
+#include "titan/game/TeamEntry.hpp"
+#include "titan/game/TeamInviteEntry.hpp"
+#include "titan/game/TeamJoinRequest.hpp"
+#include "titan/game/TeamMemberEntry.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
 #include "titan/game/LogicUuid.hpp"
 #include "titan/game/LogicVector2.hpp"
@@ -858,6 +864,111 @@ int main() {
         CHECK(back.v24_ == 24 && back.v28_ == 0 && back.v36_ == 36);
         CHECK(back.opt40_.has_value() && back.opt40_->high == 7 && back.opt40_->low == 9);
         CHECK(back.display_ != nullptr);
+    }
+    // RankedSeason + TeamEntry wave (@0x2a66b0, @0x48ce6c/@0x7c1a40).
+    {
+        LogicRankRewardConfig back;
+        entryRoundTrip<LogicRankRewardConfig>(
+            [](LogicRankRewardConfig& e) {
+                e.v8_ = 8;
+                e.v12_ = 12;
+            },
+            back);
+        CHECK(back.v8_ == 8 && back.v12_ == 12);
+    }
+    {
+        LogicRankedSeason back;
+        entryRoundTrip<LogicRankedSeason>(
+            [](LogicRankedSeason& e) {
+                e.v8_ = 1;
+                e.name_ = std::string("season7");
+                e.v28_ = 28;
+                auto r = std::make_unique<LogicRewardConfig>();
+                e.rewards_.push_back(std::move(r));
+                auto rr = std::make_unique<LogicRankRewardConfig>();
+                rr->v12_ = 3;
+                e.rankRewards_.push_back(std::move(rr));
+            },
+            back);
+        CHECK(back.v8_ == 1 && back.name_.value() == "season7");
+        CHECK(back.v24_ == 0 && back.v28_ == 28);
+        CHECK(back.rewards_.size() == 1 && back.rankRewards_.size() == 1);
+        CHECK(back.rankRewards_[0]->v12_ == 3);
+    }
+    {
+        TeamInviteEntry back;
+        entryRoundTrip<TeamInviteEntry>(
+            [](TeamInviteEntry& e) {
+                e.id0_ = LogicLong{1, 2};
+                e.name_ = std::string("inv");
+                e.v28_ = 5;
+            },
+            back);
+        CHECK(back.id0_.low == 2 && back.name_.value() == "inv" && back.v28_ == 5);
+    }
+    {
+        TeamJoinRequest back;
+        entryRoundTrip<TeamJoinRequest>(
+            [](TeamJoinRequest& e) {
+                e.id8_ = LogicLong{3, 4};
+                e.friend_ = std::make_unique<FriendEntry>();
+                e.friend_->v80_ = 6;
+            },
+            back);
+        CHECK(back.id8_.low == 4 && back.friend_ && back.friend_->v80_ == 6);
+    }
+    {
+        TeamMemberEntry back;
+        entryRoundTrip<TeamMemberEntry>(
+            [](TeamMemberEntry& e) {
+                e.b0_ = true;
+                e.id8_ = LogicLong{0, 77};
+                e.ref16_ = DataReference{16, 1};
+                e.v32_ = 32;
+                e.v64_ = 64;
+                e.display_ = std::make_unique<PlayerDisplayData>();
+                e.v96_ = 96;
+            },
+            back);
+        CHECK(back.b0_ && !back.b1_);
+        CHECK(back.id8_.low == 77 && back.ref16_.has_value() && !back.ref24_);
+        CHECK(back.v32_ == 32 && back.v64_ == 64 && back.v96_ == 96);
+        CHECK(back.display_ && !back.ref80_ && !back.ref88_);
+    }
+    {
+        // TeamEntry incl. nullable list forms.
+        TeamEntry back;
+        entryRoundTrip<TeamEntry>(
+            [](TeamEntry& e) {
+                e.v0_ = 1;
+                e.b4_ = true;
+                e.id16_ = LogicLong{5, 6};
+                e.ref40_ = DataReference{16, 3};
+                e.battleMap_ = std::make_unique<LogicBattlePlayerMap>();
+                e.battleMap_->v16_ = 2;
+                e.battleMap_->compressed_ = std::make_unique<LogicCompressedString>();
+                auto m = std::make_unique<TeamMemberEntry>();
+                m->display_ = std::make_unique<PlayerDisplayData>();
+                e.members_.push_back(std::move(m));
+                e.ints80_ = {1, 2};
+                e.b72_ = true;
+                e.intList_ = std::vector<i32>{9};
+            },
+            back);
+        CHECK(back.v0_ == 1 && back.b4_ && !back.b5_ && !back.b6_);
+        CHECK(back.id16_.low == 6 && back.ref40_.has_value());
+        CHECK(back.battleMap_ && back.battleMap_->v16_ == 2);
+        CHECK(!back.battleMap_->longs_.has_value());
+        CHECK(back.members_.size() == 1 && back.invites_.empty());
+        CHECK(back.joinRequests_.empty());
+        CHECK(back.ints80_.size() == 2 && back.b72_ && !back.b73_ && !back.b74_);
+        CHECK(back.intList_.has_value() && back.intList_->size() == 1);
+    }
+    {
+        // Null battle map + null int list round-trip as absent.
+        TeamEntry back;
+        entryRoundTrip<TeamEntry>([](TeamEntry&) {}, back);
+        CHECK(!back.battleMap_ && !back.intList_ && back.members_.empty());
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

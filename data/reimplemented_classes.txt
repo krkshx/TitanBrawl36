@@ -460,3 +460,10 @@ LogicVector2
 XpEntry
 LogicUuid
 PlayerEntry
+LogicBattlePlayerMap
+LogicRankedSeason
+LogicRankRewardConfig
+TeamEntry
+TeamInviteEntry
+TeamJoinRequest
+TeamMemberEntry

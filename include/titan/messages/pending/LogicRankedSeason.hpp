@@ -1,11 +1,6 @@
 #pragma once
 
-// LogicRankedSeason — not yet reversed; encode/decode throw pending_reverse.
+// LogicRankedSeason — reversed (see game/LogicRankedSeason.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LogicRankedSeason);
-
-} // namespace titan
+#include "titan/game/LogicRankedSeason.hpp"

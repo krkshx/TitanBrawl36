@@ -149,6 +149,13 @@ REIMPLEMENTED_EXTRA = {
     "XpEntry": ("6encodeE", "6decodeE"),
     "LogicUuid": ("6encodeE", "6decodeE"),
     "PlayerEntry": ("6encodeE", "6decodeE"),
+    "LogicRankedSeason": ("6encodeE", "6decodeE"),
+    "LogicRankRewardConfig": ("6encodeE", "6decodeE"),
+    "LogicBattlePlayerMap": ("6encodeE", "6decodeE"),
+    "TeamEntry": ("6encodeE", "6decodeE"),
+    "TeamMemberEntry": ("6encodeE", "6decodeE"),
+    "TeamInviteEntry": ("6encodeE", "6decodeE"),
+    "TeamJoinRequest": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }
