@@ -3,12 +3,14 @@
 #include "titan/commands/LogicChangeAvatarNameCommand.hpp"
 #include "titan/commands/LogicDeleteNotificationCommand.hpp"
 #include "titan/commands/LogicDiamondsAddedCommand.hpp"
+#include "titan/commands/LogicPurchaseDoubleCoinsCommand.hpp"
 #include "titan/game/LogicClientAvatar.hpp"
 #include "titan/game/LogicClientHome.hpp"
 #include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicDailyData.hpp"
 #include "titan/game/LogicData.hpp"
 #include "titan/game/GatchaDrop.hpp"
+#include "titan/game/IntValueEntry.hpp"
 #include "titan/game/LogicHomeMode.hpp"
 #include "titan/game/NotificationFactory.hpp"
 
@@ -260,6 +262,42 @@ int main() {
             threw = true;
         }
         CHECK(threw);
+    }
+    // ConfData int values (@0x4698d8/@0x51a1f0/@0x999c84).
+    {
+        LogicConfData conf;
+        CHECK(conf.getIntValue(10006) == 40); // default table
+        CHECK(conf.getIntValue(10007) == 1000);
+        CHECK(conf.getIntValue(10022) == 604800);
+        CHECK(conf.getIntValue(99999) == 0);
+        CHECK(conf.getIntValueEntry(10006) == nullptr);
+        auto e = std::make_unique<IntValueEntry>();
+        e->a_ = 10006;
+        e->b_ = 42;
+        conf.intValues_.push_back(std::move(e));
+        CHECK(conf.getIntValue(10006) == 42); // entry beats default
+        CHECK(conf.getIntValueEntry(10006)->b_ == 42);
+        CHECK(conf.getIntValue(10006, 7) == 42); // entry beats fallback
+        CHECK(conf.getIntValue(99999, 7) == 7); // fallback (@0x26187c)
+    }
+    // PurchaseDoubleCoins execute @0x92b034.
+    {
+        // No home/avatar -> silent 0.
+        LogicPurchaseDoubleCoinsCommand c;
+        LogicHomeMode empty;
+        CHECK(c.execute(&empty, 0, false) == 0);
+        // Broke (default price 10006 = 40) -> silent 0.
+        auto home = makeHome(30, 0);
+        home->setHome(std::make_unique<LogicClientHome>());
+        home->getHome()->daily_ = std::make_unique<LogicDailyData>();
+        home->getHome()->conf_ = std::make_unique<LogicConfData>();
+        CHECK(c.execute(home.get(), 0, false) == 0);
+        CHECK(home->getPlayerAvatar()->getDiamonds() == 30);
+        // Rich: charged + daily bonus booked (default 10007 = 1000).
+        home->getPlayerAvatar()->setDiamonds(500);
+        CHECK(c.execute(home.get(), 0, false) == 0);
+        CHECK(home->getPlayerAvatar()->getDiamonds() == 460);
+        CHECK(home->getHome()->daily_->tail43_[0] == 1000); // default 10007
     }
 
     if (failures == 0) std::puts("gameplay: all ok");

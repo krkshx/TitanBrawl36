@@ -93,4 +93,46 @@ void LogicConfData::decode(ByteStream& s) {
     }
 }
 
+const IntValueEntry* LogicConfData::getIntValueEntry(i32 id) const {
+    for (const auto& e : intValues_) {
+        if (e && e->a_ == id) return e.get();
+    }
+    return nullptr;
+}
+
+i32 LogicConfData::getIntValue(i32 id) const {
+    const IntValueEntry* e = getIntValueEntry(id);
+    return e ? e->b_ : getDefaultIntValue(id);
+}
+
+i32 LogicConfData::getIntValue(i32 id, i32 fallback) const {
+    const IntValueEntry* e = getIntValueEntry(id);
+    return e ? e->b_ : fallback;
+}
+
+i32 LogicConfData::getDefaultIntValue(i32 id) {
+    switch (id - 10000) {
+        case 0: return 100;
+        case 1: case 5: case 16: case 32: case 33: return 10;
+        case 2: return 30;
+        case 3: return 3;
+        case 4: return 80;
+        case 6: return 40;
+        case 7: case 27: case 28: case 35: case 36: case 37: return 1000;
+        case 8: return 550;
+        case 10: return 999900;
+        case 12: case 39: return 2;
+        case 13: return 200;
+        case 14: return 20;
+        case 15: return 8640;
+        case 17: case 29: return 5;
+        case 19: case 20: case 23: case 24: case 25: case 26:
+        case 30: case 31: case 41: case 42: return 1;
+        case 21: case 34: return 50;
+        case 22: return 604800;
+        case 43: return 300;
+        default: return 0;
+    }
+}
+
 } // namespace titan

@@ -38,6 +38,14 @@ public:
         if (level < 1 || level > static_cast<int>(ints17_.size())) return 0;
         return ints17_[static_cast<std::size_t>(level - 1)];
     }
+    // getIntValueEntry @0x4698d8: first intValues_ entry with a_ == id.
+    // getIntValue @0x51a1f0: entry value or getDefaultIntValue(id).
+    // getIntValue(id, fallback) @0x26187c: entry value or caller default.
+    // getDefaultIntValue @0x999c84: hardcoded table below.
+    [[nodiscard]] const IntValueEntry* getIntValueEntry(i32 id) const;
+    [[nodiscard]] i32 getIntValue(i32 id) const;
+    [[nodiscard]] i32 getIntValue(i32 id, i32 fallback) const;
+    [[nodiscard]] static i32 getDefaultIntValue(i32 id);
 
     i32 v0_ = 0; // +0
     std::vector<std::unique_ptr<EventSlot>> slots_;          // +8 (+20)
