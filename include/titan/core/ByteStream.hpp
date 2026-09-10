@@ -59,6 +59,7 @@ public:
     std::optional<std::string> readString();
     std::string readStringReference(); // @0x28f62c (negative len -> "")
     std::vector<u8> readBytes();
+    std::optional<std::vector<u8>> readBytesNullable(); // -1 -> nullopt
 
     // Load a received buffer for decoding (sets cursor to 0).
     void setBuffer(const u8* data, i32 len);
@@ -67,6 +68,7 @@ public:
     [[nodiscard]] const u8* data() const { return buffer_.data(); }
     [[nodiscard]] i32 size() const { return length_; }
     [[nodiscard]] i32 cursor() const { return readCursor_; }
+    [[nodiscard]] bool isAtEnd() const { return readCursor_ >= length_; } // @0x7625a8
     [[nodiscard]] i32 bitOffset() const { return bitOffset_; }
     void clear();
 

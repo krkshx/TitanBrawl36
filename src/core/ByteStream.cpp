@@ -375,6 +375,19 @@ std::string ByteStream::readStringReference() {
     return out;
 }
 
+std::optional<std::vector<u8>> ByteStream::readBytesNullable() {
+    const i32 len = readInt();
+    if (len < 0) {
+        return std::nullopt;
+    }
+    if (readCursor_ + len > length_) {
+        throw std::out_of_range("ByteStream::readBytes past end");
+    }
+    std::vector<u8> out(buffer_.begin() + readCursor_, buffer_.begin() + readCursor_ + len);
+    readCursor_ += len;
+    return out;
+}
+
 std::vector<u8> ByteStream::readBytes() {
     const i32 len = readInt();
     if (len < 0) {
