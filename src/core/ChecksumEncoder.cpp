@@ -27,6 +27,22 @@ void ChecksumEncoder::writeInt(i32 value) {
     checksum_ = static_cast<u32>(value) + rotated() + 9u;
 }
 
+// @0x739a8c — ChecksumEncoder::writeVLong
+// Chained 64-bit fold over the (high, low) halves:
+//   v7 = (u64)state<<32 | state;  x = high + (u32)(v7>>31) + 65;
+//   v7b = (u64)x<<32 | x;         state = low + (u32)(v7b>>31) + 88.
+// (The >>31 terms are the binary's rotl idiom evaluated in 64 bits,
+// hence the extra carried bit vs rotated(); reproduced exactly.)
+void ChecksumEncoder::writeVLong(i64 value) {
+    const u64 u = static_cast<u64>(value);
+    const u32 lo = static_cast<u32>(u);
+    const u32 hi = static_cast<u32>(u >> 32);
+    const u64 v7 = (static_cast<u64>(checksum_) << 32) | checksum_;
+    const u32 x = hi + static_cast<u32>(v7 >> 31) + 65u;
+    const u64 v7b = (static_cast<u64>(x) << 32) | x;
+    checksum_ = lo + static_cast<u32>(v7b >> 31) + 88u;
+}
+
 // @0x6ed97c — ChecksumEncoder::writeString shape
 //   state = rotl(state,1) + charLength + 28 (null -> rotl + 27)
 void ChecksumEncoder::writeStringLength(i32 charLength, bool isNull) {

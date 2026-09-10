@@ -17,6 +17,7 @@
 //     writeBytes   -> K = 38 + len, 37 if null    @0x7c317c
 //     writeVInt    -> K = 33                      @0x5c50e0
 //     writeInt     -> K = 9                       @0x8a558c
+//     writeVLong   -> chained fold (see .cpp)     @0x739a8c
 // (charLength = UTF-16 units per getCharLength @0x62b658.)
 
 namespace titan {
@@ -29,6 +30,7 @@ public:
     virtual void writeBoolean(bool value);   // @0x534690
     virtual void writeVInt(i32 value);       // @0x5c50e0
     virtual void writeInt(i32 value);        // @0x8a558c
+    virtual void writeVLong(i64 value);      // @0x739a8c
     virtual void writeStringLength(i32 charLength, bool isNull); // @0x6ed97c shape
     virtual void writeStringReferenceLength(i32 charLength);     // @0x69a564
     virtual void writeBytesLength(i32 len, bool isNull);         // @0x7c317c

@@ -51,6 +51,7 @@ public:
     void writeBoolean(bool value);              // @0x3294c0
     void writeInt(i32 value) override;          // @0x3f3bd0
     void writeVInt(i32 value) override;         // @0x298f64
+    void writeVLong(i64 value) override;        // @0x3ec094
     void writeString(const std::string* value); // @0x5174d0 (null -> -1)
     void writeStringReference(const std::string& value); // @0x608f14 (never null)
     void writeBytes(const u8* data, i32 len);   // @0x61bd08 (null -> -1)
@@ -66,6 +67,7 @@ public:
     i16 readShort();
     i32 readInt();                         // @0x191dc4
     i32 readVInt();                        // @0x356c40
+    i64 readVLong();                       // @0x8d3af0
     i64 readLongLong();
     std::optional<std::string> readString();
     std::string readStringReference(); // @0x28f62c (negative len -> "")

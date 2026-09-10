@@ -41,6 +41,9 @@ REIMPLEMENTED = {
     "_ZN10ByteStream12writeBooleanEb",
     "_ZN10ByteStream8writeIntEi",
     "_ZN10ByteStream9writeVIntEi",
+    "_ZN10ByteStream10writeVLongEx",
+    "_ZN10ByteStream9readVLongEv",
+    "_ZN15ChecksumEncoder10writeVLongEx",
     "_ZN10ByteStream19writeIntToByteArrayEi",
     "_ZN10ByteStream11writeStringEPK6String",
     "_ZN10ByteStream10writeBytesEPci",
@@ -144,6 +147,7 @@ REIMPLEMENTED_EXTRA = {
     "AllianceWarNode": ("6encodeE", "6decodeE"),
     "LogicVector2": ("6encodeE", "6decodeE"),
     "XpEntry": ("6encodeE", "6decodeE"),
+    "LogicUuid": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

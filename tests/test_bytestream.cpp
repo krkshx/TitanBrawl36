@@ -55,7 +55,78 @@ int main() {
             }
         }
     }
-    // VInt single-byte markers (bit-exact with @0x298f64).
+    // VLong round-trip across every length class boundary (@0x3ec094/@0x8d3af0).
+    {
+        const std::vector<i64> values = {
+            0, 1, 63, 64, -1, -63, -64, -65,
+            0x1FFF, 0x2000, -8191, -8192,
+            0xFFFFF, 0x100000, -1048575, -1048576,
+            0x7FFFFFF, 0x8000000, -134217727, -134217728,
+            0x3FFFFFFFFLL, 0x400000000LL, -0x400000000LL,
+            0x1FFFFFFFFFFLL, 0x20000000000LL,
+            0xFFFFFFFFFFFFLL, 0x1000000000000LL,
+            0x7FFFFFFFFFFFFFLL, 0x80000000000000LL,
+            0x3FFFFFFFFFFFFFFFLL, 0x4000000000000000LL,
+            9223372036854775807LL, INT64_MIN,
+        };
+        for (i64 v : values) {
+            ByteStream s;
+            s.writeVLong(v);
+            CHECK(s.size() >= 1 && s.size() <= 10);
+            s.setBuffer(s.data(), s.size());
+            const i64 back = s.readVLong();
+            if (back != v) {
+                ++failures;
+                std::printf("FAIL vlong: wrote %lld read %lld\n",
+                            (long long)v, (long long)back);
+            }
+        }
+    }
+    // VLong single-byte markers (bit-exact with @0x3ec094).
+    {
+        ByteStream s;
+        s.writeVLong(0);
+        CHECK(s.size() == 1 && s.data()[0] == 0x00);
+        ByteStream a;
+        a.writeVLong(63);
+        CHECK(a.size() == 1 && a.data()[0] == 0x3F);
+        ByteStream b;
+        b.writeVLong(64);
+        CHECK(b.size() == 2 && b.data()[0] == 0x80 && b.data()[1] == 0x01);
+        ByteStream n;
+        n.writeVLong(-1);
+        CHECK(n.size() == 1 && n.data()[0] == 0x7F); // (-1 & 0x3F) | 0x40
+        ByteStream m;
+        m.writeVLong(-64);
+        CHECK(m.size() == 1 && m.data()[0] == 0x40);
+        ByteStream k;
+        k.writeVLong(-65);
+        CHECK(k.size() == 2 && k.data()[0] == 0xFF && k.data()[1] == 0x7E);
+    }
+    // VLong length classes (binary thresholds).
+    {
+        ByteStream s;
+        s.writeVLong(0x2000);
+        CHECK(s.size() == 3);
+        ByteStream t;
+        t.writeVLong(9223372036854775807LL);
+        CHECK(t.size() == 10);
+        ByteStream u;
+        u.writeVLong(INT64_MIN);
+        CHECK(u.size() == 10);
+    }
+    // VLong checksum fold (@0x739a8c) is deterministic.
+    {
+        ByteStream s, t;
+        s.writeVLong(1234567890123LL);
+        t.writeVLong(1234567890123LL);
+        CHECK(s.checksum() == t.checksum());
+        ByteStream z;
+        z.writeVLong(0);
+        // lo=0,hi=0: x = 0+0+65 = 65; state = 0 + ((65<<32|65)>>31) + 88
+        // = 130 + 88 = 218.
+        CHECK(z.checksum() == 218u);
+    }
     {
         ByteStream s;
         s.writeVInt(0);

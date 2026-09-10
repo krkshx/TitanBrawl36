@@ -23,6 +23,7 @@
 #include "titan/game/LogicMilestoneProgress.hpp"
 #include "titan/game/LogicPlayer.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
+#include "titan/game/LogicUuid.hpp"
 #include "titan/game/LogicVector2.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
@@ -824,6 +825,18 @@ int main() {
             },
             back);
         CHECK(back.a_ == 5 && back.b_ == 6);
+    }
+    // LogicUuid (@0x29dc9c, exercises writeVLong/readVLong).
+    {
+        LogicUuid back;
+        entryRoundTrip<LogicUuid>(
+            [](LogicUuid& e) {
+                e.hi_ = 0x0123456789ABCDEFULL;
+                e.lo_ = 0xFEDCBA9876543210ULL;
+            },
+            back);
+        CHECK(back.hi_ == 0x0123456789ABCDEFULL);
+        CHECK(back.lo_ == 0xFEDCBA9876543210ULL);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

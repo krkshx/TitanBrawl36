@@ -183,6 +183,52 @@ void ByteStream::writeVInt(i32 value) {
     putByte(static_cast<u8>(value & 0x3F));
 }
 
+// @0x3ec094 — ByteStream::writeVLong
+// Checksum first, reset bitOffset, ensure length+10 fits (binary: +110),
+// then the 1..10 byte sign-aware varint: first byte carries 6 payload bits
+// + 0x40 sign + 0x80 continuation, following bytes 7-bit LE groups with
+// 0x80 continuation (verified against the binary's range thresholds:
+// 63/-64, 0x2000/-8191, 0x100000/-1048575, 0x7FFFFFF/-134217727, ...).
+void ByteStream::writeVLong(i64 value) {
+    ChecksumEncoder::writeVLong(value);
+    bitOffset_ = 0;
+    ensureCapacity(10);
+
+    const u64 u = static_cast<u64>(value);
+    const bool neg = value < 0;
+    if (!neg && value <= 63) {
+        putByte(static_cast<u8>(u & 0x3F));
+        return;
+    }
+    if (neg && value >= -64) {
+        putByte(static_cast<u8>((u & 0x3F) | 0x40));
+        return;
+    }
+    putByte(static_cast<u8>((u & 0x3F) | 0x80 | (neg ? 0x40u : 0u)));
+    int shift = 6;
+    for (;;) {
+        const u64 grp = (u >> shift) & 0x7F;
+        // Final group when the remaining higher bits are all sign bits.
+        // shift+7 can exceed 63; the 10th byte is unconditionally final
+        // in the binary, same as the shift >= 62 cutoff here.
+        bool last = shift >= 62;
+        if (!last) {
+            const int next = shift + 7;
+            if (neg) {
+                last = (value >> next) == -1 || (value >> next) == 0;
+            } else {
+                last = (u >> next) == 0;
+            }
+        }
+        if (last) {
+            putByte(static_cast<u8>(grp));
+            return;
+        }
+        putByte(static_cast<u8>(grp | 0x80));
+        shift += 7;
+    }
+}
+
 // @0x5174d0 — ByteStream::writeString
 // Checksum with char length; null -> writeInt(-1); length comes from the
 // UTF-8 byte length; >= 900001 bytes rejected (-> -1).
@@ -390,6 +436,37 @@ i32 ByteStream::readVInt() {
     }
     const u8 b4 = readByteRaw();
     return static_cast<i32>((result & 0x07FFFFFFu) | (static_cast<u32>(b4) << 27));
+}
+
+// @0x8d3af0 — ByteStream::readVLong.
+// 64-bit sibling of readVInt: first byte carries 6 payload bits +
+// 0x40 sign + 0x80 continuation, then 7-bit LE groups (up to 10 bytes
+// total; the 10th byte is unconditionally final, mirroring the binary's
+// unrolled decoder). Negatives are sign-extended per length.
+i64 ByteStream::readVLong() {
+    bitOffset_ = 0;
+    const u8 first = readByteRaw();
+    u64 v = first & 0x3F;
+    const bool neg = (first & 0x40) != 0;
+    int total = 6;
+    if ((first & 0x80) != 0) {
+        int shift = 6;
+        for (int i = 0; i < 9; ++i) {
+            const u8 b = readByteRaw();
+            v |= (static_cast<u64>(b & 0x7F)) << shift;
+            shift += 7;
+            if ((b & 0x80) == 0) break;
+        }
+        total = shift;
+    }
+    if (neg) {
+        if (total > 64) {
+            v |= (1ULL << 63);
+        } else {
+            v |= ~((1ULL << total) - 1ULL);
+        }
+    }
+    return static_cast<i64>(v);
 }
 
 std::optional<std::string> ByteStream::readString() {
