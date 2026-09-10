@@ -194,39 +194,22 @@ void ByteStream::writeVLong(i64 value) {
     bitOffset_ = 0;
     ensureCapacity(10);
 
+    // Length is range-selected (NOT remaining-bits): the binary emits the
+    // canonical long form at exact powers (e.g. -8192 takes 3 bytes).
+    const int n = getVLongSizeInBytes(value);
     const u64 u = static_cast<u64>(value);
     const bool neg = value < 0;
-    if (!neg && value <= 63) {
-        putByte(static_cast<u8>(u & 0x3F));
-        return;
-    }
-    if (neg && value >= -64) {
-        putByte(static_cast<u8>((u & 0x3F) | 0x40));
+    if (n == 1) {
+        putByte(static_cast<u8>((u & 0x3F) | (neg ? 0x40u : 0u)));
         return;
     }
     putByte(static_cast<u8>((u & 0x3F) | 0x80 | (neg ? 0x40u : 0u)));
     int shift = 6;
-    for (;;) {
-        const u64 grp = (u >> shift) & 0x7F;
-        // Final group when the remaining higher bits are all sign bits.
-        // shift+7 can exceed 63; the 10th byte is unconditionally final
-        // in the binary, same as the shift >= 62 cutoff here.
-        bool last = shift >= 62;
-        if (!last) {
-            const int next = shift + 7;
-            if (neg) {
-                last = (value >> next) == -1 || (value >> next) == 0;
-            } else {
-                last = (u >> next) == 0;
-            }
-        }
-        if (last) {
-            putByte(static_cast<u8>(grp));
-            return;
-        }
-        putByte(static_cast<u8>(grp | 0x80));
+    for (int i = 2; i < n; ++i) {
+        putByte(static_cast<u8>(((u >> shift) & 0x7F) | 0x80));
         shift += 7;
     }
+    putByte(static_cast<u8>((u >> shift) & 0x7F));
 }
 
 // @0x5174d0 — ByteStream::writeString
@@ -467,6 +450,33 @@ i64 ByteStream::readVLong() {
         }
     }
     return static_cast<i64>(v);
+}
+
+// @0x258bb4 — ByteStream::getVLongSizeInBytes (static in our port; the
+// binary takes an unused this). Threshold table copied exactly.
+int ByteStream::getVLongSizeInBytes(i64 value) {
+    if (value < 0) {
+        if (value > -64) return 1;
+        if (value > -8192) return 2;
+        if (value > -1048576) return 3;
+        if (value > -134217728) return 4;
+        if (value > (i64)0xFFFFFFFC00000000LL) return 5;
+        if (value > (i64)0xFFFFFE0000000000LL) return 6;
+        if (value > (i64)0xFFFF000000000000LL) return 7;
+        if (value > (i64)0xFF80000000000000LL) return 8;
+        if (value > (i64)0xC000000000000000LL) return 9;
+        return 10;
+    }
+    if (value < 64) return 1;
+    if (value < 0x2000) return 2;
+    if (value < 0x100000) return 3;
+    if (value < 0x8000000) return 4;
+    if (value < 0x400000000LL) return 5;
+    if (value < 0x20000000000LL) return 6;
+    if (value < 0x1000000000000LL) return 7;
+    if (value < 0x80000000000000LL) return 8;
+    if (value < 0x4000000000000000LL) return 9;
+    return 10;
 }
 
 std::optional<std::string> ByteStream::readString() {

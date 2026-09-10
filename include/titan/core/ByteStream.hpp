@@ -68,6 +68,9 @@ public:
     i32 readInt();                         // @0x191dc4
     i32 readVInt();                        // @0x356c40
     i64 readVLong();                       // @0x8d3af0
+    // Encoded length of writeVLong(value) without writing anything.
+    // Threshold table copied from @0x258bb4.
+    [[nodiscard]] static int getVLongSizeInBytes(i64 value);
     i64 readLongLong();
     std::optional<std::string> readString();
     std::string readStringReference(); // @0x28f62c (negative len -> "")

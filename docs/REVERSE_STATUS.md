@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2101 reimplemented, 9717 third-party, 25246 pending**
+Registry (compiled in): **2102 reimplemented, 9717 third-party, 25245 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2101 fns | `src/` + tests |
-| Game code pending | 25246 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2102 fns | `src/` + tests |
+| Game code pending | 25245 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -21,7 +21,8 @@ Registry (compiled in): **2101 reimplemented, 9717 third-party, 25246 pending**
 - `PiranhaMessage` — encode guard no-op (`0x8f2e70`)
 - `VLong` wire type: `ChecksumEncoder::writeVLong` (`0x739a8c`, chained
   64-bit fold), `ByteStream::writeVLong` (`0x3ec094`, 1..10 byte sign-aware
-  varint: 6-bit head + 0x40 sign + LEB128 groups), `ByteStream::readVLong`
+  varint: 6-bit head + 0x40 sign + LEB128 groups, range-selected canonical
+  lengths), `ByteStream::readVLong`
   (`0x8d3af0`, per-length sign extension); `LogicUuid` (`0x29dc9c`)
 - `LogicLong` (`0x90c8d8`), `DataReference` helper (`0x3a5dec`)
 - **All 326 `*Message` protocol surfaces** (`MsgBatch00..13`,

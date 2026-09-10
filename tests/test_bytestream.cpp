@@ -97,8 +97,11 @@ int main() {
         n.writeVLong(-1);
         CHECK(n.size() == 1 && n.data()[0] == 0x7F); // (-1 & 0x3F) | 0x40
         ByteStream m;
-        m.writeVLong(-64);
-        CHECK(m.size() == 1 && m.data()[0] == 0x40);
+        m.writeVLong(-63);
+        CHECK(m.size() == 1 && m.data()[0] == 0x41); // (-63 & 0x3F) | 0x40
+        ByteStream w;
+        w.writeVLong(-64); // canonical 2-byte form (1-byte only down to -63)
+        CHECK(w.size() == 2 && w.data()[0] == 0xC0 && w.data()[1] == 0x7F);
         ByteStream k;
         k.writeVLong(-65);
         CHECK(k.size() == 2 && k.data()[0] == 0xFF && k.data()[1] == 0x7E);
@@ -114,6 +117,25 @@ int main() {
         ByteStream u;
         u.writeVLong(INT64_MIN);
         CHECK(u.size() == 10);
+    }
+    // getVLongSizeInBytes (@0x258bb4) agrees with the writer everywhere,
+    // incl. the canonical long forms at exact powers (-8192 takes 3).
+    {
+        const std::vector<i64> bounds = {
+            -64, -65, -8191, -8192, -8193, -1048575, -1048576, -134217727,
+            -134217728, -134217729, 63, 64, 0x1FFF, 0x2000, 0xFFFFF, 0x100000,
+            0x7FFFFFF, 0x8000000, 0x3FFFFFFFFLL, 0x400000000LL,
+        };
+        for (i64 v : bounds) {
+            ByteStream s;
+            s.writeVLong(v);
+            if (s.size() != ByteStream::getVLongSizeInBytes(v)) {
+                ++failures;
+                std::printf("FAIL vlong size: value %lld wrote %d predicted %d\n",
+                            (long long)v, s.size(),
+                            ByteStream::getVLongSizeInBytes(v));
+            }
+        }
     }
     // VLong checksum fold (@0x739a8c) is deterministic.
     {

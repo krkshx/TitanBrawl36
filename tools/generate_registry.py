@@ -43,6 +43,7 @@ REIMPLEMENTED = {
     "_ZN10ByteStream9writeVIntEi",
     "_ZN10ByteStream10writeVLongEx",
     "_ZN10ByteStream9readVLongEv",
+    "_ZN10ByteStream19getVLongSizeInBytesEx",
     "_ZN15ChecksumEncoder10writeVLongEx",
     "_ZN15LogicJSONParser5parseERK6String",
     "_ZN15LogicJSONParser13parseJSONNodeEPK6String",

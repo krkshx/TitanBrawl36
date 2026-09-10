@@ -4201,7 +4201,7 @@ extern const Entry kPart0[] = {
     {0x02587B0, Status::Pending, "_ZN19SuggestBrawlerPopup10addSubpageEP13DisplayObject", "SuggestBrawlerPopup10addSubpageEP13DisplayObject"},
     {0x02587B4, Status::Pending, "_ZN15LogicDataTables19getObtainableEmotesER14LogicArrayListIPK14LogicEmoteDataEPK13LogicHomeModePK18LogicCharacterData", "LogicDataTables19getObtainableEmotesER14LogicArr"},
     {0x0258BAC, Status::Pending, "_ZNK10DataGained8getValueEv", "DataGained8getValueEv"},
-    {0x0258BB4, Status::Pending, "_ZN10ByteStream19getVLongSizeInBytesEx", "ByteStream19getVLongSizeInBytesEx"},
+    {0x0258BB4, Status::Reimplemented, "_ZN10ByteStream19getVLongSizeInBytesEx", "ByteStream19getVLongSizeInBytesEx"},
     {0x0258D08, Status::Pending, "_ZN21LogicBattleModeServer17tickBallModeResetEi", "LogicBattleModeServer17tickBallModeResetEi"},
     {0x0258D0C, Status::ThirdPartyExternal, "_ZNSt6__ndk110__function6__funcIZN19EnvironmentRenderer6renderER9Matrix2x3R14ColorTransformifE3$_7NS_9allocatorIS7_EEFvvEE7destroyEv", "global"},
     {0x0258D10, Status::Pending, "_ZN7GLImage12getCachePathEPKc", "GLImage12getCachePathEPKc"},
