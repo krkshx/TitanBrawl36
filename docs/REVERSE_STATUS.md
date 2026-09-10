@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2142 reimplemented, 9717 third-party, 25205 pending**
+Registry (compiled in): **2146 reimplemented, 9717 third-party, 25201 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2142 fns | `src/` + tests |
-| Game code pending | 25205 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2146 fns | `src/` + tests |
+| Game code pending | 25201 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -87,7 +87,9 @@ Registry (compiled in): **2142 reimplemented, 9717 third-party, 25205 pending**
   @0x687b14`, `removeChildAt @0x27bcb4`, `removeChild @0x92bbe0`,
   `removeAllChildren @0x2bddd8`, `getChildrenArray @0x35ae34`;
   parent @+48 / index @+56 bookkeeping) + `isChildOf @0x2d8b40`
-  (takes const Sprite* like the binary; null-safe).
+  (takes const Sprite* like the binary; null-safe) + `MovieClip`
+  (`getNameOfChild @0x266cb0`, `setChildVisible @0x24417c`; overloads
+  covered by one impl; frames pending).
 - Gameplay wave (part 3): `LogicDeleteNotificationCommand::execute
   @0x961cc4` + `LogicClientHome::removeNotification @0x8f73e4` (match by
   base +8 int, ownership transfer).

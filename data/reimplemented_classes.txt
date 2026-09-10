@@ -529,3 +529,4 @@ LogicJSONObject
 LogicJSONParser
 LogicJSONString
 DisplayObject
+MovieClip

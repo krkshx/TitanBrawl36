@@ -2,6 +2,7 @@
 
 #include "titan/sc/Debugger.hpp"
 #include "titan/sc/DisplayObject.hpp"
+#include "titan/sc/MovieClip.hpp"
 #include "titan/sc/Sprite.hpp"
 
 #include <cstdio>
@@ -85,6 +86,23 @@ int main() {
         CHECK(leaf.isChildOf(&mid) && leaf.isChildOf(&root));
         CHECK(!mid.isChildOf(&other) && !lone.isChildOf(&root));
         CHECK(!leaf.isChildOf(nullptr));
+    }
+    // MovieClip named children (@0x266cb0/@0x24417c).
+    {
+        titan::sc::MovieClip mc;
+        titan::sc::DisplayObject a, b;
+        mc.addNamedChild(&a, "Head");
+        mc.addNamedChild(&b, "Body");
+        CHECK(mc.getNameOfChild(&a) == "Head");
+        titan::sc::DisplayObject lone;
+        CHECK(mc.getNameOfChild(&lone).empty());
+        CHECK(a.isVisible() && b.isVisible());
+        mc.setChildVisible("head", false); // case-insensitive like strcasecmp
+        CHECK(!a.isVisible() && b.isVisible());
+        mc.setChildVisible("nope", false); // no match -> no-op
+        CHECK(b.isVisible());
+        mc.setChildVisible("BODY", false);
+        CHECK(!b.isVisible());
     }
 
     if (failures == 0) std::puts("sc: all ok");
