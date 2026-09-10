@@ -1,11 +1,6 @@
 #pragma once
 
-// BrawlPassSeasonData — not yet reversed; encode/decode throw pending_reverse.
+// BrawlPassSeasonData — reversed (see game/BrawlPassSeasonData.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(BrawlPassSeasonData);
-
-} // namespace titan
+#include "titan/game/BrawlPassSeasonData.hpp"

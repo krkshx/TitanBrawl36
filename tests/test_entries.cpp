@@ -6,6 +6,7 @@
 #include "titan/game/AllianceTeamEntry.hpp"
 #include "titan/game/AvatarStreamEntry.hpp"
 #include "titan/game/BattleLogEntry.hpp"
+#include "titan/game/BrawlPassSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
 #include "titan/game/EventData.hpp"
 #include "titan/game/FriendEntry.hpp"
@@ -18,6 +19,9 @@
 #include "titan/game/LogicDailyData.hpp"
 #include "titan/game/LogicGemOffer.hpp"
 #include "titan/game/LogicOfferBundle.hpp"
+#include "titan/game/LogicQuests.hpp"
+#include "titan/game/ProLeagueSeasonData.hpp"
+#include "titan/game/VanityItems.hpp"
 #include "titan/game/TimedOffer.hpp"
 #include "titan/game/LogicPlayerMap.hpp"
 #include "titan/game/PlayerProfile.hpp"
@@ -374,6 +378,40 @@ int main() {
             },
             back);
         CHECK(back.a_ == 1 && back.b_ == 2 && back.c_ == 3);
+    }
+    // Season/quests wave (@0x71b258, @0x5e8140, @0x1ae36c, @0x5980fc).
+    {
+        ProLeagueSeasonData back;
+        entryRoundTrip<ProLeagueSeasonData>(
+            [](ProLeagueSeasonData& e) {
+                e.a_ = 11;
+                e.b_ = 22;
+            },
+            back);
+        CHECK(back.a_ == 11 && back.b_ == 22);
+    }
+    {
+        BrawlPassSeasonData back;
+        entryRoundTrip<BrawlPassSeasonData>(
+            [](BrawlPassSeasonData& e) {
+                e.v0_ = 1;
+                e.v1_ = 2;
+                e.b24_ = true;
+                e.v28_ = 28;
+                e.b32_ = true;
+            },
+            back);
+        CHECK(back.v0_ == 1 && back.b24_ && back.v28_ == 28 && back.b32_);
+        CHECK(!back.bits1_ && !back.bits2_);
+    }
+    {
+        // Empty quest/vanity lists round-trip; non-empty need their entries.
+        LogicQuests back;
+        entryRoundTrip<LogicQuests>([](LogicQuests&) {}, back);
+        CHECK(back.quests_.empty());
+        VanityItems back2;
+        entryRoundTrip<VanityItems>([](VanityItems&) {}, back2);
+        CHECK(back2.items_.empty());
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

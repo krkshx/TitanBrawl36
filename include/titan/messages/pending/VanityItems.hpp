@@ -1,11 +1,6 @@
 #pragma once
 
-// VanityItems — not yet reversed; encode/decode throw pending_reverse.
+// VanityItems — reversed (see game/VanityItems.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(VanityItems);
-
-} // namespace titan
+#include "titan/game/VanityItems.hpp"

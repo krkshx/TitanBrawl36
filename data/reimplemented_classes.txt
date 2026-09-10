@@ -429,3 +429,7 @@ ChronosTextEntry
 LogicGemOffer
 LogicOfferBundle
 AdStatus
+BrawlPassSeasonData
+LogicQuests
+ProLeagueSeasonData
+VanityItems

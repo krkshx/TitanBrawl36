@@ -1,11 +1,6 @@
 #pragma once
 
-// ProLeagueSeasonData — not yet reversed; encode/decode throw pending_reverse.
+// ProLeagueSeasonData — reversed (see game/ProLeagueSeasonData.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(ProLeagueSeasonData);
-
-} // namespace titan
+#include "titan/game/ProLeagueSeasonData.hpp"

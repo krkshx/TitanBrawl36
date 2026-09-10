@@ -115,6 +115,10 @@ REIMPLEMENTED_EXTRA = {
     "LogicGemOffer": ("6encodeE", "6decodeE"),
     "ChronosTextEntry": ("6encodeE", "6decodeE"),
     "AdStatus": ("6encodeE", "6decodeE"),
+    "ProLeagueSeasonData": ("6encodeE", "6decodeE"),
+    "BrawlPassSeasonData": ("6encodeE", "6decodeE"),
+    "LogicQuests": ("6encodeE", "6decodeE"),
+    "VanityItems": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }
