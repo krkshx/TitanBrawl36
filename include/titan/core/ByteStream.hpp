@@ -30,6 +30,15 @@
 
 namespace titan {
 
+// UTF-16 length of WTF-8 bytes (LogicStringUtil::getCharLength @0x62b658:
+// BMP=1, supplementary=2, invalid=1). Used for checksum folds, which count
+// UTF-16 units while the wire carries UTF-8 bytes.
+[[nodiscard]] i32 utf16Length(const u8* data, i32 len);
+[[nodiscard]] inline i32 utf16Length(const std::string& s) {
+    return utf16Length(reinterpret_cast<const u8*>(s.data()),
+                       static_cast<i32>(s.size()));
+}
+
 class ByteStream : public ChecksumEncoder {
 public:
     explicit ByteStream(std::size_t initialCapacity = 128);
@@ -45,7 +54,8 @@ public:
     void writeString(const std::string* value); // @0x5174d0 (null -> -1)
     void writeStringReference(const std::string& value); // @0x608f14 (never null)
     void writeBytes(const u8* data, i32 len);   // @0x61bd08 (null -> -1)
-    void writeRawBytes(const u8* data, i32 len); // no length prefix (UdpBigMessageFragment)
+    void writeBytesWithoutLength(const u8* data, i32 len); // @0x400d5c
+    void writeRawBytes(const u8* data, i32 len); // no length prefix, no checksum
     void writeByte(i8 value);
     void writeShort(i16 value);
     void writeLongLong(i64 value);

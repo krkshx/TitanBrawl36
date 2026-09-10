@@ -13,6 +13,33 @@ namespace {
 constexpr i32 kMaxStringBytes = 900000;
 } // namespace
 
+// getCharLength @0x62b658 semantics over WTF-8 input.
+i32 utf16Length(const u8* data, i32 len) {
+    i32 units = 0;
+    i32 i = 0;
+    while (i < len) {
+        const u8 b = data[i];
+        if (b < 0x80) {
+            ++units;
+            ++i;
+        } else if ((b & 0xE0) == 0xC0) {
+            ++units; // includes WTF-8 surrogates halves (1 each)
+            i += 2;
+        } else if ((b & 0xF0) == 0xE0) {
+            ++units;
+            i += 3;
+        } else if ((b & 0xF8) == 0xF0) {
+            units += 2; // supplementary plane
+            i += 4;
+        } else {
+            ++units; // invalid -> U+FFFD
+            ++i;
+        }
+        if (i > len) break; // truncated tail counts once
+    }
+    return units;
+}
+
 ByteStream::ByteStream(std::size_t initialCapacity) {
     buffer_.assign(initialCapacity, 0);
     length_ = 0;
@@ -166,7 +193,7 @@ void ByteStream::writeString(const std::string* value) {
         return;
     }
     const i32 len = static_cast<i32>(value->size());
-    ChecksumEncoder::writeStringLength(len, false);
+    ChecksumEncoder::writeStringLength(utf16Length(*value), false);
     if (len >= kMaxStringBytes + 1) { // ByteLength < 900001 required
         writeIntToByteArray(-1);
         return;
@@ -185,7 +212,7 @@ void ByteStream::writeString(const std::string* value) {
 // Checksum fold uses K=38 (@0x69a564).
 void ByteStream::writeStringReference(const std::string& value) {
     const i32 len = static_cast<i32>(value.size());
-    ChecksumEncoder::writeStringReferenceLength(len);
+    ChecksumEncoder::writeStringReferenceLength(utf16Length(value));
     if (len >= kMaxStringBytes + 1) {
         writeIntToByteArray(-1);
         return;
@@ -202,14 +229,26 @@ void ByteStream::writeStringReference(const std::string& value) {
 // ChecksumEncoder::writeBytes; null -> writeInt(-1),
 // else writeInt(len) + raw bytes.
 void ByteStream::writeBytes(const u8* data, i32 len) {
-    // Checksum fold for raw bytes mirrors the string path (length term).
-    ChecksumEncoder::writeStringLength(len, data == nullptr);
+    ChecksumEncoder::writeBytesLength(len, data == nullptr);
     if (data == nullptr) {
         writeIntToByteArray(-1);
         return;
     }
     ensureCapacity(len + 4);
     writeIntToByteArray(len);
+    if (len > 0) {
+        std::memcpy(buffer_.data() + length_, data, static_cast<std::size_t>(len));
+        length_ += len;
+    }
+}
+
+// @0x400d5c — ByteStream::writeBytesWithoutLength
+// ChecksumEncoder::writeBytes fold, then raw copy (no length prefix,
+// bitOffset untouched, growth +100).
+void ByteStream::writeBytesWithoutLength(const u8* data, i32 len) {
+    ChecksumEncoder::writeBytesLength(len, data == nullptr);
+    if (data == nullptr) return;
+    ensureCapacity(len);
     if (len > 0) {
         std::memcpy(buffer_.data() + length_, data, static_cast<std::size_t>(len));
         length_ += len;
