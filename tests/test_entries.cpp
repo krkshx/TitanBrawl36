@@ -1,6 +1,7 @@
 // Self-check for reversed nested entries and stream factories.
 
 #include "titan/game/AddableFriendEntry.hpp"
+#include "titan/game/AdStatus.hpp"
 #include "titan/game/AllianceEventStreamEntry.hpp"
 #include "titan/game/AllianceTeamEntry.hpp"
 #include "titan/game/AvatarStreamEntry.hpp"
@@ -361,6 +362,18 @@ int main() {
         CHECK(back.text_ && back.text_->text_ == "bundle");
         CHECK(back.b88_ && back.str_.has_value() && back.str_.value() == "tag");
         CHECK(back.v84_ == 84 && !back.b100_ && back.v92_ == 0 && back.v96_ == 96);
+    }
+    // AdStatus (@0x8d21fc).
+    {
+        AdStatus back;
+        entryRoundTrip<AdStatus>(
+            [](AdStatus& e) {
+                e.a_ = 1;
+                e.b_ = 2;
+                e.c_ = 3;
+            },
+            back);
+        CHECK(back.a_ == 1 && back.b_ == 2 && back.c_ == 3);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

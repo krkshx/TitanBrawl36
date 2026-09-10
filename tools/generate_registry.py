@@ -114,6 +114,7 @@ REIMPLEMENTED_EXTRA = {
     "LogicOfferBundle": ("6encodeE", "6decodeE"),
     "LogicGemOffer": ("6encodeE", "6decodeE"),
     "ChronosTextEntry": ("6encodeE", "6decodeE"),
+    "AdStatus": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

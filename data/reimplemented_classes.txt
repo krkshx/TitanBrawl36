@@ -428,3 +428,4 @@ TimedOffer
 ChronosTextEntry
 LogicGemOffer
 LogicOfferBundle
+AdStatus

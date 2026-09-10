@@ -5042,7 +5042,7 @@ extern const Entry kPart1[] = {
     {0x0566398, Status::Pending, "_ZN8Databind24NlohmannJsonOutReflector11addIntArrayEPK14LogicArrayListIiE", "Databind24NlohmannJsonOutReflector11addIntArrayE"},
     {0x05664D8, Status::Pending, "_ZN20PlayerThumbnailPopupD2Ev", "PlayerThumbnailPopupD2Ev"},
     {0x0566580, Status::Reimplemented, "_ZNK23TeamMemberStatusMessage14getMessageTypeEv", "TeamMemberStatusMessage14getMessageTypeEv"},
-    {0x0566588, Status::Pending, "_ZN8AdStatus6decodeEP10ByteStream", "AdStatus6decodeEP10ByteStream"},
+    {0x0566588, Status::Reimplemented, "_ZN8AdStatus6decodeEP10ByteStream", "AdStatus6decodeEP10ByteStream"},
     {0x05665E4, Status::Pending, "_ZN4Path8savePathEv", "Path8savePathEv"},
     {0x05665F4, Status::Pending, "_ZN18AttackRadiusSprite12initArcShapeEv", "AttackRadiusSprite12initArcShapeEv"},
     {0x0566A48, Status::Reimplemented, "_ZN20EndClientTurnMessage18getServiceNodeTypeEv", "EndClientTurnMessage18getServiceNodeTypeEv"},
