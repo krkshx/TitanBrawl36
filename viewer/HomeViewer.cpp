@@ -95,6 +95,11 @@ void showHome(QTreeWidget* tree, const titan::OwnHomeDataMessage& m,
                         slot.data_->classId, slot.data_->instanceId);
                     if (!nm.empty()) label += QString(" (%1)").arg(
                         QString::fromStdString(nm));
+                    if (slot.data_->classId == 16) {
+                        const titan::LogicData hero(
+                            tables, slot.data_->classId, slot.data_->instanceId);
+                        label += QString(" lv%1").arg(a.getHeroLevel(hero));
+                    }
                 }
                 item(heroes, label, QString::number(slot.count_));
             }
