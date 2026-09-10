@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **1861 reimplemented, 9717 third-party, 25486 pending**
+Registry (compiled in): **1872 reimplemented, 9717 third-party, 25475 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 1861 fns | `src/` + tests |
-| Game code pending | 25486 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 1872 fns | `src/` + tests |
+| Game code pending | 25475 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -42,7 +42,9 @@ Registry (compiled in): **1861 reimplemented, 9717 third-party, 25486 pending**
   `QuestData` (`@0x467740`, trailing v44 wired last),
   `GatchaDrop` (`@0x7509c0`), `HeroEntry` (`@0x76f47c`),
   `LogicPlayer` (`@0x6bdfb0/@0x89bacc`, incl. early +84 and +56-before-+24),
-  `LogicHeroUpgrades` (`@0x5d26c8`), `LogicBattleEmotes` (`@0x759184`).
+  `LogicHeroUpgrades` (`@0x5d26c8`), `LogicBattleEmotes` (`@0x759184`),
+  `HeroDataEntry` (`@0x72d8ec`), `DeliveryUnit` (`@0x4481e8`),
+  `LogicMilestoneProgress` (`@0x6b920c`), `AllianceWarFaction` (`@0x246da0`).
 - `LogicOfferBundle` (`@0x69b644`) + leaves `LogicGemOffer` (`@0x93ed54`),
   `ChronosTextEntry` (`@0x7b6d10`; vtable slot +0x20 resolved via the
   ByteStream vtable to `writeStringReference @0x608f14`),

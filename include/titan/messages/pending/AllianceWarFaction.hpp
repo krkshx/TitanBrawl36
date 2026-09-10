@@ -1,12 +1,6 @@
 #pragma once
 
-// AllianceWarFaction — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(AllianceWarFaction) placeholder.
+// AllianceWarFaction — reversed (see game/AllianceWarFaction.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(AllianceWarFaction);
-
-} // namespace titan
+#include "titan/game/AllianceWarFaction.hpp"

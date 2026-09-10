@@ -1,12 +1,6 @@
 #pragma once
 
-// DeliveryUnit — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(DeliveryUnit) placeholder.
+// DeliveryUnit — reversed (see game/DeliveryUnit.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(DeliveryUnit);
-
-} // namespace titan
+#include "titan/game/DeliveryUnit.hpp"

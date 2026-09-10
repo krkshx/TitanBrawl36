@@ -1,12 +1,6 @@
 #pragma once
 
-// HeroDataEntry — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(HeroDataEntry) placeholder.
+// HeroDataEntry — reversed (see game/HeroDataEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(HeroDataEntry);
-
-} // namespace titan
+#include "titan/game/HeroDataEntry.hpp"

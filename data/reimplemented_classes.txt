@@ -451,3 +451,7 @@ HeroEntry
 LogicPlayer
 LogicBattleEmotes
 LogicHeroUpgrades
+AllianceWarFaction
+DeliveryUnit
+HeroDataEntry
+LogicMilestoneProgress

@@ -2,20 +2,24 @@
 
 #include "titan/game/AddableFriendEntry.hpp"
 #include "titan/game/AdStatus.hpp"
+#include "titan/game/AllianceWarFaction.hpp"
 #include "titan/game/AllianceEventStreamEntry.hpp"
 #include "titan/game/AllianceTeamEntry.hpp"
 #include "titan/game/AvatarStreamEntry.hpp"
 #include "titan/game/BattleLogEntry.hpp"
 #include "titan/game/BrawlPassSeasonData.hpp"
 #include "titan/game/CustomEvent.hpp"
+#include "titan/game/DeliveryUnit.hpp"
 #include "titan/game/EventSlot.hpp"
 #include "titan/game/GatchaDrop.hpp"
+#include "titan/game/HeroDataEntry.hpp"
 #include "titan/game/HeroEntry.hpp"
 #include "titan/game/LogicBitList.hpp"
 #include "titan/game/LogicBattleEmotes.hpp"
 #include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicCondition.hpp"
 #include "titan/game/LogicHeroUpgrades.hpp"
+#include "titan/game/LogicMilestoneProgress.hpp"
 #include "titan/game/LogicPlayer.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
@@ -739,6 +743,49 @@ int main() {
             back);
         CHECK(back.upgrades_ && back.upgrades_->v0_ == 1);
         CHECK(back.emotes_ && back.emotes_->emotes_.size() == 1);
+    }
+    // Small leaves (@0x72d8ec, @0x4481e8, @0x6b920c, @0x246da0).
+    {
+        HeroDataEntry back;
+        entryRoundTrip<HeroDataEntry>(
+            [](HeroDataEntry& e) {
+                e.ref0_ = DataReference{16, 0};
+                e.v16_ = 3;
+                e.b20_ = true;
+                e.str_ = std::string("shelly");
+            },
+            back);
+        CHECK(back.ref0_.has_value() && !back.ref8_);
+        CHECK(back.v16_ == 3 && back.b20_ && back.str_.value() == "shelly");
+    }
+    {
+        DeliveryUnit back;
+        entryRoundTrip<DeliveryUnit>(
+            [](DeliveryUnit& e) {
+                e.v8_ = 8;
+                auto d = std::make_unique<GatchaDrop>();
+                d->v0_ = 1;
+                e.drops_.push_back(std::move(d));
+            },
+            back);
+        CHECK(back.v8_ == 8 && back.drops_.size() == 1);
+        CHECK(back.drops_[0]->v0_ == 1);
+    }
+    {
+        LogicMilestoneProgress back;
+        entryRoundTrip<LogicMilestoneProgress>(
+            [](LogicMilestoneProgress& e) { e.v_[2] = 9; }, back);
+        CHECK(back.v_[0] == 0 && back.v_[2] == 9);
+    }
+    {
+        AllianceWarFaction back;
+        entryRoundTrip<AllianceWarFaction>(
+            [](AllianceWarFaction& e) {
+                e.a_ = 1;
+                e.b_ = 2;
+            },
+            back);
+        CHECK(back.a_ == 1 && back.b_ == 2);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

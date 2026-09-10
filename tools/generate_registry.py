@@ -137,6 +137,10 @@ REIMPLEMENTED_EXTRA = {
     "LogicPlayer": ("6encodeE", "6decodeE"),
     "LogicHeroUpgrades": ("6encodeE", "6decodeE"),
     "LogicBattleEmotes": ("6encodeE", "6decodeE"),
+    "HeroDataEntry": ("6encodeE", "6decodeE"),
+    "DeliveryUnit": ("6encodeE", "6decodeE"),
+    "LogicMilestoneProgress": ("6encodeE", "6decodeE"),
+    "AllianceWarFaction": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

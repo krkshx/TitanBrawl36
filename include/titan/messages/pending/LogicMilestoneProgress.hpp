@@ -1,12 +1,6 @@
 #pragma once
 
-// LogicMilestoneProgress — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(LogicMilestoneProgress) placeholder.
+// LogicMilestoneProgress — reversed (see game/LogicMilestoneProgress.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LogicMilestoneProgress);
-
-} // namespace titan
+#include "titan/game/LogicMilestoneProgress.hpp"
