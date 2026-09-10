@@ -54,6 +54,12 @@ public:
     Sprite* parent_ = nullptr; // +48
     int index_ = -1; // +56
 
+    // isChildOf @0x2d8b40: self, else walk +48 chain; null reached ->
+    // false. (A parentless non-self object would crash the binary
+    // dereferencing null — ours returns false safely.)
+    // Out-of-line (needs complete Sprite).
+    [[nodiscard]] bool isChildOf(const Sprite* ancestor) const;
+
 private:
     bool visible_ = true; // +8
     float scaleX_ = 1.0f; // +16 (C2 defaults from identity const)

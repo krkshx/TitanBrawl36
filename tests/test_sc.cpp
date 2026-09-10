@@ -74,6 +74,18 @@ int main() {
         r2.addChild(&a);
         CHECK(r1.childCount() == 0 && r2.childCount() == 1 && a.parent_ == &r2);
     }
+    {
+        // isChildOf @0x2d8b40: self + ancestor walk (null-safe).
+        // (Binary takes const Sprite*; self-check via a Sprite.)
+        titan::sc::Sprite root, mid, other;
+        titan::sc::DisplayObject leaf, lone;
+        root.addChild(&mid);
+        mid.addChild(&leaf);
+        CHECK(mid.isChildOf(&mid));
+        CHECK(leaf.isChildOf(&mid) && leaf.isChildOf(&root));
+        CHECK(!mid.isChildOf(&other) && !lone.isChildOf(&root));
+        CHECK(!leaf.isChildOf(nullptr));
+    }
 
     if (failures == 0) std::puts("sc: all ok");
     return failures == 0 ? 0 : 1;
