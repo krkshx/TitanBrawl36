@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **1962 reimplemented, 9717 third-party, 25385 pending**
+Registry (compiled in): **2048 reimplemented, 9717 third-party, 25299 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 1962 fns | `src/` + tests |
-| Game code pending | 25385 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2048 fns | `src/` + tests |
+| Game code pending | 25299 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -61,6 +61,17 @@ Registry (compiled in): **1962 reimplemented, 9717 third-party, 25385 pending**
   `LogicPlayerRankedSeasonData` (`@0x286950/@0x97acd8`) + `LogicPlayerRewardData`
   (`@0x243790`), `VanityItemEntry` (`@0x427c6c`) + `VanityItemProp` (`@0x8bd8d0`),
   `LogicRewardConfig` (`@0x88d288/@0x710eb4`) + `LogicCondition` (`@0x89d570`).
+- Notification wave (COMPLETE): `BaseNotification` (`@0x7beae0/@0x605478`)
+  + all 29 subclasses, each with verified type id (getters `@0x9aca40`…),
+  factory `NotificationFactory::create @0x5f5d50` fully mapped (63–94;
+  2/Donate intentionally unmapped — binary has no case either; 83/87
+  vtables unidentified); `LogicClientHome` notifications decode for real.
+  Shapes: base-only (FloaterText 66, Qualify 76), vint×1/2/3/5, string
+  (Donate), display (Band 82), + specials (RankedMidSeason 67,
+  RankedSeasonEnd 68, BrawlPassAutoCollect 69, StarPoints 79 + ScoreEntry,
+  Revoke 85, SkinPurchaseOption 65, ChallengeReward 63/70 + LogicRewards stub).
+  Deferred: `AnalyticEvent` (`@0x2787dc`, needs LogicJSONParser subsystem),
+  `RankingEntry` (polymorphic encode slots).
 
 ## Verify flags (against live captures later)
 

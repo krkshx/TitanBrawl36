@@ -35,6 +35,16 @@
 #include "titan/game/LogicRankedMatchResultDebugInfo.hpp"
 #include "titan/game/LogicRankedSeason.hpp"
 #include "titan/game/LogicRankRewardConfig.hpp"
+#include "titan/game/BandNotification.hpp"
+#include "titan/game/BoxRewardNotification.hpp"
+#include "titan/game/DonateNotification.hpp"
+#include "titan/game/GemRewardNotification.hpp"
+#include "titan/game/RankedMidSeasonRewardNotification.hpp"
+#include "titan/game/RankedSeasonEndNotification.hpp"
+#include "titan/game/RevokeNotification.hpp"
+#include "titan/game/ScoreEntry.hpp"
+#include "titan/game/SkinPurchaseOptionRewardNotification.hpp"
+#include "titan/game/StarPointsNotification.hpp"
 #include "titan/game/TeamEntry.hpp"
 #include "titan/game/TeamInviteEntry.hpp"
 #include "titan/game/TeamInvitation.hpp"
@@ -1222,6 +1232,18 @@ int main() {
         CHECK(createNotificationByType(81) != nullptr);
         CHECK(createNotificationByType(999) == nullptr);
         CHECK(createNotificationByType(81)->notificationType() == 81);
+        // Full factory map: every mapped id builds and self-reports.
+        for (int id : {63, 70, 64, 65, 66, 67, 68, 69, 71, 72, 73, 74, 75,
+                       76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 88, 89, 90,
+                       91, 92, 93, 94}) {
+            auto n = createNotificationByType(id);
+            CHECK(n != nullptr);
+            if (n && id != 63) CHECK(n->notificationType() == id);
+        }
+        // Unmapped ids (2/Donate has no factory case; 83/87 open) -> null.
+        CHECK(createNotificationByType(2) == nullptr);
+        CHECK(createNotificationByType(83) == nullptr);
+        CHECK(createNotificationByType(87) == nullptr);
         FreeTextNotification back;
         entryRoundTrip<FreeTextNotification>(
             [](FreeTextNotification& e) {
@@ -1234,6 +1256,93 @@ int main() {
             back);
         CHECK(back.v8_ == 1 && back.b12_ && back.v16_ == 2);
         CHECK(back.s24_.value() == "hi" && back.v48_ == 48);
+    }
+    {
+        // Representative shape round-trips (one per wire shape).
+        {
+            GemRewardNotification back;
+            entryRoundTrip<GemRewardNotification>(
+                [](GemRewardNotification& e) {
+                    e.v8_ = 1;
+                    e.s24_ = std::string("g");
+                    e.v48_ = 10;
+                    e.v52_ = 20;
+                },
+                back);
+            CHECK(back.v48_ == 10 && back.v52_ == 20 && back.notificationType() == 89);
+        }
+        {
+            BoxRewardNotification back;
+            entryRoundTrip<BoxRewardNotification>(
+                [](BoxRewardNotification& e) { e.v56_ = 7; }, back);
+            CHECK(back.v56_ == 7 && back.notificationType() == 64);
+        }
+        {
+            DonateNotification back;
+            entryRoundTrip<DonateNotification>(
+                [](DonateNotification& e) { e.s48_ = std::string("ty"); }, back);
+            CHECK(back.s48_.value() == "ty" && back.notificationType() == 2);
+        }
+        {
+            BandNotification back;
+            entryRoundTrip<BandNotification>(
+                [](BandNotification& e) {
+                    e.display_ = std::make_unique<PlayerDisplayData>();
+                },
+                back);
+            CHECK(back.display_ && back.notificationType() == 82);
+        }
+        {
+            RankedSeasonEndNotification back;
+            entryRoundTrip<RankedSeasonEndNotification>(
+                [](RankedSeasonEndNotification& e) {
+                    e.v56_ = 1;
+                    e.offer_ = std::make_unique<LogicGemOffer>();
+                    e.offer_->v4_ = 4;
+                },
+                back);
+            CHECK(back.v56_ == 1 && back.offer_ && back.offer_->v4_ == 4);
+        }
+        {
+            StarPointsNotification back;
+            entryRoundTrip<StarPointsNotification>(
+                [](StarPointsNotification& e) {
+                    auto s = std::make_unique<ScoreEntry>();
+                    s->v_[3] = 30;
+                    e.scores_.push_back(std::move(s));
+                },
+                back);
+            CHECK(back.scores_.size() == 1 && back.scores_[0]->v_[3] == 30);
+        }
+        {
+            RevokeNotification back;
+            entryRoundTrip<RevokeNotification>(
+                [](RevokeNotification& e) {
+                    e.ts_ = 123456789ULL;
+                    e.s72_ = std::string("r");
+                },
+                back);
+            CHECK(back.ts_ == 123456789ULL && back.s72_.value() == "r");
+        }
+        {
+            SkinPurchaseOptionRewardNotification back;
+            entryRoundTrip<SkinPurchaseOptionRewardNotification>(
+                [](SkinPurchaseOptionRewardNotification& e) {
+                    e.ref56_ = DataReference{16, 1};
+                    e.v64_ = 9;
+                },
+                back);
+            CHECK(back.ref56_.has_value() && back.v64_ == 9);
+        }
+        {
+            RankedMidSeasonRewardNotification back;
+            entryRoundTrip<RankedMidSeasonRewardNotification>(
+                [](RankedMidSeasonRewardNotification& e) {
+                    e.config_ = std::make_unique<LogicRewardConfig>();
+                },
+                back);
+            CHECK(back.config_ && back.notificationType() == 67);
+        }
     }
     {
         // ClientHome with a live notification (closes the home loop).
