@@ -141,6 +141,9 @@ REIMPLEMENTED_EXTRA = {
     "DeliveryUnit": ("6encodeE", "6decodeE"),
     "LogicMilestoneProgress": ("6encodeE", "6decodeE"),
     "AllianceWarFaction": ("6encodeE", "6decodeE"),
+    "AllianceWarNode": ("6encodeE", "6decodeE"),
+    "LogicVector2": ("6encodeE", "6decodeE"),
+    "XpEntry": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

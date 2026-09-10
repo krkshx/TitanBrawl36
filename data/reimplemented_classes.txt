@@ -455,3 +455,6 @@ AllianceWarFaction
 DeliveryUnit
 HeroDataEntry
 LogicMilestoneProgress
+AllianceWarNode
+LogicVector2
+XpEntry

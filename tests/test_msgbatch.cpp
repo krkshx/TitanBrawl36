@@ -101,20 +101,23 @@ int main() {
         m.encode();
         CHECK(m.stream().size() == 4); // writeInt(-1)
     }
-    // Pending nested entries throw explicitly (AllianceWarNode still pending).
+    // Newly reversed war entries round-trip for real (@0x5f7f9c/@0x246da0).
     {
-        bool threw = false;
-        AllianceWarMessage m;
-        m.nodes_.push_back(std::make_unique<AllianceWarNode>());
-        try {
-            m.encode();
-        } catch (const pending_reverse&) {
-            threw = true;
-        }
-        CHECK(threw);
         AllianceWarMessage back;
-        roundTrip<AllianceWarMessage>([](AllianceWarMessage&) {}, back);
-        CHECK(back.nodes_.empty() && back.factions_.empty());
+        roundTrip<AllianceWarMessage>(
+            [](AllianceWarMessage& m) {
+                auto n = std::make_unique<AllianceWarNode>();
+                n->v0_ = 1;
+                n->ids_ = {3};
+                m.nodes_.push_back(std::move(n));
+                auto f = std::make_unique<AllianceWarFaction>();
+                f->b_ = 2;
+                m.factions_.push_back(std::move(f));
+            },
+            back);
+        CHECK(back.nodes_.size() == 1 && back.nodes_[0]->v0_ == 1);
+        CHECK(back.nodes_[0]->ids_.size() == 1);
+        CHECK(back.factions_.size() == 1 && back.factions_[0]->b_ == 2);
     }
     // Newly reversed entries round-trip for real.
     {

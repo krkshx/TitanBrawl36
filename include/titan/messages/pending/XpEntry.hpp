@@ -1,12 +1,6 @@
 #pragma once
 
-// XpEntry — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(XpEntry) placeholder.
+// XpEntry — reversed (see game/XpEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(XpEntry);
-
-} // namespace titan
+#include "titan/game/XpEntry.hpp"

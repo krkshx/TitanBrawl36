@@ -3,6 +3,7 @@
 #include "titan/game/AddableFriendEntry.hpp"
 #include "titan/game/AdStatus.hpp"
 #include "titan/game/AllianceWarFaction.hpp"
+#include "titan/game/AllianceWarNode.hpp"
 #include "titan/game/AllianceEventStreamEntry.hpp"
 #include "titan/game/AllianceTeamEntry.hpp"
 #include "titan/game/AvatarStreamEntry.hpp"
@@ -22,6 +23,7 @@
 #include "titan/game/LogicMilestoneProgress.hpp"
 #include "titan/game/LogicPlayer.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
+#include "titan/game/LogicVector2.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
 #include "titan/game/EventData.hpp"
@@ -42,6 +44,7 @@
 #include "titan/game/TimedIntValueEntry.hpp"
 #include "titan/game/VanityItemEntry.hpp"
 #include "titan/game/VanityItemProp.hpp"
+#include "titan/game/XpEntry.hpp"
 #include "titan/game/VanityItems.hpp"
 #include "titan/game/TimedOffer.hpp"
 #include "titan/game/LogicPlayerMap.hpp"
@@ -786,6 +789,41 @@ int main() {
             },
             back);
         CHECK(back.a_ == 1 && back.b_ == 2);
+    }
+    // War/misc leaves (@0x5f7f9c, @0x29fda4, @0x67ddd4).
+    {
+        AllianceWarNode back;
+        entryRoundTrip<AllianceWarNode>(
+            [](AllianceWarNode& e) {
+                e.v0_ = 1;
+                e.v12_ = 12;
+                e.ref_ = DataReference{16, 2};
+                e.v32_ = 32;
+                e.ids_ = {7, 8};
+            },
+            back);
+        CHECK(back.v0_ == 1 && back.v12_ == 12 && back.v32_ == 32);
+        CHECK(back.ref_.has_value() && back.ids_.size() == 2 && back.ids_[1] == 8);
+    }
+    {
+        LogicVector2 back;
+        entryRoundTrip<LogicVector2>(
+            [](LogicVector2& e) {
+                e.x_ = -100;
+                e.y_ = 250;
+            },
+            back);
+        CHECK(back.x_ == -100 && back.y_ == 250);
+    }
+    {
+        XpEntry back;
+        entryRoundTrip<XpEntry>(
+            [](XpEntry& e) {
+                e.a_ = 5;
+                e.b_ = 6;
+            },
+            back);
+        CHECK(back.a_ == 5 && back.b_ == 6);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

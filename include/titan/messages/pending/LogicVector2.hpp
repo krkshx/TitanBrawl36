@@ -1,12 +1,6 @@
 #pragma once
 
-// LogicVector2 — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(LogicVector2) placeholder.
+// LogicVector2 — reversed (see game/LogicVector2.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LogicVector2);
-
-} // namespace titan
+#include "titan/game/LogicVector2.hpp"
