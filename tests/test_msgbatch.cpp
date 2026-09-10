@@ -2,7 +2,11 @@
 
 #include "titan/game/AllianceHeaderEntry.hpp"
 #include "titan/game/LogicClientAvatar.hpp"
+#include "titan/game/LogicClientHome.hpp"
 #include "titan/game/LogicCompressedString.hpp"
+#include "titan/game/LogicConfData.hpp"
+#include "titan/game/LogicDailyData.hpp"
+#include "titan/game/ForcedDrops.hpp"
 #include "titan/messages/AllMessages.hpp"
 #include "titan/game/AddableFriendEntry.hpp"
 
@@ -275,6 +279,19 @@ int main() {
         LogicClientAvatar back;
         back.decode(d);
         CHECK(back.name_ == "Spike" && back.flag_);
+    }
+    // OwnHomeDataMessage round-trip (the viewer decodes exactly this).
+    {
+        ROUNDTRIP(OwnHomeDataMessage, back,
+                  m.home_ = std::make_unique<LogicClientHome>();
+                  m.home_->daily_ = std::make_unique<LogicDailyData>();
+                  m.home_->daily_->forced_ = std::make_unique<ForcedDrops>();
+                  m.home_->conf_ = std::make_unique<LogicConfData>();
+                  m.avatar_ = std::make_unique<LogicClientAvatar>();
+                  m.avatar_->name_ = "Commander";
+                  m.f152_ = 1);
+        CHECK(back.home_ && back.avatar_);
+        CHECK(back.avatar_->name_ == "Commander" && back.f152_ == 1);
     }
 
     if (failures == 0) std::puts("msgbatch: all ok");

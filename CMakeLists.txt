@@ -10,6 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(TITAN_BUILD_TESTS "Build self-check tests" ON)
 option(TITAN_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(TITAN_WITH_SODIUM "Enable libsodium session crypto" OFF)
+option(TITAN_BUILD_VIEWER "Build the Qt home-data viewer" OFF)
 
 if(TITAN_WARNINGS_AS_ERRORS)
   if(MSVC)
@@ -122,6 +123,11 @@ if(TITAN_BUILD_TESTS)
   add_executable(titan_session_test tests/test_session.cpp)
   target_link_libraries(titan_session_test PRIVATE titan_core)
   add_test(NAME session COMMAND titan_session_test)
+endif()
+
+# ---- Viewer (Qt6, optional) --------------------------------------------------
+if(TITAN_BUILD_VIEWER)
+  add_subdirectory(viewer)
 endif()
 
 # ---- Install (keeps all platforms happy) -----------------------------------
