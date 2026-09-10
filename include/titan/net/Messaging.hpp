@@ -12,8 +12,10 @@
 // HTTPMessaging::readMessage @0x5f6480).
 
 #include "titan/core/PiranhaMessage.hpp"
+#include "titan/crypto/Encrypter.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <vector>
 
@@ -63,6 +65,37 @@ inline std::vector<u8> encodeFrame(PiranhaMessage& msg) {
     std::vector<u8> out(kHeaderSize + static_cast<std::size_t>(len));
     writeHeader(msg, out.data(), len);
     for (int i = 0; i < len; ++i) out[kHeaderSize + i] = s.data()[i];
+    return out;
+}
+
+// Send-path frame — Messaging::encryptAndWrite @0x93221c (TCP; the actual
+// asio socket write is platform code and lives outside titan_core).
+//
+// Binary behavior, in order:
+//   1. msg.encode(); len = getEncodingLength().
+//   2. ClientHello (10100) / Login (10101) go out as a plaintext memcpy;
+//      every other type goes through the session Encrypter
+//      (slot+24 encrypt, slot+32 overhead added to the length).
+//   3. 7-byte header over the FINAL (post-encrypt) length; length
+//      >= 0x1000000 trips Debugger::error, hence the throw below.
+//
+// A null encrypter means "no session yet" and behaves like the binary's
+// pre-login path: plaintext body.
+inline std::vector<u8> encodeSendFrame(PiranhaMessage& msg, crypto::Encrypter* enc) {
+    msg.encode();
+    const ByteStream& s = msg.getMessageBytes();
+    const int len = s.getLength();
+    const int type = msg.getMessageType();
+
+    std::vector<u8> body;
+    if (enc != nullptr && type != 10100 && type != 10101) {
+        body = enc->encrypt(s.data(), static_cast<std::size_t>(len));
+    } else {
+        body.assign(s.data(), s.data() + len);
+    }
+    std::vector<u8> out(kHeaderSize + body.size());
+    writeHeader(msg, out.data(), static_cast<int>(body.size()));
+    for (std::size_t i = 0; i < body.size(); ++i) out[kHeaderSize + i] = body[i];
     return out;
 }
 

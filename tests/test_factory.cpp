@@ -44,6 +44,41 @@ int main() {
         const net::Header h = net::readHeader(frame.data());
         CHECK(h.type == 10116 && h.length == 4 && h.version == 1);
     }
+    {
+        // Send path @0x93221c: stub encrypter with 16B overhead.
+        struct StubEnc : crypto::Encrypter {
+            std::vector<u8> encrypt(const u8* plain, std::size_t len) override {
+                std::vector<u8> out(plain, plain + len);
+                out.insert(out.end(), crypto::kMacBytes, 0xEE);
+                return out;
+            }
+            std::vector<u8> decrypt(const u8* cipher, std::size_t len) override {
+                return std::vector<u8>(cipher, cipher + len - crypto::kMacBytes);
+            }
+        } enc;
+        // No session yet -> plaintext, identical to encodeFrame.
+        // (NB: encode() appends, so each frame needs a fresh instance.)
+        {
+            auto a = createMessageByType(10116);
+            auto b = createMessageByType(10116);
+            CHECK(net::encodeSendFrame(*a, nullptr) == net::encodeFrame(*b));
+        }
+        // Session active -> body grows by the MAC, header covers it.
+        {
+            auto m = createMessageByType(10116);
+            auto frame = net::encodeSendFrame(*m, &enc);
+            CHECK(frame.size() == 7u + 4u + crypto::kMacBytes);
+            const net::Header h = net::readHeader(frame.data());
+            CHECK(h.type == 10116 && h.length == 4 + 16);
+            CHECK(frame[7 + 4] == 0xEE && frame.back() == 0xEE);
+        }
+        // 10100/10101 bypass encryption even with a session (pre-login).
+        {
+            auto a = createMessageByType(10100); // ClientHello
+            auto b = createMessageByType(10100);
+            CHECK(net::encodeSendFrame(*a, &enc) == net::encodeFrame(*b));
+        }
+    }
 
     if (failures == 0) std::puts("factory: all ok");
     return failures == 0 ? 0 : 1;
