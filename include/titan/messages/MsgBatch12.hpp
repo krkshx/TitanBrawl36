@@ -391,7 +391,10 @@ public:
     std::string replayId_;
 };
 
-// ---- 24109 VisionUpdateMessage (BitStream payload, pending) ----
+// ---- 24109 VisionUpdateMessage ----
+// Tail payload is a BitStream blob; carried as raw bytes (passthrough).
+// NOTE: id 24109 also claimed by AvailableServerCommandMessage —
+// factory disambiguation pending (see data/factory_notes.csv).
 class VisionUpdateMessage : public PiranhaMessage {
 public:
     int getMessageType() const override { return 24109; }
@@ -405,7 +408,9 @@ public:
         stream().writeBoolean(b1_);
         stream().writeBoolean(hasExtra_);
         stream().writeVInt(hasExtra_ ? extra_ : 0);
-        throw pending_reverse("VisionUpdateMessage needs BitStream");
+        if (!payload_.empty()) {
+            stream().writeRawBytes(payload_.data(), static_cast<i32>(payload_.size()));
+        }
     }
     void decode() override {
         PiranhaMessage::decode();
@@ -416,11 +421,12 @@ public:
         b1_ = stream().readBoolean();
         hasExtra_ = stream().readBoolean();
         extra_ = stream().readVInt();
-        throw pending_reverse("VisionUpdateMessage needs BitStream");
+        payload_ = stream().readRawBytes(stream().remaining());
     }
     i32 v1_ = 0, v2_ = 0, v3_ = 0, v4_ = 0;
     bool b1_ = false, hasExtra_ = false;
     i32 extra_ = 0;
+    std::vector<u8> payload_; // BitStream blob, see titan/core/BitStream.hpp
 };
 
 // ---- 20173 YoozooBillingProcessedByServerMessage ----

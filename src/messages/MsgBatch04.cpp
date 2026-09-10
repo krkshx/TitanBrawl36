@@ -11,8 +11,7 @@ void EndClientTurnMessage::encode() {
     stream().writeBoolean(flag_);
     stream().writeVInt(tick_);
     stream().writeVInt(checksum_);
-    stream().writeVInt(static_cast<i32>(commands_.size()));
-    for (const auto& c : commands_) c->encode(stream());
+    encodeCommandList(stream(), commands_);
     if (payload_) {
         const auto& p = *payload_;
         stream().writeBytes(p.data(), static_cast<i32>(p.size()));
@@ -25,13 +24,7 @@ void EndClientTurnMessage::decode() {
     flag_ = stream().readBoolean();
     tick_ = stream().readVInt();
     checksum_ = stream().readVInt();
-    const i32 n = stream().readVInt();
-    commands_.clear();
-    for (i32 i = 0; i < n; ++i) {
-        auto c = std::make_unique<LogicCommand>();
-        c->decode(stream());
-        commands_.push_back(std::move(c));
-    }
+    decodeCommandList(stream(), commands_);
     payload_ = stream().readBytesNullable();
 }
 

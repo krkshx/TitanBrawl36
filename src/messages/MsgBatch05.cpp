@@ -9,8 +9,7 @@ void HomeLogicStoppedMessage::encode() {
     PiranhaMessage::encode();
     stream().writeVInt(tick_);
     stream().writeVInt(unknown_);
-    stream().writeVInt(static_cast<i32>(commands_.size()));
-    for (const auto& c : commands_) c->encode(stream());
+    encodeCommandList(stream(), commands_);
 }
 void HomeLogicStoppedMessage::decode() {
     PiranhaMessage::decode();
@@ -19,11 +18,7 @@ void HomeLogicStoppedMessage::decode() {
     i32 n = stream().readVInt();
     if (n > 0x201) n = 0x201; // binary caps the count
     commands_.clear();
-    for (i32 i = 0; i < n; ++i) {
-        auto c = std::make_unique<LogicCommand>();
-        c->decode(stream());
-        commands_.push_back(std::move(c));
-    }
+    for (i32 i = 0; i < n; ++i) commands_.push_back(decodeSingleCommand(stream()));
 }
 
 // ---- 24304 JoinableAllianceListMessage ----

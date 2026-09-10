@@ -104,13 +104,12 @@ void AttributionMessage::decode() {
 // ---- 24111 AvailableServerCommandMessage ----
 void AvailableServerCommandMessage::encode() {
     PiranhaMessage::encode();
-    if (!command_) throw pending_reverse("AvailableServerCommandMessage needs LogicCommand");
-    command_->encode(stream());
+    if (!command_) throw pending_reverse("AvailableServerCommandMessage: null command");
+    encodeSingleCommand(stream(), command_);
 }
 void AvailableServerCommandMessage::decode() {
     PiranhaMessage::decode();
-    command_ = std::make_unique<LogicCommand>();
-    command_->decode(stream());
+    command_ = decodeSingleCommand(stream());
 }
 
 } // namespace titan

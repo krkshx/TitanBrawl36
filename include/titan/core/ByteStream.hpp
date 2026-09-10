@@ -73,6 +73,7 @@ public:
     [[nodiscard]] i32 size() const { return length_; }
     [[nodiscard]] i32 getLength() const { return length_; } // @0x69da1c (max(+20,+24); equal here)
     [[nodiscard]] i32 cursor() const { return readCursor_; }
+    [[nodiscard]] i32 remaining() const { return length_ - readCursor_; }
     [[nodiscard]] bool isAtEnd() const { return readCursor_ >= length_; } // @0x7625a8
     [[nodiscard]] i32 bitOffset() const { return bitOffset_; }
     void clear();

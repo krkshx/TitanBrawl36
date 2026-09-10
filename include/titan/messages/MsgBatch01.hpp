@@ -6,6 +6,8 @@
 #include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
 #include "titan/core/PiranhaMessage.hpp"
+#include "titan/commands/LogicCommand.hpp"   // real base
+#include "titan/gen/LogicCommands.hpp"       // generated subclasses + factory
 #include "titan/messages/Nested.hpp"
 
 #include <memory>
@@ -15,7 +17,6 @@
 namespace titan {
 
 TITAN_PENDING_ENTRY(HeroDataEntry);
-TITAN_PENDING_ENTRY(LogicCommand);
 
 // ---- 20931 AntiAddictionDataUpdatedMessage: int + int ----
 class AntiAddictionDataUpdatedMessage : public PiranhaMessage {
@@ -86,8 +87,12 @@ public:
         PiranhaMessage::encode();
         for (auto* s : {&s1_, &s2_, &s3_, &s4_})
             stream().writeString(*s ? &**s : nullptr);
-        stream().writeBytes(payload_.empty() ? nullptr : payload_.data(),
-                            static_cast<i32>(payload_.size()));
+        if (payload_) {
+            const auto& p = *payload_;
+            stream().writeBytes(p.data(), static_cast<i32>(p.size()));
+        } else {
+            stream().writeBytes(nullptr, 0);
+        }
     }
     void decode() override {
         PiranhaMessage::decode();
@@ -95,10 +100,10 @@ public:
         s2_ = stream().readString();
         s3_ = stream().readString();
         s4_ = stream().readString();
-        payload_ = stream().readBytes();
+        payload_ = stream().readBytesNullable();
     }
     std::optional<std::string> s1_, s2_, s3_, s4_;
-    std::vector<u8> payload_;
+    std::optional<std::vector<u8>> payload_;
 };
 
 // ---- 16939 AskApiTokenMessage: empty ----
