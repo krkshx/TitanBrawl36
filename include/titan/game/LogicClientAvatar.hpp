@@ -9,6 +9,7 @@
 // vints — corrected against both functions above.
 
 #include "titan/core/LogicLong.hpp"
+#include "titan/game/LogicData.hpp"
 #include "titan/game/LogicDataSlot.hpp"
 #include "titan/messages/Nested.hpp"
 #include "titan/sc/Debugger.hpp"
@@ -111,6 +112,20 @@ public:
     [[nodiscard]] bool getNameSetByUser() const { return nameSetByUser_; }
     void setNameSetByUser(bool v) { nameSetByUser_ = v; }
     void setName(const std::string& name) { name_ = name; }
+
+    // Commodity economy (slot arrays hold (dataref, count) pairs):
+    // getCommodityCount @0x32922c: first matching slot count, else 0
+    // (binary errors on slot >= 8 then reads OOB — ours errors + returns 0).
+    // setCommodityCount @0x7c7bc8: set or append (binary errors twice on
+    // slot >= 8 then writes OOB — ours errors twice and returns safely).
+    // commodityCountChangeHelper @0x5c3590: add delta with resource-cap
+    // (resources class 5, LogicResourceData::getCap) and INT_MAX overflow
+    // guard; returns the actually applied delta; delta == 0 is a no-op.
+    // Change-listener notifications skipped (platform).
+    [[nodiscard]] i32 getCommodityCount(int slot, const LogicData& data) const;
+    void setCommodityCount(int slot, const LogicData& data, i32 count);
+    int commodityCountChangeHelper(int slot, const LogicData& data, i32 delta,
+                                   int a5 = 0, bool noCap = false, int a7 = 0);
 };
 
 } // namespace titan

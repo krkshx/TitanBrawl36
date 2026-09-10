@@ -5,6 +5,7 @@
 #include "titan/commands/LogicDiamondsAddedCommand.hpp"
 #include "titan/game/LogicClientAvatar.hpp"
 #include "titan/game/LogicClientHome.hpp"
+#include "titan/game/LogicData.hpp"
 #include "titan/game/LogicHomeMode.hpp"
 #include "titan/game/NotificationFactory.hpp"
 
@@ -142,6 +143,30 @@ int main() {
         LogicDeleteNotificationCommand c;
         LogicHomeMode empty;
         CHECK(c.execute(&empty, 0, false) == 0);
+    }
+    // Commodity economy (@0x32922c/@0x7c7bc8/@0x5c3590).
+    {
+        DataTables dt; // empty tables: facades still construct, reads miss
+        (void)dt;
+        LogicClientAvatar av;
+        LogicData gold(nullptr, 5, 0);
+        CHECK(av.getCommodityCount(0, gold) == 0);
+        av.setCommodityCount(0, gold, 100);
+        CHECK(av.getCommodityCount(0, gold) == 100);
+        av.setCommodityCount(0, gold, 250);
+        CHECK(av.getCommodityCount(0, gold) == 250);
+        LogicData other(nullptr, 5, 1);
+        CHECK(av.getCommodityCount(0, other) == 0);
+        // Delta helper: add, cap (resources class 5 needs tables -> skip
+        // cap here, plain add), zero-delta no-op.
+        CHECK(av.commodityCountChangeHelper(0, other, 0) == 0);
+        CHECK(av.commodityCountChangeHelper(0, other, 30) == 30);
+        CHECK(av.getCommodityCount(0, other) == 30);
+        CHECK(av.commodityCountChangeHelper(0, other, -10) == -10);
+        CHECK(av.getCommodityCount(0, other) == 20);
+        // Bad slot: loud error, safe zero.
+        CHECK(av.getCommodityCount(9, gold) == 0);
+        CHECK(av.commodityCountChangeHelper(9, gold, 5) == 0);
     }
 
     if (failures == 0) std::puts("gameplay: all ok");

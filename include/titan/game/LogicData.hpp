@@ -18,6 +18,12 @@ public:
 
     [[nodiscard]] int classId() const { return classId_; }
     [[nodiscard]] int row() const { return row_; }
+    [[nodiscard]] const DataTables* dataTables() const { return tables_; }
+    // getDataType @0x35bf58 = parent table index == class id.
+    [[nodiscard]] int getDataType() const { return classId_; }
+    [[nodiscard]] bool equals(const LogicData& o) const {
+        return classId_ == o.classId_ && row_ == o.row_;
+    }
     [[nodiscard]] int globalId() const {
         return GlobalID::make(classId_, row_);
     }
