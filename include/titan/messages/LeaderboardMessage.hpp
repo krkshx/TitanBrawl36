@@ -3,7 +3,7 @@
 // LeaderboardMessage (24403) — split out of MsgBatch06.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/RankingEntry.hpp"
+#include "titan/game/RankingEntry.hpp"
 
 namespace titan {
 

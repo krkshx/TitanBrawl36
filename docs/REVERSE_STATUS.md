@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2048 reimplemented, 9717 third-party, 25299 pending**
+Registry (compiled in): **2057 reimplemented, 9717 third-party, 25290 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2048 fns | `src/` + tests |
-| Game code pending | 25299 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2057 fns | `src/` + tests |
+| Game code pending | 25290 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -70,8 +70,10 @@ Registry (compiled in): **2048 reimplemented, 9717 third-party, 25299 pending**
   (Donate), display (Band 82), + specials (RankedMidSeason 67,
   RankedSeasonEnd 68, BrawlPassAutoCollect 69, StarPoints 79 + ScoreEntry,
   Revoke 85, SkinPurchaseOption 65, ChallengeReward 63/70 + LogicRewards stub).
-  Deferred: `AnalyticEvent` (`@0x2787dc`, needs LogicJSONParser subsystem),
-  `RankingEntry` (polymorphic encode slots).
+  `RankingEntry` (`@0x770f68/@0x88e8d8`; slots resolved to
+  `PlayerRankingData` (`@0x8a6d9c`) + `AllianceRankingData` (`@0x6ef580`))
+  + `decodeLogicLong` helper.
+  Deferred: `AnalyticEvent` (`@0x2787dc`, needs LogicJSONParser subsystem).
 
 ## Verify flags (against live captures later)
 

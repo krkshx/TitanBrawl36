@@ -33,4 +33,13 @@ inline void encodeLogicLong(ByteStream& s, const LogicLong& id) {
     s.writeVInt(id.low);
 }
 
+// Read counterpart (cf. RankingEntry::decode @0x88e8d8 via
+// ByteStreamHelper::decodeLogicLong): two vint halves.
+inline LogicLong decodeLogicLong(ByteStream& s) {
+    LogicLong id;
+    id.high = s.readVInt();
+    id.low = s.readVInt();
+    return id;
+}
+
 } // namespace titan

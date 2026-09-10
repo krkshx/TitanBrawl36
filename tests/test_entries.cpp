@@ -57,6 +57,9 @@
 #include "titan/game/LogicVector2.hpp"
 #include "titan/game/PlayerEntry.hpp"
 #include "titan/game/PlayAgainStatus.hpp"
+#include "titan/game/PlayerRankingData.hpp"
+#include "titan/game/AllianceRankingData.hpp"
+#include "titan/game/RankingEntry.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
 #include "titan/game/EventData.hpp"
@@ -1381,6 +1384,43 @@ int main() {
             threw = true;
         }
         CHECK(threw);
+    }
+    // Ranking wave (@0x8a6d9c, @0x6ef580, @0x770f68/@0x88e8d8).
+    {
+        PlayerRankingData back;
+        entryRoundTrip<PlayerRankingData>(
+            [](PlayerRankingData& e) {
+                e.name_ = std::string("p");
+                e.display_ = std::make_unique<PlayerDisplayData>();
+            },
+            back);
+        CHECK(back.name_.value() == "p" && back.display_);
+    }
+    {
+        AllianceRankingData back;
+        entryRoundTrip<AllianceRankingData>(
+            [](AllianceRankingData& e) {
+                e.name_ = std::string("a");
+                e.v16_ = 16;
+                e.ref24_ = DataReference{16, 2};
+            },
+            back);
+        CHECK(back.name_.value() == "a" && back.v16_ == 16);
+        CHECK(back.ref24_.has_value());
+    }
+    {
+        RankingEntry back;
+        entryRoundTrip<RankingEntry>(
+            [](RankingEntry& e) {
+                e.id8_ = LogicLong{0, 99};
+                e.v16_ = 1;
+                e.v20_ = 2;
+                e.player_ = std::make_unique<PlayerRankingData>();
+                e.player_->display_ = std::make_unique<PlayerDisplayData>();
+            },
+            back);
+        CHECK(back.id8_.low == 99 && back.v16_ == 1 && back.v20_ == 2);
+        CHECK(back.player_ && !back.alliance_);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {
