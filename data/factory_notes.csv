@@ -1,0 +1,36 @@
+# LogicLaserMessageFactory (0x513e58) — findings beyond message_index.json
+# Single shared factory for client+server messages. Dispatch anomalies:
+# several numeric ids map to 2+ classes (TRUE_ID verified per getter);
+# disambiguation mechanism (likely message version, cf. header u16 version)
+# is still pending — see docs/REVERSE_STATUS.md verify flags.
+
+# New classes found only via the factory (now in MsgBatch14):
+10101,LoginMessage
+10501,AcceptFriendMessage
+10504,AskForFriendListMessage
+10506,RemoveFriendMessage
+10599,AskForFriendSuggestionsMessage
+15793,GetTokenFriendMessage
+10309,GetAllianceInviteTokenMessage
+20103,LoginFailedMessage
+20000,ExtendedSetEncryptionMessage
+
+# Alias pairs (one class handles two ids):
+10109+10110,AnalyticEventMessage
+19002+19003,TriggerStartLatencyTestMessage
+23456+23457,LobbyInfoMessage
+24109+24111,AvailableServerCommandMessage
+26006+26007,LogicDeviceLinkDoneMessage
+
+# Collisions (two classes return the same TRUE_ID):
+10109,UdpCheckConnectionMessage+AnalyticEventMessage
+19002,UdpLatencyTestRequestMessage+TriggerStartLatencyTestMessage
+23456,BattleEndMessage+LobbyInfoMessage
+24109,VisionUpdateMessage+AvailableServerCommandMessage
+25892,DisconnectedMessage+TitanDisconnectedMessage
+20101,CreateAccountFailedMessage+CreateAccountOkMessage+UdpBigMessageFragmentMessage
+24116,DebugNewbieCoopOverrideSetMessage+HomeBattleReplayFailedMessage
+24123,DailyEventsMessage+SeasonRewardsMessage
+14103,MatchmakeRequestMessage+StartGameMessage
+14104,StartMissionMessage+StartSpectateMessage
+20000,SetEncryptionMessage+ExtendedSetEncryptionMessage
