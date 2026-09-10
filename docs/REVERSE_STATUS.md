@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2111 reimplemented, 9717 third-party, 25236 pending**
+Registry (compiled in): **2126 reimplemented, 9717 third-party, 25221 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2111 fns | `src/` + tests |
-| Game code pending | 25236 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2126 fns | `src/` + tests |
+| Game code pending | 25221 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -69,6 +69,13 @@ Registry (compiled in): **2111 reimplemented, 9717 third-party, 25236 pending**
   Listener UI callbacks skipped as platform code.
 - sc engine (part 1): `Debugger::error @0x569b9c` / `warning @0x254e64`
   (log+count, never throws — our throws stay stricter by design).
+- Gameplay wave (part 2): `LogicChangeAvatarNameCommand::execute @0x1b40d4`
+  (+ `useDiamonds @0x591f4c`, nameSetByUser +192, `getHome @0x598c2c`).
+  Avatar wire audit: ids are vint pairs (`encodeLogicLong`, were fixed
+  ints), tail has 12 vints (+184/+188/+200 were missing), flag_ was
+  nameSetByUser — all fixed and covered.
+- sc engine (part 2): `DisplayObject` transform core (C2 `@0x529c3c`,
+  x@+32/y@+36, scaleX@+16/scaleY@+28, all accessors verified).
 - Session crypto resolved: `Messaging` builds two plain `PepperEncrypter`
   (`@0x1b4b64`); encrypt `@0x4491dc` / decrypt `@0x39f6b4` advance the nonce
   BEFORE use (port fixed to match); `PepperCrypto::box`/`box_open`
