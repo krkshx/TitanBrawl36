@@ -65,10 +65,13 @@ public:
 
     // Load a received buffer for decoding (sets cursor to 0).
     void setBuffer(const u8* data, i32 len);
+    void setByteArray(const u8* data, i32 len) { setBuffer(data, len); } // @0x2da99c
 
     // --- buffer access ---
     [[nodiscard]] const u8* data() const { return buffer_.data(); }
+    [[nodiscard]] const u8* getByteArray() const { return buffer_.data(); } // @0x42b9b0
     [[nodiscard]] i32 size() const { return length_; }
+    [[nodiscard]] i32 getLength() const { return length_; } // @0x69da1c (max(+20,+24); equal here)
     [[nodiscard]] i32 cursor() const { return readCursor_; }
     [[nodiscard]] bool isAtEnd() const { return readCursor_ >= length_; } // @0x7625a8
     [[nodiscard]] i32 bitOffset() const { return bitOffset_; }
