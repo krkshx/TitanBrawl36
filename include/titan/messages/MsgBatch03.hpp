@@ -6,6 +6,7 @@
 #include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
 #include "titan/core/PiranhaMessage.hpp"
+#include "titan/game/ClientInput.hpp"
 #include "titan/messages/MsgBatch00.hpp" // AllianceFullEntry
 #include "titan/messages/Nested.hpp"
 
@@ -272,21 +273,18 @@ public:
     std::optional<std::string> info_;
 };
 
-// ---- 10555 ClientInputMessage: BitStream-packed, pending BitStream reverse ----
-// Layout per binary: 5 clamped ints (16383/1023/8191/1023/1023) then a
-// count-prefixed array of BitStream-encoded ClientInput entries.
+// ---- 10555 ClientInputMessage (encode @0x49ee3c) ----
+// BitStream scratch (capacity 58): 5 clamped positives
+// (16383/1023/8191/1023/1023), 5-bit entry count, entry bodies,
+// then the bitstream bytes via writeBytesWithoutLength.
 class ClientInputMessage : public PiranhaMessage {
 public:
     int getMessageType() const override { return 10555; }
     const char* getMessageTypeName() const override { return "ClientInputMessage"; }
-    void encode() override {
-        PiranhaMessage::encode();
-        throw pending_reverse("ClientInputMessage needs BitStream");
-    }
-    void decode() override {
-        PiranhaMessage::decode();
-        throw pending_reverse("ClientInputMessage needs BitStream");
-    }
+    void encode() override;
+    void decode() override;
+    i32 f132_ = 0, f136_ = 0, f140_ = 0, f144_ = 0, f148_ = 0;
+    std::vector<ClientInput> inputs_;
 };
 
 // ---- 20101 CreateAccountFailedMessage: int ----

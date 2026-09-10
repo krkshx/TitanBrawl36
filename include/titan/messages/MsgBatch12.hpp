@@ -138,7 +138,10 @@ public:
         stream().writeByte(index_);
         stream().writeByte(count_);
         stream().writeVInt(static_cast<i32>(payload_.size()));
-        if (!payload_.empty()) stream().writeRawBytes(payload_.data(), static_cast<i32>(payload_.size()));
+        if (!payload_.empty()) {
+            stream().writeBytesWithoutLength(payload_.data(),
+                                             static_cast<i32>(payload_.size()));
+        }
     }
     void decode() override {
         PiranhaMessage::decode();
@@ -409,7 +412,8 @@ public:
         stream().writeBoolean(hasExtra_);
         stream().writeVInt(hasExtra_ ? extra_ : 0);
         if (!payload_.empty()) {
-            stream().writeRawBytes(payload_.data(), static_cast<i32>(payload_.size()));
+            stream().writeBytesWithoutLength(payload_.data(),
+                                             static_cast<i32>(payload_.size()));
         }
     }
     void decode() override {
