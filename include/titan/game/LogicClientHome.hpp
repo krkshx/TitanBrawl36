@@ -23,6 +23,9 @@ class LogicClientHome : public NestedEntry {
 public:
     void encode(ByteStream& s) const override;
     void decode(ByteStream& s) override;
+    // removeNotification @0x8f73e4: removes the first entry whose base
+    // +8 int (v8_) equals id, transferring ownership (null if absent).
+    std::unique_ptr<Notification> removeNotification(i32 id);
     std::unique_ptr<LogicDailyData> daily_;
     std::unique_ptr<LogicConfData> conf_;
     LogicLong id_;

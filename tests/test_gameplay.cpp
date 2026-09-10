@@ -1,9 +1,12 @@
 // Self-check for command execute() semantics (gameplay wave).
 
 #include "titan/commands/LogicChangeAvatarNameCommand.hpp"
+#include "titan/commands/LogicDeleteNotificationCommand.hpp"
 #include "titan/commands/LogicDiamondsAddedCommand.hpp"
 #include "titan/game/LogicClientAvatar.hpp"
+#include "titan/game/LogicClientHome.hpp"
 #include "titan/game/LogicHomeMode.hpp"
+#include "titan/game/NotificationFactory.hpp"
 
 #include <cstdio>
 #include <memory>
@@ -107,6 +110,38 @@ int main() {
         av.setFreeDiamonds(3);
         av.useDiamonds(5);
         CHECK(av.getDiamonds() == 5 && av.getFreeDiamonds() == 0);
+    }
+    // DeleteNotification execute @0x961cc4 (+ removeNotification @0x8f73e4).
+    {
+        // Missing entry -> warning, returns 0.
+        auto home = makeHome(0, 0);
+        home->setHome(std::make_unique<LogicClientHome>());
+        LogicDeleteNotificationCommand c;
+        c.v1_ = 81;
+        CHECK(c.execute(home.get(), 0, false) == 0);
+        CHECK(home->getHome()->notifications_.empty());
+    }
+    {
+        // Present entry (matched by base +8 int) is removed and returned.
+        auto home = makeHome(0, 0);
+        home->setHome(std::make_unique<LogicClientHome>());
+        auto n = createNotificationByType(81);
+        n->v8_ = 81;
+        home->getHome()->notifications_.emplace_back(81, std::move(n));
+        auto other = createNotificationByType(81);
+        other->v8_ = 82;
+        home->getHome()->notifications_.emplace_back(81, std::move(other));
+        LogicDeleteNotificationCommand c;
+        c.v1_ = 82;
+        CHECK(c.execute(home.get(), 0, false) == 0);
+        const auto& left = home->getHome()->notifications_;
+        CHECK(left.size() == 1 && left[0].second->v8_ == 81);
+    }
+    {
+        // No home -> safe no-op.
+        LogicDeleteNotificationCommand c;
+        LogicHomeMode empty;
+        CHECK(c.execute(&empty, 0, false) == 0);
     }
 
     if (failures == 0) std::puts("gameplay: all ok");

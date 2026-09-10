@@ -66,4 +66,15 @@ void LogicClientHome::decode(ByteStream& s) {
     }
 }
 
+std::unique_ptr<Notification> LogicClientHome::removeNotification(i32 id) {
+    for (auto it = notifications_.begin(); it != notifications_.end(); ++it) {
+        if (it->second && it->second->v8_ == id) {
+            auto removed = std::move(it->second);
+            notifications_.erase(it);
+            return removed;
+        }
+    }
+    return nullptr;
+}
+
 } // namespace titan
