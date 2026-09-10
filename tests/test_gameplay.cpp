@@ -203,6 +203,16 @@ int main() {
         CHECK(av.getDiamonds() == 165 && av.getFreeDiamonds() == 35);
         CHECK(av.getCumulativePurchasedDiamonds() == 40);
     }
+    // HomeMode tables wiring (gold = resources row 1).
+    {
+        LogicHomeMode home;
+        CHECK(home.dataTables() == nullptr);
+        DataTables dt;
+        home.setDataTables(&dt);
+        CHECK(home.dataTables() == &dt);
+        const LogicData gold = home.goldData();
+        CHECK(gold.classId() == 5 && gold.row() == 1);
+    }
 
     if (failures == 0) std::puts("gameplay: all ok");
     return failures == 0 ? 0 : 1;
