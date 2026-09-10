@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2151 reimplemented, 9717 third-party, 25196 pending**
+Registry (compiled in): **2156 reimplemented, 9717 third-party, 25191 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2151 fns | `src/` + tests |
-| Game code pending | 25196 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2156 fns | `src/` + tests |
+| Game code pending | 25191 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -80,7 +80,9 @@ Registry (compiled in): **2151 reimplemented, 9717 third-party, 25196 pending**
   @0x708b44` (ints17_ table).
 - HomeMode owns DataTables now (gold helper) for material resolution.
 - `GatchaDrop::doDrop @0x4083c4` (cases 2/3/8 live, table cases loud,
-  unknown silent).
+  unknown silent) + ConfData int values (`getIntValueEntry @0x4698d8`,
+  `getIntValue @0x51a1f0` / `(ii) @0x26187c`, hardcoded defaults `@0x999c84`)
+  + `PurchaseDoubleCoins::execute @0x92b034`.
 - Viewer gained a Heroes tab (QPainter cards: name/level/count).
 - Avatar economy core: `get/setCommodityCount` (`@0x32922c`/`@0x7c7bc8`)
   + `commodityCountChangeHelper` (`@0x5c3590`, resource-cap via

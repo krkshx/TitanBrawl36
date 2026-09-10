@@ -4419,7 +4419,7 @@ extern const Entry kPart0[] = {
     {0x02617E0, Status::Pending, "_ZN20LogicRawOutReflector12reflectFloatEfPKcf", "LogicRawOutReflector12reflectFloatEfPKcf"},
     {0x026184C, Status::Pending, "_ZN21DeviceLinkErrorScreen6updateEf", "DeviceLinkErrorScreen6updateEf"},
     {0x0261850, Status::Reimplemented, "_ZN17PlayerMapsMessage8destructEv", "PlayerMapsMessage8destructEv"},
-    {0x026187C, Status::Pending, "_ZNK13LogicConfData11getIntValueEii", "LogicConfData11getIntValueEii"},
+    {0x026187C, Status::Reimplemented, "_ZNK13LogicConfData11getIntValueEii", "LogicConfData11getIntValueEii"},
     {0x02618BC, Status::Pending, "_ZN5titan7android7content7ContextC2EP8_jobject", "titan7android7content7ContextC2EP8_jobject"},
     {0x0261978, Status::Pending, "_ZN15sc3dWorldObject14touchCancelledEi", "sc3dWorldObject14touchCancelledEi"},
     {0x026197C, Status::Pending, "_build_tree", "global"},

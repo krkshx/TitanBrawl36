@@ -6,6 +6,7 @@
 #include "titan/game/LogicClientHome.hpp"
 #include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicDailyData.hpp"
+#include "titan/game/FreeTextNotification.hpp"
 #include "titan/game/ForcedDrops.hpp"
 #include "titan/gen/MessageFactory.hpp"
 #include "titan/messages/OwnHomeDataMessage.hpp"
@@ -148,9 +149,12 @@ HomeViewer::HomeViewer(QWidget* parent) : QMainWindow(parent) {
     splitter->setSizes({550, 350});
 
     cards_ = new HeroCards();
+    notifs_ = new QTreeWidget();
+    notifs_->setHeaderLabels({"notification", "detail"});
     auto* tabs = new QTabWidget(this);
     tabs->addTab(splitter, "Data");
     tabs->addTab(cards_, "Heroes");
+    tabs->addTab(notifs_, "Notifications");
 
     demoBtn_ = new QPushButton("Build demo OwnHomeData", this);
     loadBtn_ = new QPushButton("Load .bin capture…", this);
@@ -190,10 +194,29 @@ void HomeViewer::showFrame(const std::vector<u8>& frame) {
     if (auto* home = dynamic_cast<titan::OwnHomeDataMessage*>(m.get())) {
         showHome(tree_, *home, tablesOk_ ? &tables_ : nullptr);
         cards_->setData(home->avatar_.get(), tablesOk_ ? &tables_ : nullptr);
+        notifs_->clear();
+        if (home->home_) {
+            for (const auto& [type, n] : home->home_->notifications_) {
+                QString detail;
+                if (n) {
+                    detail = QString("v8=%1 v16=%2").arg(n->v8_).arg(n->v16_);
+                    if (n->s24_) {
+                        detail += QString(" \"%1\"").arg(
+                            QString::fromStdString(*n->s24_));
+                    }
+                }
+                new QTreeWidgetItem(
+                    notifs_, QStringList()
+                                 << QString("type %1 (%2)").arg(type).arg(
+                                        n ? n->notificationType() : -1)
+                                 << detail);
+            }
+        }
         statusBar()->showMessage(
             QString("decoded %1 (%2 bytes)").arg(home->getMessageTypeName()).arg(frame.size()));
     } else {
         tree_->clear();
+        notifs_->clear();
         cards_->setData(nullptr, nullptr);
         auto* root = new QTreeWidgetItem(
             tree_, QStringList() << QString::fromStdString(m->getMessageTypeName())
@@ -206,6 +229,7 @@ void HomeViewer::showFrame(const std::vector<u8>& frame) {
 
 void HomeViewer::showError(const QString& what) {
     tree_->clear();
+    notifs_->clear();
     hex_->clear();
     statusBar()->showMessage("error: " + what);
 }
@@ -225,6 +249,10 @@ void HomeViewer::onDemo() {
     hero.data_ = titan::DataReference{16, 0}; // Shelly, resolved via tables
     hero.count_ = 4; // -> Lv 5 through getHeroLevel
     m.avatar_->slots_[5].push_back(hero);
+    auto note = std::make_unique<titan::FreeTextNotification>();
+    note->v8_ = 1;
+    note->s24_ = std::string("Welcome back!");
+    m.home_->notifications_.emplace_back(81, std::move(note));
     m.f152_ = 1;
     showFrame(titan::net::encodeFrame(m));
 }
