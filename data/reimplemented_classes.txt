@@ -446,3 +446,6 @@ LogicCondition
 LogicRewardConfig
 VanityItemEntry
 VanityItemProp
+GatchaDrop
+HeroEntry
+LogicPlayer

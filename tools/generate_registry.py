@@ -132,6 +132,9 @@ REIMPLEMENTED_EXTRA = {
     "VanityItemProp": ("6encodeE", "6decodeE"),
     "LogicCondition": ("6encodeE", "6decodeE"),
     "LogicRewardConfig": ("6encodeE", "6decodeE"),
+    "GatchaDrop": ("6encodeE", "6decodeE"),
+    "HeroEntry": ("6encodeE", "6decodeE"),
+    "LogicPlayer": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

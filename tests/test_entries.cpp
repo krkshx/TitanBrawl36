@@ -9,9 +9,12 @@
 #include "titan/game/BrawlPassSeasonData.hpp"
 #include "titan/game/CustomEvent.hpp"
 #include "titan/game/EventSlot.hpp"
+#include "titan/game/GatchaDrop.hpp"
+#include "titan/game/HeroEntry.hpp"
 #include "titan/game/LogicBitList.hpp"
 #include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicCondition.hpp"
+#include "titan/game/LogicPlayer.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
@@ -650,6 +653,54 @@ int main() {
         CHECK(back2.rewards_.size() == 1 && back2.rewards_[0]->config_);
         CHECK(back2.rewards_[0]->config_->cond_ != nullptr);
         CHECK(!back2.rewards_[0]->config_->offer_);
+    }
+    // Player wave (@0x7509c0, @0x76f47c, @0x6bdfb0/@0x89bacc).
+    {
+        GatchaDrop back;
+        entryRoundTrip<GatchaDrop>(
+            [](GatchaDrop& e) {
+                e.v4_ = 4;
+                e.ref8_ = DataReference{16, 8};
+                e.v0_ = 1;
+                e.v40_ = 40;
+                e.v44_ = 44;
+            },
+            back);
+        CHECK(back.v4_ == 4 && back.v0_ == 1);
+        CHECK(back.ref8_.has_value() && !back.ref16_);
+        CHECK(back.v40_ == 40 && back.v44_ == 44);
+    }
+    {
+        HeroEntry back;
+        entryRoundTrip<HeroEntry>(
+            [](HeroEntry& e) {
+                e.ref0_ = DataReference{16, 0};
+                e.v16_ = 16;
+                e.v24_ = 24;
+            },
+            back);
+        CHECK(back.ref0_.has_value() && !back.ref8_);
+        CHECK(back.v16_ == 16 && back.v20_ == 0 && back.v24_ == 24);
+    }
+    {
+        LogicPlayer back;
+        entryRoundTrip<LogicPlayer>(
+            [](LogicPlayer& e) {
+                e.id_ = LogicLong{0, 123};
+                e.v8_ = 8;
+                e.v12_ = 12;
+                e.v84_ = 84;
+                e.v16_ = 16;
+                e.ref24_ = DataReference{16, 2};
+                e.display_ = std::make_unique<PlayerDisplayData>();
+                e.b296_ = true;
+            },
+            back);
+        CHECK(back.id_.low == 123);
+        CHECK(back.v8_ == 8 && back.v84_ == 84 && back.v16_ == 16);
+        CHECK(!back.ref56_ && back.ref24_.has_value());
+        CHECK(!back.upgrades_ && !back.emotes_);
+        CHECK(back.display_ && back.b296_);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

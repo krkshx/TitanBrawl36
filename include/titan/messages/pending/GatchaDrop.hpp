@@ -1,11 +1,6 @@
 #pragma once
 
-// GatchaDrop — not yet reversed; encode/decode throw pending_reverse.
+// GatchaDrop — reversed (see game/GatchaDrop.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(GatchaDrop);
-
-} // namespace titan
+#include "titan/game/GatchaDrop.hpp"
