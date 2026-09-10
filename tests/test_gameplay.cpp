@@ -5,6 +5,7 @@
 #include "titan/commands/LogicDiamondsAddedCommand.hpp"
 #include "titan/game/LogicClientAvatar.hpp"
 #include "titan/game/LogicClientHome.hpp"
+#include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicData.hpp"
 #include "titan/game/LogicHomeMode.hpp"
 #include "titan/game/NotificationFactory.hpp"
@@ -167,6 +168,25 @@ int main() {
         // Bad slot: loud error, safe zero.
         CHECK(av.getCommodityCount(9, gold) == 0);
         CHECK(av.commodityCountChangeHelper(9, gold, 5) == 0);
+    }
+    // Hero levels (@0x2b9b74/@0x8a2ae0) + level-up cost (@0x708b44).
+    {
+        LogicClientAvatar av;
+        LogicData shelly(nullptr, 16, 0);
+        CHECK(av.getHeroLevel(shelly) == 1);
+        av.setHeroLevel(shelly, 5);
+        CHECK(av.getHeroLevel(shelly) == 5);
+        LogicData colt(nullptr, 16, 1);
+        CHECK(av.getHeroLevel(colt) == 1);
+    }
+    {
+        LogicConfData conf;
+        CHECK(conf.getLevelUpCost(1) == 0);
+        conf.ints17_ = {10, 20, 30};
+        CHECK(conf.getLevelUpCost(1) == 10);
+        CHECK(conf.getLevelUpCost(3) == 30);
+        CHECK(conf.getLevelUpCost(4) == 0);
+        CHECK(conf.getLevelUpCost(0) == 0);
     }
 
     if (failures == 0) std::puts("gameplay: all ok");

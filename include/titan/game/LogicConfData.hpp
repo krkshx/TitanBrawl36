@@ -33,6 +33,12 @@ public:
     void encode(ByteStream& s) const override;
     void decode(ByteStream& s) override;
 
+    // getLevelUpCost @0x708b44: ints17_[level-1] when level <= size, else 0.
+    [[nodiscard]] i32 getLevelUpCost(int level) const {
+        if (level < 1 || level > static_cast<int>(ints17_.size())) return 0;
+        return ints17_[static_cast<std::size_t>(level - 1)];
+    }
+
     i32 v0_ = 0; // +0
     std::vector<std::unique_ptr<EventSlot>> slots_;          // +8 (+20)
     std::vector<std::unique_ptr<EventData>> events1_;        // +24 (+36)

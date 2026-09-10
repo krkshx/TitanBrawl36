@@ -126,6 +126,20 @@ public:
     void setCommodityCount(int slot, const LogicData& data, i32 count);
     int commodityCountChangeHelper(int slot, const LogicData& data, i32 delta,
                                    int a5 = 0, bool noCap = false, int a7 = 0);
+    // getHeroLevel @0x2b9b74: hero level = slot-5 count + 1 (1 if absent);
+    // setHeroLevel @0x8a2ae0 = setCommodityCount(5, hero, level - 1).
+    [[nodiscard]] i32 getHeroLevel(const LogicData& hero) const {
+        for (const auto& s : slots_[5]) {
+            if (s.data_.has_value() && s.data_->classId == hero.classId()
+                && s.data_->instanceId == hero.row()) {
+                return s.count_ + 1;
+            }
+        }
+        return 1;
+    }
+    void setHeroLevel(const LogicData& hero, i32 level) {
+        setCommodityCount(5, hero, level - 1);
+    }
 };
 
 } // namespace titan
