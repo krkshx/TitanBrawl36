@@ -860,7 +860,7 @@ extern const Entry kPart3[] = {
     {0x094BCCC, Status::Pending, "_ZNK31CafeBazaarBillingRequestMessage15getPurchaseDataEv", "CafeBazaarBillingRequestMessage15getPurchaseData"},
     {0x094BCD4, Status::Pending, "_ZN8GameMain17onVideoAdFinishedEv", "GameMain17onVideoAdFinishedEv"},
     {0x094BCF4, Status::Pending, "_ZNK9LogicTile12blocksVisionEv", "LogicTile12blocksVisionEv"},
-    {0x094BCFC, Status::Pending, "_ZN15PlayAgainStatus6encodeEP10ByteStreamP14LogicArrayListIP9LogicLongE", "PlayAgainStatus6encodeEP10ByteStreamP14LogicArra"},
+    {0x094BCFC, Status::Reimplemented, "_ZN15PlayAgainStatus6encodeEP10ByteStreamP14LogicArrayListIP9LogicLongE", "PlayAgainStatus6encodeEP10ByteStreamP14LogicArra"},
     {0x094BD68, Status::Pending, "_ZNK18LogicAccessoryData14getActiveTicksEv", "LogicAccessoryData14getActiveTicksEv"},
     {0x094BD78, Status::Pending, "_ZN11Shape9SliceC2Ev", "Shape9SliceC2Ev"},
     {0x094BDA8, Status::Pending, "_ZN8Settings19setMovementPositionEff", "Settings19setMovementPositionEff"},

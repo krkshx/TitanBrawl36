@@ -1,12 +1,13 @@
 #pragma once
 
-// FriendOnlineStatus — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(FriendOnlineStatus) placeholder.
+// FriendOnlineStatus — the binary's class is FriendOnlineStatusEntry
+// (encode @0x1a39e8, decode @0x26a79c); alias kept so existing users
+// (FriendOnlineStatusEntryMessage) don't churn.
 
-#include "titan/messages/Nested.hpp"
+#include "titan/game/FriendOnlineStatusEntry.hpp"
 
 namespace titan {
 
-TITAN_PENDING_ENTRY(FriendOnlineStatus);
+using FriendOnlineStatus = FriendOnlineStatusEntry;
 
 } // namespace titan

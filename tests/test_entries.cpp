@@ -15,11 +15,14 @@
 #include "titan/game/CustomEvent.hpp"
 #include "titan/game/DeliveryUnit.hpp"
 #include "titan/game/EventSlot.hpp"
+#include "titan/game/FriendOnlineStatusEntry.hpp"
 #include "titan/game/GatchaDrop.hpp"
+#include "titan/messages/pending/FriendOnlineStatus.hpp" // alias check
 #include "titan/game/HeroDataEntry.hpp"
 #include "titan/game/HeroEntry.hpp"
 #include "titan/game/LogicBitList.hpp"
 #include "titan/game/LatencyData.hpp"
+#include "titan/game/LatencyTestConfiguration.hpp"
 #include "titan/game/LogicBattleEmotes.hpp"
 #include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicCondition.hpp"
@@ -42,6 +45,7 @@
 #include "titan/game/LogicUuid.hpp"
 #include "titan/game/LogicVector2.hpp"
 #include "titan/game/PlayerEntry.hpp"
+#include "titan/game/PlayAgainStatus.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
 #include "titan/game/EventData.hpp"
@@ -69,6 +73,7 @@
 #include "titan/game/TimedOffer.hpp"
 #include "titan/game/LogicPlayerMap.hpp"
 #include "titan/game/PlayerProfile.hpp"
+#include "titan/game/StatusChangeEntry.hpp"
 #include "titan/game/StreamEntry.hpp"
 #include "titan/game/StreamEntryFactory.hpp"
 #include "titan/game/SuggestionEntry.hpp"
@@ -1132,6 +1137,67 @@ int main() {
         entryRoundTrip<LobbyInfoEntry>(
             [](LobbyInfoEntry& e) { e.v_[4] = 42; }, back);
         CHECK(back.v_[0] == 0 && back.v_[4] == 42);
+    }
+    // Status/latency wave (@0x1a39e8/@0x26a79c, @0x3ffdc4, @0x94bcfc, @0x3af3e4).
+    {
+        FriendOnlineStatusEntry back;
+        entryRoundTrip<FriendOnlineStatusEntry>(
+            [](FriendOnlineStatusEntry& e) {
+                e.id0_ = LogicLong{1, 2};
+                e.v16_ = 16;
+                e.b24_ = true;
+                e.team_ = std::make_unique<AllianceTeamEntry>();
+                e.team_->v0_ = 3;
+            },
+            back);
+        CHECK(back.id0_.low == 2 && back.v16_ == 16 && back.b24_);
+        CHECK(back.team_ && back.team_->v0_ == 3);
+    }
+    {
+        // The old stub name is now an alias of the real class.
+        FriendOnlineStatus aliasBack;
+        entryRoundTrip<FriendOnlineStatus>(
+            [](FriendOnlineStatus& e) { e.v20_ = 5; }, aliasBack);
+        CHECK(aliasBack.v20_ == 5 && !aliasBack.team_);
+    }
+    {
+        LatencyTestConfiguration back;
+        entryRoundTrip<LatencyTestConfiguration>(
+            [](LatencyTestConfiguration& e) {
+                e.head_[0] = 1;
+                e.head_[6] = 6;
+                e.b28_ = true;
+                e.b48_ = true;
+                e.v32_ = 32;
+                e.s40_ = std::string("cfg");
+                e.bytes64_ = {0x01, 0x02};
+                e.v52_ = 52;
+            },
+            back);
+        CHECK(back.head_[0] == 1 && back.head_[6] == 6);
+        CHECK(back.b28_ && !back.b29_ && back.b48_ && back.v32_ == 32);
+        CHECK(back.s40_.value() == "cfg" && back.bytes64_.size() == 2);
+        CHECK(back.bytes80_.empty() && back.v52_ == 52 && !back.s56_);
+    }
+    {
+        PlayAgainStatus back;
+        entryRoundTrip<PlayAgainStatus>(
+            [](PlayAgainStatus& e) {
+                e.ids_.push_back(LogicLong{0, 11});
+                e.ids_.push_back(LogicLong{0, 22});
+            },
+            back);
+        CHECK(back.ids_.size() == 2 && back.ids_[1].low == 22);
+    }
+    {
+        StatusChangeEntry back;
+        entryRoundTrip<StatusChangeEntry>(
+            [](StatusChangeEntry& e) {
+                e.id8_ = LogicLong{8, 8};
+                e.v0_ = 1;
+            },
+            back);
+        CHECK(back.id8_.low == 8 && back.v0_ == 1);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {
