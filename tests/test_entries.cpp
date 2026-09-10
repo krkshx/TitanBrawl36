@@ -9,11 +9,14 @@
 #include "titan/game/EventData.hpp"
 #include "titan/game/FriendEntry.hpp"
 #include "titan/game/CooldownEntry.hpp"
+#include "titan/game/ChronosTextEntry.hpp"
 #include "titan/game/ForcedDrops.hpp"
 #include "titan/game/IntValueEntry.hpp"
 #include "titan/game/JoinRequestAllianceStreamEntry.hpp"
 #include "titan/game/LogicClientHome.hpp"
 #include "titan/game/LogicDailyData.hpp"
+#include "titan/game/LogicGemOffer.hpp"
+#include "titan/game/LogicOfferBundle.hpp"
 #include "titan/game/TimedOffer.hpp"
 #include "titan/game/LogicPlayerMap.hpp"
 #include "titan/game/PlayerProfile.hpp"
@@ -303,6 +306,61 @@ int main() {
         CHECK(back.brawlPass_.empty() && back.proLeague_.empty());
         CHECK(!back.quests_ && !back.vanity_ && !back.ranked_);
         CHECK(back.tail102_ == 102);
+    }
+    // OfferBundle wave (@0x69b644 leaves @0x93ed54/@0x7b6d10).
+    {
+        LogicGemOffer back;
+        entryRoundTrip<LogicGemOffer>(
+            [](LogicGemOffer& e) {
+                e.v0_ = 1;
+                e.v1_ = 2;
+                e.ref_ = DataReference{16, 7};
+                e.v4_ = 4;
+            },
+            back);
+        CHECK(back.v0_ == 1 && back.v4_ == 4);
+        CHECK(back.ref_.has_value() && back.ref_->instanceId == 7);
+    }
+    {
+        ChronosTextEntry back;
+        entryRoundTrip<ChronosTextEntry>(
+            [](ChronosTextEntry& e) {
+                e.id_ = 77;
+                e.text_ = std::string("sale!");
+            },
+            back);
+        CHECK(back.id_ == 77 && back.text_ == "sale!");
+    }
+    {
+        LogicOfferBundle back;
+        entryRoundTrip<LogicOfferBundle>(
+            [](LogicOfferBundle& e) {
+                auto g = std::make_unique<LogicGemOffer>();
+                g->v0_ = 5;
+                g->v4_ = 50;
+                e.gems_.push_back(std::move(g));
+                e.v24_ = 24;
+                e.v28_ = 28;
+                e.v40_ = 40;
+                e.b44_ = true;
+                e.v52_ = 52;
+                e.v80_ = 80;
+                e.text_ = std::make_unique<ChronosTextEntry>();
+                e.text_->id_ = 3;
+                e.text_->text_ = std::string("bundle");
+                e.b88_ = true;
+                e.str_ = std::string("tag");
+                e.v84_ = 84;
+                e.v96_ = 96;
+            },
+            back);
+        CHECK(back.gems_.size() == 1 && back.gems_[0]->v4_ == 50);
+        CHECK(back.v24_ == 24 && back.v28_ == 28 && back.v40_ == 40);
+        CHECK(back.b44_ && !back.b56_);
+        CHECK(back.v52_ == 52 && back.v80_ == 80);
+        CHECK(back.text_ && back.text_->text_ == "bundle");
+        CHECK(back.b88_ && back.str_.has_value() && back.str_.value() == "tag");
+        CHECK(back.v84_ == 84 && !back.b100_ && back.v92_ == 0 && back.v96_ == 96);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **1798 reimplemented, 9717 third-party, 25549 pending**
+Registry (compiled in): **1805 reimplemented, 9717 third-party, 25542 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 1798 fns | `src/` + tests |
-| Game code pending | 25549 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 1805 fns | `src/` + tests |
+| Game code pending | 25542 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -36,10 +36,12 @@ Registry (compiled in): **1798 reimplemented, 9717 third-party, 25549 pending**
 - Nested entries wave 2 (started): `LogicDailyData` (`@0x6985dc/@0x4356a4`,
   incl. the skin-map key/count aliasing quirk) + leaves `ForcedDrops`
   (`@0x664128`), `TimedOffer` (`@0x354c54`), `IntValueEntry` (`@0x6b0790`),
-  `CooldownEntry` (`@0x5402a0`). Still pending: `LogicOfferBundle`
-  (`@0x69b644`), `AdStatus`, `BrawlPassSeasonData`, `ProLeagueSeasonData`,
+  `CooldownEntry` (`@0x5402a0`). Still pending: `AdStatus`, `BrawlPassSeasonData`, `ProLeagueSeasonData`,
   `LogicQuests`, `VanityItems`, `LogicPlayerRankedSeasonData`
   (`@0x286950`), `LogicConfData`.
+- `LogicOfferBundle` (`@0x69b644`) + leaves `LogicGemOffer` (`@0x93ed54`),
+  `ChronosTextEntry` (`@0x7b6d10`; vtable slot +0x20 resolved via the
+  ByteStream vtable to `writeStringReference @0x608f14`).
 
 ## Verify flags (against live captures later)
 

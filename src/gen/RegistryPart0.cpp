@@ -6433,7 +6433,7 @@ extern const Entry kPart0[] = {
     {0x02D596C, Status::Pending, "_ZN18LogicPlayerMapUtil22tileCodeToTileMetaDataEi", "LogicPlayerMapUtil22tileCodeToTileMetaDataEi"},
     {0x02D5990, Status::Pending, "_ZN15StageDrawBucketD2Ev", "StageDrawBucketD2Ev"},
     {0x02D59FC, Status::Pending, "_ZN15AllianceManager23compileListOfAllFriendsEv", "AllianceManager23compileListOfAllFriendsEv"},
-    {0x02D5E04, Status::Pending, "_ZN16ChronosTextEntry8destructEv", "ChronosTextEntry8destructEv"},
+    {0x02D5E04, Status::Reimplemented, "_ZN16ChronosTextEntry8destructEv", "ChronosTextEntry8destructEv"},
     {0x02D5E18, Status::Pending, "_ZN10GameButton15removeMovieClipEv", "GameButton15removeMovieClipEv"},
     {0x02D5E4C, Status::Reimplemented, "_ZNK29SetBlockFriendRequestsMessage14getMessageTypeEv", "SetBlockFriendRequestsMessage14getMessageTypeEv"},
     {0x02D5E54, Status::Pending, "_ZN8HeroItem12touchPressedERK5Touch", "HeroItem12touchPressedERK5Touch"},

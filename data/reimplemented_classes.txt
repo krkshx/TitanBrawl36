@@ -425,3 +425,6 @@ ForcedDrops
 IntValueEntry
 LogicDailyData
 TimedOffer
+ChronosTextEntry
+LogicGemOffer
+LogicOfferBundle

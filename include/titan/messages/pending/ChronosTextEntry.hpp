@@ -1,12 +1,6 @@
 #pragma once
 
-// ChronosTextEntry — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(ChronosTextEntry) placeholder.
+// ChronosTextEntry — reversed (see game/ChronosTextEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(ChronosTextEntry);
-
-} // namespace titan
+#include "titan/game/ChronosTextEntry.hpp"

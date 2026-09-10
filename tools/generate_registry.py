@@ -111,6 +111,9 @@ REIMPLEMENTED_EXTRA = {
     "TimedOffer": ("6encodeE", "6decodeE"),
     "IntValueEntry": ("6encodeE", "6decodeE"),
     "CooldownEntry": ("6encodeE", "6decodeE"),
+    "LogicOfferBundle": ("6encodeE", "6decodeE"),
+    "LogicGemOffer": ("6encodeE", "6decodeE"),
+    "ChronosTextEntry": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }
