@@ -1,4 +1,5 @@
 AcceptFriendFailedMessage
+AcceptFriendMessage
 AcceptTokenFriendMessage
 AccountIdentifiersMessage
 AccountSwitchedMessage
@@ -10,8 +11,11 @@ AddFriendMessage
 AddableFriendsMessage
 AdjustPackageMessage
 AllianceDataMessage
+AllianceFullEntry
+AllianceHeaderEntry
 AllianceInvitationSendFailedMessage
 AllianceListMessage
+AllianceMemberEntry
 AllianceMemberMessage
 AllianceMemberRemovedMessage
 AllianceOnlineStatusUpdatedMessage
@@ -34,6 +38,8 @@ AskForAllianceStreamMessage
 AskForAvatarStreamMessage
 AskForBattleEndMessage
 AskForBattleReplayStreamMessage
+AskForFriendListMessage
+AskForFriendSuggestionsMessage
 AskForJoinableAlliancesListMessage
 AskForPlayingFacebookFriendsMessage
 AskForPlayingGamecenterFriendsMessage
@@ -107,6 +113,7 @@ DeletePlayerMapResponseMessage
 DisconnectedMessage
 EndClientTurnMessage
 EnterMapEditorMessage
+ExtendedSetEncryptionMessage
 FacebookAccountAlreadyBoundMessage
 FacebookAccountBoundMessage
 FacebookAccountUnboundMessage
@@ -117,6 +124,7 @@ FriendOnlineStatusMessage
 FriendSuggestionsMessage
 GamecenterAccountAlreadyBoundMessage
 GamecenterAccountBoundMessage
+GetAllianceInviteTokenMessage
 GetAllianceInviteTokenResultMessage
 GetBattleLogMessage
 GetCurrentBattleReplayDataMessage
@@ -124,6 +132,7 @@ GetLeaderboardMessage
 GetPlayerMapsMessage
 GetPlayerProfileMessage
 GetSeasonRewardsMessage
+GetTokenFriendMessage
 GetTokenFriendResultMessage
 GlobalChatLineMessage
 GoHomeFromMapEditorMessage
@@ -162,6 +171,9 @@ ListBrawlTvChannelsMessage
 LobbyInfoMessage
 LogicAccountTransferCodeRequestMessage
 LogicAccountTransferCodeResponseMessage
+LogicClientAvatar
+LogicCompressedString
+LogicDataSlot
 LogicDeviceLinkCodeDeactivatedMessage
 LogicDeviceLinkCodeRequestMessage
 LogicDeviceLinkCodeResponseMessage
@@ -172,6 +184,8 @@ LogicDeviceLinkErrorMessage
 LogicDeviceLinkMenuClosedMessage
 LogicDeviceLinkNewDeviceLinkedMessage
 LogicDeviceLinkResponseMessage
+LoginFailedMessage
+LoginMessage
 LoginOkMessage
 LoginUsingSessionMessage
 LookForGameRoomRequestMessage
@@ -188,6 +202,7 @@ PersonalBreakStartedMessage
 PiranhaMessage
 PlayAgainMessage
 PlayAgainStatusMessage
+PlayerDisplayData
 PlayerJWTokenMessage
 PlayerMapGreenlightedMessage
 PlayerMapInfoUpdatedMessage
@@ -211,6 +226,7 @@ RankedMatchStartedMessage
 RankedMatchTerminatedMessage
 RankedMatchUpdateHeroDataMessage
 RemoveAvatarStreamEntryMessage
+RemoveFriendMessage
 ReportAllianceStreamMessage
 ReportPlayerMapMessage
 ReportPlayerMapResponseMessage

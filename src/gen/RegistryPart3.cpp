@@ -3497,7 +3497,7 @@ extern const Entry kPart3[] = {
     {0x09D2870, Status::Pending, "_ZN13scResourceMapD2Ev", "scResourceMapD2Ev"},
     {0x09D289C, Status::ThirdPartyExternal, "_ZNK6icu_5818KeywordEnumeration5cloneEv", "icu_5818KeywordEnumeration5cloneEv"},
     {0x09D291C, Status::Pending, "_ZN8Databind6detail22AccessorNonRefGetConstIf18BezierInterpolatorIfEE3getEPv", "Databind6detail22AccessorNonRefGetConstIf18Bezie"},
-    {0x09D2958, Status::Pending, "_ZN19AcceptFriendMessage18getServiceNodeTypeEv", "AcceptFriendMessage18getServiceNodeTypeEv"},
+    {0x09D2958, Status::Reimplemented, "_ZN19AcceptFriendMessage18getServiceNodeTypeEv", "AcceptFriendMessage18getServiceNodeTypeEv"},
     {0x09D2960, Status::ThirdPartyExternal, "_ZN8safe_jni8functionIN5titan7android3app8ActivityEvEclIJNS2_7content6IntentEEEEvP8_jobjectDpT_", "safe_jni8functionIN5titan7android3app8ActivityEv"},
     {0x09D2AA0, Status::Pending, "_ZN8Databind4Util13ArrayAccessorI7Vector3IfE14LogicArrayListIS3_EE3getEm", "Databind4Util13ArrayAccessorI7Vector3IfE14LogicA"},
     {0x09D2AB4, Status::ThirdPartyExternal, "_ZN8safe_jni7ConvertIN5titan7android3net3UriEvE12CallFunctionEP10_jmethodIDP8_jobjectz", "safe_jni7ConvertIN5titan7android3net3UriEvE12Cal"},
