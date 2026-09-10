@@ -420,3 +420,8 @@ YoozooBillingProcessedByServerMessage
 YoozooBillingRequestMessage
 YoozooOrderAvailableMessage
 YoozooOrderDeliveryFailedMessage
+CooldownEntry
+ForcedDrops
+IntValueEntry
+LogicDailyData
+TimedOffer

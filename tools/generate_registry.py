@@ -106,6 +106,11 @@ REIMPLEMENTED_EXTRA = {
     "AllianceHeaderEntry": ("6encodeE", "6decodeE"),
     "AllianceFullEntry": ("6encodeE", "6decodeE"),
     "AllianceMemberEntry": ("6encodeE", "6decodeE"),
+    "LogicDailyData": ("6encodeE", "6decodeE"),
+    "ForcedDrops": ("6encodeE", "6decodeE"),
+    "TimedOffer": ("6encodeE", "6decodeE"),
+    "IntValueEntry": ("6encodeE", "6decodeE"),
+    "CooldownEntry": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

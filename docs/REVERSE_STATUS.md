@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **1789 reimplemented, 9717 third-party, 25558 pending**
+Registry (compiled in): **1798 reimplemented, 9717 third-party, 25549 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 1789 fns | `src/` + tests |
-| Game code pending | 25558 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 1798 fns | `src/` + tests |
+| Game code pending | 25549 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -25,6 +25,21 @@ Registry (compiled in): **1789 reimplemented, 9717 third-party, 25558 pending**
   scalars; nested entries pending via `NestedEntry` (empty arrays work).
   Includes `LoginOkMessage` isAtEnd-guarded tail, `BattleEndMessage`,
   `OwnHomeDataMessage` shells, team/ranked/billing/UDP families.
+- Send path (`Messaging::encryptAndWrite @0x93221c`): `net::encodeSendFrame`
+  (encode → 10100/10101 plaintext bypass → session encrypt → 7-byte header
+  over final length; asio socket write stays platform code). Covered by
+  `test_factory`.
+- Nested entries wave 1: `LogicClientAvatar` (`game/`), `AllianceHeaderEntry`,
+  `AllianceFullEntry`, `AllianceMemberEntry`, `LogicCommand` family
+  (59 per-class commands + `createCommandByType @0x7c41d8`),
+  `LogicCompressedString` (compress `@0x93c13c`, decompress `@0x43760c`).
+- Nested entries wave 2 (started): `LogicDailyData` (`@0x6985dc/@0x4356a4`,
+  incl. the skin-map key/count aliasing quirk) + leaves `ForcedDrops`
+  (`@0x664128`), `TimedOffer` (`@0x354c54`), `IntValueEntry` (`@0x6b0790`),
+  `CooldownEntry` (`@0x5402a0`). Still pending: `LogicOfferBundle`
+  (`@0x69b644`), `AdStatus`, `BrawlPassSeasonData`, `ProLeagueSeasonData`,
+  `LogicQuests`, `VanityItems`, `LogicPlayerRankedSeasonData`
+  (`@0x286950`), `LogicConfData`.
 
 ## Verify flags (against live captures later)
 
@@ -35,15 +50,6 @@ Registry (compiled in): **1789 reimplemented, 9717 third-party, 25558 pending**
 - `TeamInviteStatusMessage` 24582 encode/decode flag asymmetry.
 - `LoginOkMessage` f329not inversion.
 - int-list wire type (`TeamSetLocation`, `TeamSetPlayerMap`): vint assumed.
-
-- Send path (`Messaging::encryptAndWrite @0x93221c`): `net::encodeSendFrame`
-  (encode → 10100/10101 plaintext bypass → session encrypt → 7-byte header
-  over final length; asio socket write stays platform code). Covered by
-  `test_factory`.
-- Nested entries wave 1: `LogicClientAvatar` (`game/`), `AllianceHeaderEntry`,
-  `AllianceFullEntry`, `AllianceMemberEntry`, `LogicCommand` family
-  (59 per-class commands + `createCommandByType @0x7c41d8`),
-  `LogicCompressedString` (compress `@0x93c13c`, decompress `@0x43760c`).
 
 ## Next (priority order)
 

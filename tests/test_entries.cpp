@@ -8,8 +8,13 @@
 #include "titan/game/ChatStreamEntry.hpp"
 #include "titan/game/EventData.hpp"
 #include "titan/game/FriendEntry.hpp"
+#include "titan/game/CooldownEntry.hpp"
+#include "titan/game/ForcedDrops.hpp"
+#include "titan/game/IntValueEntry.hpp"
 #include "titan/game/JoinRequestAllianceStreamEntry.hpp"
 #include "titan/game/LogicClientHome.hpp"
+#include "titan/game/LogicDailyData.hpp"
+#include "titan/game/TimedOffer.hpp"
 #include "titan/game/LogicPlayerMap.hpp"
 #include "titan/game/PlayerProfile.hpp"
 #include "titan/game/StreamEntry.hpp"
@@ -190,6 +195,134 @@ int main() {
             threw = true;
         }
         CHECK(threw);
+    }
+    // Wave-2 leaves (@0x664128, @0x354c54, @0x6b0790, @0x5402a0).
+    {
+        ForcedDrops back;
+        entryRoundTrip<ForcedDrops>(
+            [](ForcedDrops& e) {
+                e.a_ = 3;
+                e.b_ = 4;
+                e.ids_ = {10, 20, 30};
+            },
+            back);
+        CHECK(back.a_ == 3 && back.ids_.size() == 3 && back.ids_[2] == 30);
+    }
+    {
+        TimedOffer back;
+        entryRoundTrip<TimedOffer>(
+            [](TimedOffer& e) {
+                e.offer_ = DataReference{16, 5};
+                e.v8_ = 100;
+                e.v12_ = 200;
+            },
+            back);
+        CHECK(back.offer_.has_value() && back.offer_->instanceId == 5);
+        CHECK(back.v8_ == 100 && back.v12_ == 200);
+    }
+    {
+        IntValueEntry back;
+        entryRoundTrip<IntValueEntry>(
+            [](IntValueEntry& e) {
+                e.a_ = -7;
+                e.b_ = 42;
+            },
+            back);
+        CHECK(back.a_ == -7 && back.b_ == 42);
+    }
+    {
+        CooldownEntry back;
+        entryRoundTrip<CooldownEntry>(
+            [](CooldownEntry& e) {
+                e.id_ = 9;
+                e.ref_ = DataReference{23, 1};
+                e.value_ = 3600;
+            },
+            back);
+        CHECK(back.id_ == 9 && back.value_ == 3600);
+        CHECK(back.ref_.has_value() && back.ref_->classId == 23);
+    }
+    // LogicDailyData (@0x6985dc/@0x4356a4): populated round-trip.
+    {
+        LogicDailyData back;
+        entryRoundTrip<LogicDailyData>(
+            [](LogicDailyData& e) {
+                e.head_[0] = 1;
+                e.head_[6] = 6;
+                e.refA_ = DataReference{16, 0};
+                e.ints15_ = {1, 2};
+                e.refs19_.push_back(DataReference{23, 3});
+                e.skins_.emplace_back(5, DataReference{29, 0});
+                e.skins_.emplace_back(7, std::nullopt);
+                e.refs29_.push_back(DataReference{16, 1});
+                e.tail39_[3] = 39;
+                e.flag152_ = true;
+                e.tail43_[0] = 43;
+                e.forced_ = std::make_unique<ForcedDrops>();
+                e.forced_->ids_ = {11};
+                e.offerA_ = std::make_unique<TimedOffer>();
+                e.offerA_->v8_ = 8;
+                e.flag216_ = true;
+                e.tail55_[4] = 55;
+                e.v64_ = 64;
+                e.ints69_ = {69};
+                e.v70_ = 70;
+                e.ref288_ = DataReference{16, 2};
+                e.strA_ = std::string("hello");
+                auto iv = std::make_unique<IntValueEntry>();
+                iv->a_ = 1;
+                iv->b_ = 2;
+                e.intValues_.push_back(std::move(iv));
+                auto cd = std::make_unique<CooldownEntry>();
+                cd->id_ = 5;
+                e.cooldowns_.push_back(std::move(cd));
+                e.tail102_ = 102;
+            },
+            back);
+        CHECK(back.head_[0] == 1 && back.head_[6] == 6);
+        CHECK(back.refA_.has_value() && back.refA_->classId == 16);
+        CHECK(!back.refB_.has_value());
+        CHECK(back.ints15_.size() == 2 && back.ints15_[1] == 2);
+        CHECK(back.refs19_.size() == 1 && back.refs19_[0].instanceId == 3);
+        CHECK(back.skins_.size() == 2 && back.skins_[0].first == 5);
+        CHECK(back.skins_[1].second.has_value() == false);
+        CHECK(back.refs29_.size() == 1);
+        CHECK(back.refs33_.empty() && back.refs37_.empty());
+        CHECK(back.tail39_[3] == 39 && back.flag152_);
+        CHECK(back.forced_ && back.forced_->ids_.size() == 1);
+        CHECK(back.offerA_ && back.offerA_->v8_ == 8 && !back.offerB_);
+        CHECK(back.flag216_ && back.tail55_[4] == 55);
+        CHECK(back.offers_.empty() && back.ads_.empty());
+        CHECK(back.v64_ == 64 && back.v65_ == 0);
+        CHECK(back.ints69_.size() == 1 && back.v70_ == 70 && back.v71_ == 0);
+        CHECK(back.ref288_.has_value() && back.ref288_->instanceId == 2);
+        CHECK(back.strA_.has_value() && back.strA_.value() == "hello");
+        CHECK(!back.strB_.has_value());
+        CHECK(back.intValues_.size() == 1 && back.intValues_[0]->b_ == 2);
+        CHECK(back.cooldowns_.size() == 1 && back.cooldowns_[0]->id_ == 5);
+        CHECK(back.brawlPass_.empty() && back.proLeague_.empty());
+        CHECK(!back.quests_ && !back.vanity_ && !back.ranked_);
+        CHECK(back.tail102_ == 102);
+    }
+    // LogicDailyData: encode is deterministic (byte-stable round-trip).
+    {
+        LogicDailyData a;
+        a.head_[0] = 123456;
+        a.refA_ = DataReference{16, 0};
+        a.forced_ = std::make_unique<ForcedDrops>();
+        a.strB_ = std::string("x");
+        ByteStream s1;
+        a.encode(s1);
+        ByteStream d;
+        d.setBuffer(s1.data(), s1.size());
+        LogicDailyData b;
+        b.decode(d);
+        ByteStream s2;
+        b.encode(s2);
+        CHECK(s2.size() == s1.size());
+        bool same = (s2.size() == s1.size());
+        for (i32 i = 0; i < s1.size() && same; ++i) same = s1.data()[i] == s2.data()[i];
+        CHECK(same);
     }
 
     if (failures == 0) std::puts("entries: all ok");

@@ -592,7 +592,7 @@ extern const Entry kPart3[] = {
     {0x093FD70, Status::ThirdPartyExternal, "_ZNSt6__ndk110__function6__funcIZN11AndroidMain18onSurfaceDestroyedEvE3$_2NS_9allocatorIS3_EEFvvEED0Ev", "global"},
     {0x093FD74, Status::Pending, "_ZN14LogicEmoteData8destructEv", "LogicEmoteData8destructEv"},
     {0x093FDA0, Status::Pending, "_utrace_entry_58", "global"},
-    {0x093FDC0, Status::Pending, "_ZN11ForcedDrops8destructEv", "ForcedDrops8destructEv"},
+    {0x093FDC0, Status::Reimplemented, "_ZN11ForcedDrops8destructEv", "ForcedDrops8destructEv"},
     {0x093FDC8, Status::Pending, "_uhash_rehash", "global"},
     {0x0940064, Status::Pending, "_ZN8HomePage17getTeamDifficultyEv", "HomePage17getTeamDifficultyEv"},
     {0x09400C0, Status::Pending, "_ZN27ReportAllianceStreamMessageC2Ev", "ReportAllianceStreamMessageC2Ev"},

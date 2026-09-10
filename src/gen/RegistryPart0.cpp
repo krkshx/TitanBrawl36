@@ -7187,7 +7187,7 @@ extern const Entry kPart0[] = {
     {0x0354C00, Status::ThirdPartyExternal, "_ZNSt6__ndk110__function6__funcIZN8TestCase10touchStageER5TouchE3$_5NS_9allocatorIS5_EEFvvEEclEv", "global"},
     {0x0354C40, Status::Pending, "_ZN14TencentManager20removeLaunchPlatformEv", "TencentManager20removeLaunchPlatformEv"},
     {0x0354C48, Status::Pending, "_ZN16LogicOfferBundle12setPurchasedEb", "LogicOfferBundle12setPurchasedEb"},
-    {0x0354C54, Status::Pending, "_ZN10TimedOffer6encodeEP10ByteStream", "TimedOffer6encodeEP10ByteStream"},
+    {0x0354C54, Status::Reimplemented, "_ZN10TimedOffer6encodeEP10ByteStream", "TimedOffer6encodeEP10ByteStream"},
     {0x0354CA8, Status::Pending, "_ZN20LogicCharacterServer16triggerResurrectEv", "LogicCharacterServer16triggerResurrectEv"},
     {0x0354CB0, Status::Pending, "_ZNK18LogicCharacterData6isBossEv", "LogicCharacterData6isBossEv"},
     {0x0354CCC, Status::Pending, "_ZN11Application20getServerEnvironmentEv", "Application20getServerEnvironmentEv"},
