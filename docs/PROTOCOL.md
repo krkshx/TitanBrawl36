@@ -28,9 +28,16 @@ Every message goes on the wire as header + payload
   header computed over the FINAL length (`@0x93221c`).
 - Nonce starts random (`@0x46a64c`), then LE `+= 2` per message
   (`nextNonce @0x6fb2ac`), before each encrypt/decrypt.
-- Key exchange: NaCl box + Blake2b (`PepperCrypto::box_open @0x5863c0`);
+- Key exchange: NaCl box + Blake2b (`PepperCrypto::box_open @0x5863c0`,
+  `box @0x3677b0`; port: `titan::crypto::pepperBoxSeal/pepperBoxOpen`,
+  padded tweetnacl API, inverted-failure convention mapped to nullopt);
   `LoginFailed`-family response (20103) carries the 24B server nonce +
   32B session key; decrypt failures answer with `CryptoError`.
+- OPEN QUESTION (next wave): live traffic may use
+  `PepperPerMessageEncrypter::encrypt @0x39d734` (per-message nonce prefix
+  on the wire + secretbox) instead of the rolling-nonce `PepperEncrypter`;
+  the session-setup call site decides. Our `SodiumPepper` backend models
+  the simple form; do NOT attempt real logins until this is resolved.
 - Port: libsodium behind `TITAN_WITH_SODIUM`; `titan::crypto::Encrypter`.
 
 ## Message dispatch

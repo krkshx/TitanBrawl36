@@ -1,6 +1,7 @@
 // Self-check for session crypto scaffolding.
 
 #include "titan/crypto/Encrypter.hpp"
+#include "titan/crypto/PepperBox.hpp"
 
 #include <cstdio>
 #include <cstring>
@@ -37,6 +38,25 @@ int main() {
         }
         CHECK(threw);
     }
+    // Without the backend the box calls fail loudly, not silently.
+    {
+        u8 k[kKeyBytes] = {};
+        u8 n[kNonceBytes] = {};
+        bool threw = false;
+        try {
+            (void)pepperBoxSeal(k, 0, n, k, k);
+        } catch (const SodiumMissing&) {
+            threw = true;
+        }
+        CHECK(threw);
+        threw = false;
+        try {
+            (void)pepperBoxOpen(k, 0, n, k, k);
+        } catch (const SodiumMissing&) {
+            threw = true;
+        }
+        CHECK(threw);
+    }
 #else
     // With libsodium: secretbox round-trip incl. nonce stepping.
     {
@@ -58,6 +78,26 @@ int main() {
             threw = true;
         }
         CHECK(threw);
+    }
+    // box_open @0x5863c0 / box @0x3677b0: padded NaCl box round-trip.
+    {
+        u8 pkA[kKeyBytes], skA[kKeyBytes], pkB[kKeyBytes], skB[kKeyBytes];
+        CHECK(crypto_box_keypair(pkA, skA) == 0);
+        CHECK(crypto_box_keypair(pkB, skB) == 0);
+        u8 nonce[kNonceBytes] = {1};
+        const u8 plain[] = {9, 8, 7, 6};
+        auto cipher = pepperBoxSeal(plain, sizeof(plain), nonce, pkB, skA);
+        CHECK(cipher.size() == sizeof(plain) + kMacBytes);
+        auto back = pepperBoxOpen(cipher.data(), cipher.size(), nonce, pkA, skB);
+        CHECK(back && back->size() == sizeof(plain)
+              && std::memcmp(back->data(), plain, sizeof(plain)) == 0);
+        // Tampered cipher -> nullopt (binary: returns true).
+        cipher[4] ^= 0xFF;
+        CHECK(!pepperBoxOpen(cipher.data(), cipher.size(), nonce, pkA, skB));
+        // Wrong peer key -> nullopt.
+        u8 pkC[kKeyBytes], skC[kKeyBytes];
+        CHECK(crypto_box_keypair(pkC, skC) == 0);
+        CHECK(!pepperBoxOpen(cipher.data(), cipher.size(), nonce, pkC, skB));
     }
 #endif
     if (failures == 0) std::puts("crypto: all ok");
