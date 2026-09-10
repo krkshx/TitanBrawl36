@@ -2,13 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **1646 reimplemented, 9718 third-party, 25700 pending**.
+Registry (compiled in): **1789 reimplemented, 9717 third-party, 25558 pending**
+(`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
-| Third-party (`ThirdPartyExternal`) | 9718 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 1646 fns / 329 classes | `src/` + tests |
-| Game code pending | 25700 | `FunctionRegistry` status `Pending` |
+| Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
+| Game code reimplemented | 1789 fns | `src/` + tests |
+| Game code pending | 25558 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -35,18 +36,25 @@ Registry (compiled in): **1646 reimplemented, 9718 third-party, 25700 pending**.
 - `LoginOkMessage` f329not inversion.
 - int-list wire type (`TeamSetLocation`, `TeamSetPlayerMap`): vint assumed.
 
+- Send path (`Messaging::encryptAndWrite @0x93221c`): `net::encodeSendFrame`
+  (encode → 10100/10101 plaintext bypass → session encrypt → 7-byte header
+  over final length; asio socket write stays platform code). Covered by
+  `test_factory`.
+- Nested entries wave 1: `LogicClientAvatar` (`game/`), `AllianceHeaderEntry`,
+  `AllianceFullEntry`, `AllianceMemberEntry`, `LogicCommand` family
+  (59 per-class commands + `createCommandByType @0x7c41d8`),
+  `LogicCompressedString` (compress `@0x93c13c`, decompress `@0x43760c`).
+
 ## Next (priority order)
 
-1. Message factory dispatch (`LogicLaserMessageFactory`) + transport
-   framing (header/length prefix, send path).
-2. Nested entries wave 1: `LogicClientAvatar`, `AllianceHeaderEntry`,
-   `AllianceFullEntry`, `AllianceMemberEntry`, `LogicCommand`,
-   `LogicCompressedString`, `ByteStreamHelper::decompress`.
-3. `LogicDataTables` + CSV (`assets/csv_logic`, `assets/csv_client`).
-4. `Logic*` gameplay core by subsystem (`LogicCharacter*`,
+1. Pending nested entries wave 2: replace `messages/pending/*` stubs with
+   real wire formats, one class per file (see Layout rule below).
+2. `LogicDataTables` follow-ups: `datatable_map.csv` coverage for the
+   remaining `csv_client` tables.
+3. `Logic*` gameplay core by subsystem (`LogicCharacter*`,
    `LogicBattleMode*`, …).
-5. `sc` engine (`String`, `LogicStringUtil`, `ResourceManager`, …).
-6. Platform bridges (`titan/*`, JNI) as clean interfaces.
+4. `sc` engine (`String`, `LogicStringUtil`, `ResourceManager`, …).
+5. Platform bridges (`titan/*`, JNI) as clean interfaces.
 
 Every new function cites its IDA address and lands with a test where the
 wire format or logic is observable. Progress is enforced by
