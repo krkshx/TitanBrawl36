@@ -25,6 +25,7 @@
 #include "titan/game/LogicRewardConfig.hpp"
 #include "titan/game/LogicUuid.hpp"
 #include "titan/game/LogicVector2.hpp"
+#include "titan/game/PlayerEntry.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
 #include "titan/game/EventData.hpp"
@@ -837,6 +838,26 @@ int main() {
             back);
         CHECK(back.hi_ == 0x0123456789ABCDEFULL);
         CHECK(back.lo_ == 0xFEDCBA9876543210ULL);
+    }
+    // PlayerEntry (@0x7b5e20/@0x575470, writeLong arg verified in asm).
+    {
+        PlayerEntry back;
+        entryRoundTrip<PlayerEntry>(
+            [](PlayerEntry& e) {
+                e.b0_ = true;
+                e.b2_ = true;
+                e.ref8_ = DataReference{16, 1};
+                e.v24_ = 24;
+                e.v36_ = 36;
+                e.opt40_ = LogicLong{7, 9};
+                e.display_ = std::make_unique<PlayerDisplayData>();
+            },
+            back);
+        CHECK(back.b0_ && !back.b1_ && back.b2_);
+        CHECK(back.ref8_.has_value() && !back.ref16_);
+        CHECK(back.v24_ == 24 && back.v28_ == 0 && back.v36_ == 36);
+        CHECK(back.opt40_.has_value() && back.opt40_->high == 7 && back.opt40_->low == 9);
+        CHECK(back.display_ != nullptr);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

@@ -5293,7 +5293,7 @@ extern const Entry kPart1[] = {
     {0x0575438, Status::Pending, "_ZN21LogicBattleModeServer13tickBrawlBallEv", "LogicBattleModeServer13tickBrawlBallEv"},
     {0x057543C, Status::Pending, "_ZNK22LogicLocationThemeData20getCampaignGroundSCWEv", "LogicLocationThemeData20getCampaignGroundSCWEv"},
     {0x057544C, Status::Pending, "_ZThn336_NK9HeroPopup26getCharacterToShowSelectedEv", "global"},
-    {0x0575470, Status::Pending, "_ZN11PlayerEntry6decodeEP10ByteStream", "PlayerEntry6decodeEP10ByteStream"},
+    {0x0575470, Status::Reimplemented, "_ZN11PlayerEntry6decodeEP10ByteStream", "PlayerEntry6decodeEP10ByteStream"},
     {0x0575588, Status::Pending, "_stbi_load_from_scfile", "global"},
     {0x057560C, Status::Pending, "_ZN12BlurRenderer14stopBlurRenderEv", "BlurRenderer14stopBlurRenderEv"},
     {0x0575C90, Status::ThirdPartyExternal, "_ZNKSt6__ndk110__function6__funcIZN6Shader4loadEPKcS4_PS4_iE3$_0NS_9allocatorIS6_EEFvvEE7__cloneEPNS0_6__baseIS9_EE", "global"},

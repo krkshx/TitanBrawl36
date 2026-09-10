@@ -148,6 +148,7 @@ REIMPLEMENTED_EXTRA = {
     "LogicVector2": ("6encodeE", "6decodeE"),
     "XpEntry": ("6encodeE", "6decodeE"),
     "LogicUuid": ("6encodeE", "6decodeE"),
+    "PlayerEntry": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

@@ -459,3 +459,4 @@ AllianceWarNode
 LogicVector2
 XpEntry
 LogicUuid
+PlayerEntry
