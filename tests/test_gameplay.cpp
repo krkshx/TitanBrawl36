@@ -6,7 +6,9 @@
 #include "titan/game/LogicClientAvatar.hpp"
 #include "titan/game/LogicClientHome.hpp"
 #include "titan/game/LogicConfData.hpp"
+#include "titan/game/LogicDailyData.hpp"
 #include "titan/game/LogicData.hpp"
+#include "titan/game/GatchaDrop.hpp"
 #include "titan/game/LogicHomeMode.hpp"
 #include "titan/game/NotificationFactory.hpp"
 
@@ -212,6 +214,52 @@ int main() {
         CHECK(home.dataTables() == &dt);
         const LogicData gold = home.goldData();
         CHECK(gold.classId() == 5 && gold.row() == 1);
+    }
+    // GatchaDrop::doDrop @0x4083c4 (cases 2/3/8 live).
+    {
+        auto home = makeHome(100, 10);
+        home->setHome(std::make_unique<LogicClientHome>());
+        home->getHome()->daily_ = std::make_unique<LogicDailyData>();
+        // Case 3: playerData +280 grows.
+        GatchaDrop d3;
+        d3.v0_ = 3;
+        d3.v4_ = 25;
+        d3.doDrop(home.get(), false);
+        CHECK(home->getHome()->daily_->v70_ == 25);
+        // Case 2: playerData +172 grows.
+        GatchaDrop d2;
+        d2.v0_ = 2;
+        d2.v4_ = 7;
+        d2.doDrop(home.get(), false);
+        CHECK(home->getHome()->daily_->tail43_[0] == 7);
+        // Case 8 free: both wallets grow.
+        GatchaDrop d8;
+        d8.v0_ = 8;
+        d8.v4_ = 5;
+        d8.doDrop(home.get(), false);
+        CHECK(home->getPlayerAvatar()->getDiamonds() == 105);
+        CHECK(home->getPlayerAvatar()->getFreeDiamonds() == 15);
+        // Case 8 paid: diamonds + cumulative, free untouched.
+        d8.doDrop(home.get(), true);
+        CHECK(home->getPlayerAvatar()->getDiamonds() == 110);
+        CHECK(home->getPlayerAvatar()->getFreeDiamonds() == 15);
+        CHECK(home->getPlayerAvatar()->getCumulativePurchasedDiamonds() == 5);
+        // Unknown type: silent no-op like the binary default.
+        GatchaDrop dx;
+        dx.v0_ = 999;
+        dx.v4_ = 1000;
+        dx.doDrop(home.get(), false);
+        CHECK(home->getPlayerAvatar()->getDiamonds() == 110);
+        // Table-backed types throw loudly until their tables land.
+        GatchaDrop d1;
+        d1.v0_ = 1;
+        bool threw = false;
+        try {
+            d1.doDrop(home.get(), false);
+        } catch (const pending_reverse&) {
+            threw = true;
+        }
+        CHECK(threw);
     }
 
     if (failures == 0) std::puts("gameplay: all ok");
