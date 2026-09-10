@@ -7,6 +7,8 @@
 #include "titan/game/AvatarStreamEntry.hpp"
 #include "titan/game/BattleLogEntry.hpp"
 #include "titan/game/BrawlPassSeasonData.hpp"
+#include "titan/game/LogicBitList.hpp"
+#include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
 #include "titan/game/EventData.hpp"
 #include "titan/game/FriendEntry.hpp"
@@ -412,6 +414,55 @@ int main() {
         VanityItems back2;
         entryRoundTrip<VanityItems>([](VanityItems&) {}, back2);
         CHECK(back2.items_.empty());
+    }
+    // BitList (@0x9740d8/@0x5c241c, C2 @0x7c7788) + users.
+    {
+        // Decode needs a preset size (binary builds C2(128) first).
+        LogicBitList a(128);
+        a.words()[0] = 0b1011;
+        a.words()[3] = -1;
+        ByteStream s;
+        a.encode(s);
+        CHECK(s.size() == 16); // 4 words, no count prefix
+        LogicBitList b(128);
+        ByteStream d;
+        d.setBuffer(s.data(), s.size());
+        b.decode(d);
+        CHECK(b.intCount() == 4);
+        CHECK(b.words()[0] == 0b1011 && b.words()[3] == -1);
+        CHECK(b.cachedBits() == 3 + 32);
+    }
+    {
+        BrawlPassSeasonData back;
+        entryRoundTrip<BrawlPassSeasonData>(
+            [](BrawlPassSeasonData& e) {
+                e.v0_ = 7;
+                e.b24_ = true;
+                e.v28_ = 9;
+                e.bits1_ = std::make_unique<LogicBitList>(128);
+                e.bits1_->words()[1] = 42;
+            },
+            back);
+        CHECK(back.v0_ == 7 && back.b24_ && back.v28_ == 9 && !back.b32_);
+        CHECK(back.bits1_ && back.bits1_->words()[1] == 42);
+        CHECK(!back.bits2_);
+    }
+    {
+        LogicPlayerRankedSeasonData back;
+        entryRoundTrip<LogicPlayerRankedSeasonData>(
+            [](LogicPlayerRankedSeasonData& e) {
+                e.head_[0] = 5;
+                e.head_[10] = 50;
+                auto r = std::make_unique<LogicPlayerRewardData>();
+                r->v16_ = 16;
+                r->b20_ = true;
+                e.rewards_.push_back(std::move(r));
+            },
+            back);
+        CHECK(back.head_[0] == 5 && back.head_[10] == 50);
+        CHECK(back.rewards_.size() == 1);
+        CHECK(back.rewards_[0]->v16_ == 16 && back.rewards_[0]->b20_);
+        CHECK(!back.rewards_[0]->config_);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

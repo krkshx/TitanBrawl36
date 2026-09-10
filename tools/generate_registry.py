@@ -119,6 +119,9 @@ REIMPLEMENTED_EXTRA = {
     "BrawlPassSeasonData": ("6encodeE", "6decodeE"),
     "LogicQuests": ("6encodeE", "6decodeE"),
     "VanityItems": ("6encodeE", "6decodeE"),
+    "LogicBitList": ("6encodeE", "6decodeE"),
+    "LogicPlayerRankedSeasonData": ("6encodeE", "6decodeE"),
+    "LogicPlayerRewardData": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

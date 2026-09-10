@@ -1,11 +1,6 @@
 #pragma once
 
-// LogicBitList — not yet reversed; encode/decode throw pending_reverse.
+// LogicBitList — reversed (see game/LogicBitList.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LogicBitList);
-
-} // namespace titan
+#include "titan/game/LogicBitList.hpp"

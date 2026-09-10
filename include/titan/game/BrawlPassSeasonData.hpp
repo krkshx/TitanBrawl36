@@ -1,10 +1,10 @@
 #pragma once
 
-// BrawlPassSeasonData::encode @0x5e8140.
+// BrawlPassSeasonData::encode @0x5e8140, stream ctor @0x2474f0.
 // Wire: vint @+0, vint @+4, bool @+24, vint @+28, bool @+32,
 //   bool + LogicBitList @+8 (nullable), bool + LogicBitList @+16 (nullable).
-// Decode is the stream ctor used by LogicDailyData::decode: same reads
-// in the same order (mirrored below).
+// The stream ctor builds each present list as C2(128) (fixed 128 bits)
+// before decode; the wire carries no per-list count.
 
 #include "titan/messages/Nested.hpp"
 #include "titan/messages/pending/LogicBitList.hpp"
@@ -33,13 +33,13 @@ public:
         v28_ = s.readVInt();
         b32_ = s.readBoolean();
         if (s.readBoolean()) {
-            bits1_ = std::make_unique<LogicBitList>();
+            bits1_ = std::make_unique<LogicBitList>(128);
             bits1_->decode(s);
         } else {
             bits1_.reset();
         }
         if (s.readBoolean()) {
-            bits2_ = std::make_unique<LogicBitList>();
+            bits2_ = std::make_unique<LogicBitList>(128);
             bits2_->decode(s);
         } else {
             bits2_.reset();

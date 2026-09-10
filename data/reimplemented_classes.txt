@@ -433,3 +433,6 @@ BrawlPassSeasonData
 LogicQuests
 ProLeagueSeasonData
 VanityItems
+LogicBitList
+LogicPlayerRankedSeasonData
+LogicPlayerRewardData

@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **1816 reimplemented, 9717 third-party, 25531 pending**
+Registry (compiled in): **1825 reimplemented, 9717 third-party, 25522 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 1816 fns | `src/` + tests |
-| Game code pending | 25531 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 1825 fns | `src/` + tests |
+| Game code pending | 25522 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -36,15 +36,16 @@ Registry (compiled in): **1816 reimplemented, 9717 third-party, 25531 pending**
 - Nested entries wave 2 (started): `LogicDailyData` (`@0x6985dc/@0x4356a4`,
   incl. the skin-map key/count aliasing quirk) + leaves `ForcedDrops`
   (`@0x664128`), `TimedOffer` (`@0x354c54`), `IntValueEntry` (`@0x6b0790`),
-  `CooldownEntry` (`@0x5402a0`). Still pending: `LogicPlayerRankedSeasonData`
-  (`@0x286950`), `LogicConfData`.
+  `CooldownEntry` (`@0x5402a0`). Still pending: `LogicConfData` (`@0x653b94`),
+  `QuestData` (`@0x467740`).
 - `LogicOfferBundle` (`@0x69b644`) + leaves `LogicGemOffer` (`@0x93ed54`),
   `ChronosTextEntry` (`@0x7b6d10`; vtable slot +0x20 resolved via the
   ByteStream vtable to `writeStringReference @0x608f14`),
   `AdStatus` (`@0x8d21fc/@0x566588`), `ProLeagueSeasonData` (`@0x71b258`),
   `BrawlPassSeasonData` (`@0x5e8140`), `LogicQuests` (`@0x1ae36c`),
-  `VanityItems` (`@0x5980fc`). New stubs: `QuestData`, `VanityItemEntry`,
-  `LogicBitList`.
+  `VanityItems` (`@0x5980fc`), `LogicBitList` (`@0x9740d8/@0x5c241c`, C2 `@0x7c7788`),
+  `LogicPlayerRankedSeasonData` (`@0x286950/@0x97acd8`) + `LogicPlayerRewardData`
+  (`@0x243790`). New stubs: `QuestData`, `VanityItemEntry`, `LogicRewardConfig`.
 
 ## Verify flags (against live captures later)
 
