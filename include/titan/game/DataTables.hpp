@@ -28,6 +28,12 @@ public:
     [[nodiscard]] std::string get(int globalId, const std::string& col,
                                   const std::string& fallback = "") const;
 
+    // Display name of a DataReference target ("Name" column, "" if unknown).
+    // Used by the viewer to show hero/item names instead of bare ids.
+    [[nodiscard]] std::string getName(int classId, int row) const {
+        return get(GlobalID::make(classId, row), "Name", "");
+    }
+
 private:
     struct Entry {
         int classId = -1;

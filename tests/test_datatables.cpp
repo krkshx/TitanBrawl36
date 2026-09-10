@@ -3,6 +3,10 @@
 // or set TITAN_ASSETS, else tries ../assets and assets).
 
 #include "titan/game/DataTables.hpp"
+#include "titan/game/LogicCharacterData.hpp"
+#include "titan/game/LogicData.hpp"
+#include "titan/game/LogicGlobalData.hpp"
+#include "titan/game/LogicSkinData.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -68,6 +72,32 @@ int main(int argc, char** argv) {
     }
     // GlobalID-addressed lookup: Shelly == 16000000.
     CHECK(dt.get(16000000, "Name") == "ShotgunGirl");
+    // Typed facades (tools/gen_dataclasses.py) over the same tables.
+    {
+        LogicCharacterData shelly(&dt, 0);
+        CHECK(shelly.valid());
+        CHECK(shelly.getName() == "ShotgunGirl");
+        CHECK(shelly.getSpeed() == 720);
+        CHECK(shelly.getHitpoints() == 3800);
+        CHECK(shelly.globalId() == 16000000);
+        LogicCharacterData bad(&dt, 1000000);
+        CHECK(!bad.valid());
+    }
+    {
+        // globals.csv (class 3) via facade.
+        bool found = false;
+        const CsvTable* g = dt.table(3);
+        for (int i = 0; g && i < static_cast<int>(g->rows.size()); ++i) {
+            LogicGlobalData row(&dt, i);
+            if (row.getName() == "STARTING_DIAMONDS") {
+                CHECK(row.getNumberValue() == 0);
+                found = true;
+            }
+        }
+        CHECK(found);
+    }
+    // Name resolution for DataReferences (viewer shows names, not ids).
+    CHECK(dt.getName(16, 0) == "ShotgunGirl");
 
     if (failures == 0) std::puts("datatables: all ok");
     return failures == 0 ? 0 : 1;

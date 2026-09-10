@@ -3,6 +3,8 @@
 // Home data viewer: decodes OwnHomeData frames (demo-built or loaded from
 // a .bin capture) and shows the fields. Qt only; core stays clean.
 
+#include "titan/game/DataTables.hpp"
+
 #include <QMainWindow>
 #include <QTreeWidget>
 #include <QTextEdit>
@@ -29,4 +31,6 @@ private:
     QTextEdit* hex_;
     QPushButton* demoBtn_;
     QPushButton* loadBtn_;
+    titan::DataTables tables_;
+    bool tablesOk_ = false;
 };

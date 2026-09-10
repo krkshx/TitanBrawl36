@@ -16,6 +16,10 @@
 #include <QHBoxLayout>
 #include <QSplitter>
 #include <QVBoxLayout>
+#include <QCoreApplication>
+#include <QDir>
+
+#include <cstdlib>
 
 using titan::ByteStream;
 using titan::i32;
@@ -64,7 +68,8 @@ QTreeWidgetItem* item(QTreeWidgetItem* parent, const QString& key,
     return it;
 }
 
-void showHome(QTreeWidget* tree, const titan::OwnHomeDataMessage& m) {
+void showHome(QTreeWidget* tree, const titan::OwnHomeDataMessage& m,
+              const titan::DataTables* tables) {
     tree->clear();
     auto* root = new QTreeWidgetItem(tree, QStringList()
         << QString::fromStdString(m.getMessageTypeName())
@@ -78,6 +83,22 @@ void showHome(QTreeWidget* tree, const titan::OwnHomeDataMessage& m) {
         item(av, "name", QString::fromStdString(a.name_));
         item(av, "id", QString("%1/%2").arg(a.id1_.low).arg(a.id2_.low));
         item(av, "version", QString::number(a.kVersion));
+        auto* heroes = item(av, "slots", "");
+        for (const auto& arr : a.slots_) {
+            for (const auto& slot : arr) {
+                if (!slot.data_) continue;
+                QString label = QString("%1:%2")
+                    .arg(slot.data_->classId)
+                    .arg(slot.data_->instanceId);
+                if (tables) {
+                    const std::string nm = tables->getName(
+                        slot.data_->classId, slot.data_->instanceId);
+                    if (!nm.empty()) label += QString(" (%1)").arg(
+                        QString::fromStdString(nm));
+                }
+                item(heroes, label, QString::number(slot.count_));
+            }
+        }
     }
     if (m.home_) {
         auto* home = item(root, "home", "");
@@ -97,6 +118,19 @@ void showHome(QTreeWidget* tree, const titan::OwnHomeDataMessage& m) {
 HomeViewer::HomeViewer(QWidget* parent) : QMainWindow(parent) {
     setWindowTitle("TitanBrawl36 — home viewer");
     resize(900, 600);
+
+    // Data tables for name resolution (optional; viewer works without).
+    const char* env = std::getenv("TITAN_ASSETS");
+    QStringList candidates;
+    if (env) candidates << QString::fromLocal8Bit(env);
+    candidates << QCoreApplication::applicationDirPath() + "/../assets"
+               << QDir::currentPath() + "/assets";
+    for (const QString& dir : candidates) {
+        if (!dir.isEmpty() && tables_.load(dir.toStdString()) >= 30) {
+            tablesOk_ = true;
+            break;
+        }
+    }
 
     auto* splitter = new QSplitter(this);
     tree_ = new QTreeWidget(splitter);
@@ -142,7 +176,7 @@ void HomeViewer::showFrame(const std::vector<u8>& frame) {
     }
     hex_->setPlainText(hex);
     if (auto* home = dynamic_cast<titan::OwnHomeDataMessage*>(m.get())) {
-        showHome(tree_, *home);
+        showHome(tree_, *home, tablesOk_ ? &tables_ : nullptr);
         statusBar()->showMessage(
             QString("decoded %1 (%2 bytes)").arg(home->getMessageTypeName()).arg(frame.size()));
     } else {
@@ -172,6 +206,10 @@ void HomeViewer::onDemo() {
     m.avatar_->name_ = "Commander";
     m.avatar_->id1_ = titan::LogicLong{0, 1};
     m.avatar_->id2_ = titan::LogicLong{0, 2};
+    titan::LogicDataSlot hero;
+    hero.data_ = titan::DataReference{16, 0}; // Shelly, resolved via tables
+    hero.count_ = 1;
+    m.avatar_->slots_[0].push_back(hero);
     m.f152_ = 1;
     showFrame(titan::net::encodeFrame(m));
 }
