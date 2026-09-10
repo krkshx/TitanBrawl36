@@ -70,9 +70,32 @@ def module_of(name):
     return "global"
 
 
+def load_reimplemented_classes():
+    path = os.path.join(ROOT, "data", "reimplemented_classes.txt")
+    out = set()
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    out.add(line)
+    return out
+
+
+REIMPLEMENTED_CLASSES = load_reimplemented_classes()
+
+
 def status_of(name):
     if name in REIMPLEMENTED:
         return "Reimplemented"
+    m = re.match(r"_ZN?K?(?:\d+)([A-Za-z_][A-Za-z0-9_]*)(.*)$", name)
+    if m and m.group(1) in REIMPLEMENTED_CLASSES:
+        # Only the protocol surface we actually reimplement counts;
+        # ctors/dtors/helpers of the same class stay Pending.
+        tail = m.group(2)
+        if re.search(r"6encodeEv|6decodeEv|14getMessageTypeEv|"
+                     r"18getServiceNodeTypeEv|20getMessageTypeNameEv|8destructEv", tail):
+            return "Reimplemented"
     for marker in THIRD_PARTY_MARKERS:
         if marker in name:
             return "ThirdPartyExternal"
