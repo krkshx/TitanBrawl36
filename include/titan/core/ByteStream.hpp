@@ -45,6 +45,7 @@ public:
     void writeString(const std::string* value); // @0x5174d0 (null -> -1)
     void writeStringReference(const std::string& value); // @0x608f14 (never null)
     void writeBytes(const u8* data, i32 len);   // @0x61bd08 (null -> -1)
+    void writeRawBytes(const u8* data, i32 len); // no length prefix (UdpBigMessageFragment)
     void writeByte(i8 value);
     void writeShort(i16 value);
     void writeLongLong(i64 value);
@@ -59,6 +60,7 @@ public:
     std::optional<std::string> readString();
     std::string readStringReference(); // @0x28f62c (negative len -> "")
     std::vector<u8> readBytes();
+    std::vector<u8> readRawBytes(i32 len);
     std::optional<std::vector<u8>> readBytesNullable(); // -1 -> nullopt
 
     // Load a received buffer for decoding (sets cursor to 0).

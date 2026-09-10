@@ -222,6 +222,14 @@ void ByteStream::writeByte(i8 value) {
     putByte(static_cast<u8>(value));
 }
 
+// Raw payload without length prefix (UdpBigMessageFragment pattern).
+void ByteStream::writeRawBytes(const u8* data, i32 len) {
+    if (len <= 0) return;
+    ensureCapacity(len);
+    std::memcpy(buffer_.data() + length_, data, static_cast<std::size_t>(len));
+    length_ += len;
+}
+
 void ByteStream::writeShort(i16 value) {
     bitOffset_ = 0;
     ensureCapacity(2);
@@ -382,6 +390,18 @@ std::optional<std::vector<u8>> ByteStream::readBytesNullable() {
     }
     if (readCursor_ + len > length_) {
         throw std::out_of_range("ByteStream::readBytes past end");
+    }
+    std::vector<u8> out(buffer_.begin() + readCursor_, buffer_.begin() + readCursor_ + len);
+    readCursor_ += len;
+    return out;
+}
+
+std::vector<u8> ByteStream::readRawBytes(i32 len) {
+    if (len < 0) {
+        throw std::out_of_range("ByteStream::readRawBytes negative len");
+    }
+    if (readCursor_ + len > length_) {
+        throw std::out_of_range("ByteStream::readRawBytes past end");
     }
     std::vector<u8> out(buffer_.begin() + readCursor_, buffer_.begin() + readCursor_ + len);
     readCursor_ += len;
