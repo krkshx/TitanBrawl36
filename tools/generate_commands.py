@@ -26,6 +26,17 @@ def main():
                 continue
             rows.append((int(t.strip()), c.strip()))
 
+    # Classes with handwritten bodies (src/commands/) are skipped here;
+    # the factory still covers them via HANDWRITTEN below.
+    done = set()
+    done_path = os.path.join(ROOT, "data", "commands_done.txt")
+    if os.path.exists(done_path):
+        with open(done_path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    done.add(line)
+
     gen_inc = os.path.join(ROOT, "include", "titan", "gen")
     gen_src = os.path.join(ROOT, "src", "gen")
     os.makedirs(gen_inc, exist_ok=True)
@@ -61,6 +72,8 @@ std::unique_ptr<LogicCommand> decodeSingleCommand(ByteStream& s);
         for t, c in rows:
             if c == "LogicCommand":
                 continue  # base itself (type 511); see below
+            if c in done:
+                continue  # handwritten real body in src/commands/
             fh.write("class %s : public LogicCommand {\n"
                      "public:\n"
                      "    int getCommandType() const override { return %d; }\n"
@@ -80,8 +93,13 @@ std::unique_ptr<LogicCommand> decodeSingleCommand(ByteStream& s);
     with open(os.path.join(gen_src, "LogicCommands.cpp"), "w",
               encoding="utf-8", newline="\n") as fh:
         fh.write("// Generated — do not edit.\n"
-                 '#include "titan/gen/LogicCommands.hpp"\n\n'
-                 "namespace titan {\n\n"
+                 '#include "titan/gen/LogicCommands.hpp"\n')
+        import glob as _glob
+        for path in sorted(_glob.glob(os.path.join(
+                ROOT, "include", "titan", "commands", "Cmd*.hpp"))):
+            fh.write('#include "titan/commands/%s"\n'
+                     % os.path.basename(path))
+        fh.write("\nnamespace titan {\n\n"
                  "std::unique_ptr<LogicCommand> createCommandByType(int type) {\n"
                  "    switch (type) {\n")
         for t, c in rows:
