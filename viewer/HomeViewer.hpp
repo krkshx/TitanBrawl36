@@ -3,16 +3,24 @@
 // Home data viewer: decodes OwnHomeData frames (demo-built or loaded from
 // a .bin capture) and shows the fields. Qt only; core stays clean.
 
+#include "HeroCards.hpp"
+#include "titan/core/PiranhaMessage.hpp"
 #include "titan/game/DataTables.hpp"
 
 #include <QMainWindow>
+#include <QTabWidget>
 #include <QTreeWidget>
 #include <QTextEdit>
 #include <QStatusBar>
 #include <QPushButton>
 
 #include <cstdint>
+#include <memory>
 #include <vector>
+
+namespace titan {
+class PiranhaMessage;
+}
 
 class HomeViewer : public QMainWindow {
     Q_OBJECT
@@ -29,8 +37,10 @@ private:
 
     QTreeWidget* tree_;
     QTextEdit* hex_;
+    HeroCards* cards_;
     QPushButton* demoBtn_;
     QPushButton* loadBtn_;
+    std::unique_ptr<titan::PiranhaMessage> last_;
     titan::DataTables tables_;
     bool tablesOk_ = false;
 };

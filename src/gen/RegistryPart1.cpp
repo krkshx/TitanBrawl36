@@ -53,7 +53,7 @@ extern const Entry kPart1[] = {
     {0x0408288, Status::Pending, "_ZN8Sprite3D4stopEv", "Sprite3D4stopEv"},
     {0x0408298, Status::Pending, "_ZN10LogicGoals21getTokensToUnlockHeroEPK18LogicCharacterDatai", "LogicGoals21getTokensToUnlockHeroEPK18LogicChara"},
     {0x0408338, Status::Pending, "_ZN29AllianceMailAvatarStreamEntry8destructEv", "AllianceMailAvatarStreamEntry8destructEv"},
-    {0x04083C4, Status::Pending, "_ZN10GatchaDrop6doDropEP13LogicHomeModeb", "GatchaDrop6doDropEP13LogicHomeModeb"},
+    {0x04083C4, Status::Reimplemented, "_ZN10GatchaDrop6doDropEP13LogicHomeModeb", "GatchaDrop6doDropEP13LogicHomeModeb"},
     {0x040866C, Status::Pending, "_ZN16LogicSkillServer13applyCooldownEP20LogicCharacterServerii", "LogicSkillServer13applyCooldownEP20LogicCharacte"},
     {0x0408684, Status::Pending, "_ZN24LocalNotificationManagerC2Ev", "LocalNotificationManagerC2Ev"},
     {0x0408694, Status::Pending, "_ZN10TestRunner11getInstanceEv", "TestRunner11getInstanceEv"},

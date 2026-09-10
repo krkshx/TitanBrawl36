@@ -137,7 +137,7 @@ HomeViewer::HomeViewer(QWidget* parent) : QMainWindow(parent) {
         }
     }
 
-    auto* splitter = new QSplitter(this);
+    auto* splitter = new QSplitter();
     tree_ = new QTreeWidget(splitter);
     tree_->setHeaderLabels({"field", "value"});
     hex_ = new QTextEdit(splitter);
@@ -146,6 +146,11 @@ HomeViewer::HomeViewer(QWidget* parent) : QMainWindow(parent) {
     splitter->addWidget(tree_);
     splitter->addWidget(hex_);
     splitter->setSizes({550, 350});
+
+    cards_ = new HeroCards();
+    auto* tabs = new QTabWidget(this);
+    tabs->addTab(splitter, "Data");
+    tabs->addTab(cards_, "Heroes");
 
     demoBtn_ = new QPushButton("Build demo OwnHomeData", this);
     loadBtn_ = new QPushButton("Load .bin capture…", this);
@@ -160,7 +165,7 @@ HomeViewer::HomeViewer(QWidget* parent) : QMainWindow(parent) {
 
     auto* central = new QWidget(this);
     auto* layout = new QVBoxLayout(central);
-    layout->addWidget(splitter);
+    layout->addWidget(tabs);
     layout->addWidget(bar);
     setCentralWidget(central);
     statusBar()->showMessage("ready");
@@ -170,6 +175,8 @@ void HomeViewer::showFrame(const std::vector<u8>& frame) {
     QString reason;
     auto m = decodeFrame(frame, reason);
     if (!m) {
+        last_.reset();
+        cards_->setData(nullptr, nullptr);
         showError(reason);
         return;
     }
@@ -182,16 +189,19 @@ void HomeViewer::showFrame(const std::vector<u8>& frame) {
     hex_->setPlainText(hex);
     if (auto* home = dynamic_cast<titan::OwnHomeDataMessage*>(m.get())) {
         showHome(tree_, *home, tablesOk_ ? &tables_ : nullptr);
+        cards_->setData(home->avatar_.get(), tablesOk_ ? &tables_ : nullptr);
         statusBar()->showMessage(
             QString("decoded %1 (%2 bytes)").arg(home->getMessageTypeName()).arg(frame.size()));
     } else {
         tree_->clear();
+        cards_->setData(nullptr, nullptr);
         auto* root = new QTreeWidgetItem(
             tree_, QStringList() << QString::fromStdString(m->getMessageTypeName())
                                  << QString("type=%1").arg(m->getMessageType()));
         tree_->addTopLevelItem(root);
         statusBar()->showMessage("decoded non-home message");
     }
+    last_ = std::move(m);
 }
 
 void HomeViewer::showError(const QString& what) {
@@ -213,8 +223,8 @@ void HomeViewer::onDemo() {
     m.avatar_->id2_ = titan::LogicLong{0, 2};
     titan::LogicDataSlot hero;
     hero.data_ = titan::DataReference{16, 0}; // Shelly, resolved via tables
-    hero.count_ = 1;
-    m.avatar_->slots_[0].push_back(hero);
+    hero.count_ = 4; // -> Lv 5 through getHeroLevel
+    m.avatar_->slots_[5].push_back(hero);
     m.f152_ = 1;
     showFrame(titan::net::encodeFrame(m));
 }

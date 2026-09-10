@@ -9,6 +9,7 @@ set(CMAKE_AUTOMOC ON)
 add_executable(titan_viewer
   main.cpp
   HomeViewer.cpp
+  HeroCards.cpp
 )
 target_link_libraries(titan_viewer PRIVATE titan_core Qt6::Widgets)
 target_include_directories(titan_viewer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
