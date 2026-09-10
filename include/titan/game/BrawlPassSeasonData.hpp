@@ -7,7 +7,7 @@
 // before decode; the wire carries no per-list count.
 
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/LogicBitList.hpp"
+#include "titan/game/LogicBitList.hpp"
 
 #include <memory>
 

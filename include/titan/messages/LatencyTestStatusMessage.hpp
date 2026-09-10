@@ -3,7 +3,7 @@
 // LatencyTestStatusMessage (29003) — split out of MsgBatch06.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/LatencyData.hpp"
+#include "titan/game/LatencyData.hpp"
 
 namespace titan {
 

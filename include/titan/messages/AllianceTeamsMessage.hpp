@@ -3,7 +3,7 @@
 // AllianceTeamsMessage (24364) — split out of MsgBatch00.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/AllianceTeamEntry.hpp"
+#include "titan/game/AllianceTeamEntry.hpp"
 
 namespace titan {
 

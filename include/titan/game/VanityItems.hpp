@@ -7,7 +7,7 @@
 // pending_reverse until VanityItemEntry lands.
 
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/VanityItemEntry.hpp"
+#include "titan/game/VanityItemEntry.hpp"
 
 #include <memory>
 #include <vector>

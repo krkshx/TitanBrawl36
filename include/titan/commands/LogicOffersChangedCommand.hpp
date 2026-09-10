@@ -3,7 +3,7 @@
 // LogicOffersChangedCommand (211) — split out; wire format unchanged.
 
 #include "titan/commands/LogicCommand.hpp"
-#include "titan/messages/pending/LogicOfferBundle.hpp"
+#include "titan/game/LogicOfferBundle.hpp"
 #include "titan/core/DataReference.hpp"
 
 #include <memory>

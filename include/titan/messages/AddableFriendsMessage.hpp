@@ -3,7 +3,7 @@
 // AddableFriendsMessage (20107) — split out of MsgBatch00.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/AddableFriendEntry.hpp"
+#include "titan/game/AddableFriendEntry.hpp"
 
 namespace titan {
 

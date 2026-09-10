@@ -3,7 +3,7 @@
 // RankedMatchHeroPickedMessage (22156) — split out of MsgBatch08.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/LogicRankedMatchPlayer.hpp"
+#include "titan/game/LogicRankedMatchPlayer.hpp"
 
 namespace titan {
 

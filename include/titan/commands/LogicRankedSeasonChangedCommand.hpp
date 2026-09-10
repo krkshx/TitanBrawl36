@@ -3,7 +3,7 @@
 // LogicRankedSeasonChangedCommand (222) — split out; wire format unchanged.
 
 #include "titan/commands/LogicCommand.hpp"
-#include "titan/messages/pending/LogicPlayerRankedSeasonData.hpp"
+#include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/core/DataReference.hpp"
 
 #include <memory>

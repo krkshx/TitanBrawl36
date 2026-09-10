@@ -3,7 +3,7 @@
 // AskForBattleEndMessage (14110) — split out of MsgBatch01.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/HeroDataEntry.hpp"
+#include "titan/game/HeroDataEntry.hpp"
 
 namespace titan {
 

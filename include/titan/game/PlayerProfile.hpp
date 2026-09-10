@@ -9,7 +9,7 @@
 #include "titan/core/LogicLong.hpp"
 #include "titan/game/PlayerDisplayData.hpp"
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/HeroEntry.hpp"
+#include "titan/game/HeroEntry.hpp"
 
 #include <memory>
 #include <optional>

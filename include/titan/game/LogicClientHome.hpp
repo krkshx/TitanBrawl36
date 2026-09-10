@@ -9,9 +9,9 @@
 #include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/GatchaDrop.hpp"
-#include "titan/messages/pending/LogicConfData.hpp"
-#include "titan/messages/pending/LogicDailyData.hpp"
+#include "titan/game/GatchaDrop.hpp"
+#include "titan/game/LogicConfData.hpp"
+#include "titan/game/LogicDailyData.hpp"
 #include "titan/messages/pending/Notification.hpp"
 
 #include <memory>

@@ -3,7 +3,7 @@
 // LogicHeroWinQuestsChangedCommand (220) — split out; wire format unchanged.
 
 #include "titan/commands/LogicCommand.hpp"
-#include "titan/messages/pending/LogicQuests.hpp"
+#include "titan/game/LogicQuests.hpp"
 #include "titan/core/DataReference.hpp"
 
 #include <memory>

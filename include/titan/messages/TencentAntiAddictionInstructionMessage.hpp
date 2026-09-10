@@ -3,7 +3,7 @@
 // TencentAntiAddictionInstructionMessage (24222) — split out of MsgBatch11.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/LogicTencentAntiAddictionInstruction.hpp"
+#include "titan/game/LogicTencentAntiAddictionInstruction.hpp"
 
 namespace titan {
 

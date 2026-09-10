@@ -6,7 +6,7 @@
 //   bool + LogicRewardConfig @+56 (nullable).
 
 #include "titan/game/BaseNotification.hpp"
-#include "titan/messages/pending/LogicRewardConfig.hpp"
+#include "titan/game/LogicRewardConfig.hpp"
 
 #include <memory>
 

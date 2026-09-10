@@ -15,13 +15,13 @@
 #include "titan/game/IntValueEntry.hpp"
 #include "titan/game/TimedOffer.hpp"
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/AdStatus.hpp"
-#include "titan/messages/pending/BrawlPassSeasonData.hpp"
-#include "titan/messages/pending/LogicOfferBundle.hpp"
-#include "titan/messages/pending/LogicPlayerRankedSeasonData.hpp"
-#include "titan/messages/pending/LogicQuests.hpp"
-#include "titan/messages/pending/ProLeagueSeasonData.hpp"
-#include "titan/messages/pending/VanityItems.hpp"
+#include "titan/game/AdStatus.hpp"
+#include "titan/game/BrawlPassSeasonData.hpp"
+#include "titan/game/LogicOfferBundle.hpp"
+#include "titan/game/LogicPlayerRankedSeasonData.hpp"
+#include "titan/game/LogicQuests.hpp"
+#include "titan/game/ProLeagueSeasonData.hpp"
+#include "titan/game/VanityItems.hpp"
 
 #include <memory>
 #include <optional>

@@ -3,7 +3,7 @@
 // FriendSuggestionsMessage (20199) — split out of MsgBatch04.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/FriendSuggestionEntry.hpp"
+#include "titan/game/SuggestionEntry.hpp"
 
 namespace titan {
 

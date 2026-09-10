@@ -3,7 +3,7 @@
 // BrawlTvChannelListMessage (24700) — split out of MsgBatch02.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/BrawlTvChannelInfo.hpp"
+#include "titan/game/BrawlTvChannelInfo.hpp"
 
 namespace titan {
 

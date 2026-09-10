@@ -3,7 +3,7 @@
 // LogicDayChangedCommand (204) — split out; wire format unchanged.
 
 #include "titan/commands/LogicCommand.hpp"
-#include "titan/messages/pending/LogicConfData.hpp"
+#include "titan/game/LogicConfData.hpp"
 #include "titan/core/DataReference.hpp"
 
 #include <memory>

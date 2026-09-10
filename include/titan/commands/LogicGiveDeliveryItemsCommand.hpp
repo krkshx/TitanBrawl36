@@ -3,8 +3,8 @@
 // LogicGiveDeliveryItemsCommand (203) — split out; wire format unchanged.
 
 #include "titan/commands/LogicCommand.hpp"
-#include "titan/messages/pending/DeliveryUnit.hpp"
-#include "titan/messages/pending/ForcedDrops.hpp"
+#include "titan/game/DeliveryUnit.hpp"
+#include "titan/game/ForcedDrops.hpp"
 #include "titan/core/DataReference.hpp"
 
 #include <memory>

@@ -8,7 +8,7 @@
 
 #include "titan/game/LogicRankRewardConfig.hpp"
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/LogicRewardConfig.hpp"
+#include "titan/game/LogicRewardConfig.hpp"
 
 #include <memory>
 #include <optional>

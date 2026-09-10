@@ -6,7 +6,7 @@
 // @0x97acd8): same reads in the same order (mirrored below).
 
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/LogicRewardConfig.hpp"
+#include "titan/game/LogicRewardConfig.hpp"
 
 #include <memory>
 

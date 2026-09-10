@@ -3,7 +3,7 @@
 // AllianceStreamMessage (24311) — split out of MsgBatch00.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/StreamEntry.hpp"
+#include "titan/game/StreamEntry.hpp"
 
 namespace titan {
 

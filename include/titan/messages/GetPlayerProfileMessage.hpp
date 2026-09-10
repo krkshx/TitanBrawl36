@@ -3,7 +3,7 @@
 // GetPlayerProfileMessage (14113) — split out of MsgBatch04.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/BattleLogPlayerEntry.hpp"
+#include "titan/game/BattleLogPlayerEntry.hpp"
 
 namespace titan {
 

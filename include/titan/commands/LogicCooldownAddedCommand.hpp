@@ -3,7 +3,7 @@
 // LogicCooldownAddedCommand (223) — split out; wire format unchanged.
 
 #include "titan/commands/LogicCommand.hpp"
-#include "titan/messages/pending/CooldownEntry.hpp"
+#include "titan/game/CooldownEntry.hpp"
 #include "titan/core/DataReference.hpp"
 
 #include <memory>

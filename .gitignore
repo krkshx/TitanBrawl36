@@ -41,6 +41,10 @@ tools/out/
 *.idb
 *.i64
 
+# Decompiled game assets (272MB+, local only: needed for the datatables
+# test via <repo>/assets or TITAN_ASSETS, never committed)
+assets/
+
 # OS
 .DS_Store
 Thumbs.db

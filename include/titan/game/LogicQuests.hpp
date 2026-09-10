@@ -7,7 +7,7 @@
 // pending_reverse until QuestData lands.
 
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/QuestData.hpp"
+#include "titan/game/QuestData.hpp"
 
 #include <memory>
 #include <vector>

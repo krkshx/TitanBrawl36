@@ -9,7 +9,7 @@
 #include "titan/game/LogicClientAvatar.hpp"
 #include "titan/game/LogicCompressedString.hpp"
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/LogicRankedMatchPlayer.hpp"
+#include "titan/game/LogicRankedMatchPlayer.hpp"
 
 #include <memory>
 #include <optional>

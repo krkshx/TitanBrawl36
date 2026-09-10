@@ -4,8 +4,8 @@
 
 #include "titan/messages/MessagePrelude.hpp"
 #include "titan/messages/pending/BattlePlayerMap.hpp"
-#include "titan/messages/pending/LogicPlayer.hpp"
-#include "titan/messages/pending/LogicVector2.hpp"
+#include "titan/game/LogicPlayer.hpp"
+#include "titan/game/LogicVector2.hpp"
 
 namespace titan {
 

@@ -4,7 +4,7 @@
 #include "titan/game/LogicClientAvatar.hpp"
 #include "titan/game/LogicCompressedString.hpp"
 #include "titan/messages/AllMessages.hpp"
-#include "titan/messages/pending/AddableFriendEntry.hpp"
+#include "titan/game/AddableFriendEntry.hpp"
 
 #include <cstdio>
 

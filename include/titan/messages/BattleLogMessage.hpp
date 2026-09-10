@@ -3,7 +3,7 @@
 // BattleLogMessage (23458) — split out of MsgBatch02.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/BattleLogEntry.hpp"
+#include "titan/game/BattleLogEntry.hpp"
 
 namespace titan {
 

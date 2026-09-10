@@ -99,13 +99,17 @@ wire format or logic is observable. Progress is enforced by
 `tools/generate_registry.py`: the registry lists all 37,064 functions and
 their status, and it is compiled into the binary.
 
-## Layout rule (strict): one class per file
+## Layout rule (strict): one class per file, one home per class
 
 - `include/titan/messages/<Class>.hpp` (+ `src/messages/<Class>.cpp`
   when it has out-of-line bodies) — 335 messages.
 - `include/titan/commands/<Class>.hpp` — 59 commands.
-- `include/titan/messages/pending/<Name>.hpp` — one pending nested entry
-  per file (replaced in place by the real class when reversed).
+- `include/titan/game/<Class>.hpp` (+ `src/game/<Class>.cpp` when big) —
+  every reversed nested/data class lives here, no exceptions.
+- `include/titan/messages/pending/` — ONLY not-yet-reversed stubs
+  (`TITAN_PENDING_ENTRY`) plus documented `using` aliases where the stub
+  name differs from the binary's class. No forwarders: when a stub gets
+  reversed, its pending file is DELETED and includers switch to `game/`.
 - Shared bases live in `messages/Common.hpp`; aggregates
   (`AllMessages.hpp`, `AllCommands.hpp`) are generated.
 - New code must follow this: no two message/command classes share a file.

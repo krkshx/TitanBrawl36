@@ -3,7 +3,7 @@
 // PlayerMapsMessage (22102) — split out of MsgBatch07.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.hpp"
-#include "titan/messages/pending/LogicPlayerMap.hpp"
+#include "titan/game/LogicPlayerMap.hpp"
 
 namespace titan {
 

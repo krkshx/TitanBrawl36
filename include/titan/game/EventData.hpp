@@ -8,10 +8,10 @@
 #include "titan/core/DataReference.hpp"
 #include "titan/messages/Nested.hpp"
 #include "titan/messages/pending/BattlePlayerMap.hpp"
-#include "titan/messages/pending/ChronosFileEntry.hpp"
-#include "titan/messages/pending/ChronosTextEntry.hpp"
-#include "titan/messages/pending/LogicGemOffer.hpp"
-#include "titan/messages/pending/LogicRankedSeason.hpp"
+#include "titan/game/ChronosFileEntry.hpp"
+#include "titan/game/ChronosTextEntry.hpp"
+#include "titan/game/LogicGemOffer.hpp"
+#include "titan/game/LogicRankedSeason.hpp"
 
 #include <memory>
 #include <optional>

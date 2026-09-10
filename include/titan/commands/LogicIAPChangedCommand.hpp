@@ -3,7 +3,7 @@
 // LogicIAPChangedCommand (210) — split out; wire format unchanged.
 
 #include "titan/commands/LogicCommand.hpp"
-#include "titan/messages/pending/TimedOffer.hpp"
+#include "titan/game/TimedOffer.hpp"
 #include "titan/core/DataReference.hpp"
 
 #include <memory>

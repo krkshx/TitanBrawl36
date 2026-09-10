@@ -11,8 +11,8 @@
 #include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/BattleLogPlayerEntry.hpp"
-#include "titan/messages/pending/LogicUuid.hpp"
+#include "titan/game/BattleLogPlayerEntry.hpp"
+#include "titan/game/LogicUuid.hpp"
 
 #include <memory>
 #include <optional>
