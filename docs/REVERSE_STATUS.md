@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2126 reimplemented, 9717 third-party, 25221 pending**
+Registry (compiled in): **2129 reimplemented, 9717 third-party, 25218 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2126 fns | `src/` + tests |
-| Game code pending | 25221 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2129 fns | `src/` + tests |
+| Game code pending | 25218 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -75,7 +75,12 @@ Registry (compiled in): **2126 reimplemented, 9717 third-party, 25221 pending**
   ints), tail has 12 vints (+184/+188/+200 were missing), flag_ was
   nameSetByUser — all fixed and covered.
 - sc engine (part 2): `DisplayObject` transform core (C2 `@0x529c3c`,
-  x@+32/y@+36, scaleX@+16/scaleY@+28, all accessors verified).
+  x@+32/y@+36, scaleX@+16/scaleY@+28, all accessors verified) + visible
+  flag @+8 (`setVisibleRecursive @0x9448f4` sets only self despite
+  the name).
+- Gameplay wave (part 3): `LogicDeleteNotificationCommand::execute
+  @0x961cc4` + `LogicClientHome::removeNotification @0x8f73e4` (match by
+  base +8 int, ownership transfer).
 - Session crypto resolved: `Messaging` builds two plain `PepperEncrypter`
   (`@0x1b4b64`); encrypt `@0x4491dc` / decrypt `@0x39f6b4` advance the nonce
   BEFORE use (port fixed to match); `PepperCrypto::box`/`box_open`

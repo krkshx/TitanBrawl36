@@ -8606,7 +8606,7 @@ extern const Entry kPart2[] = {
     {0x08F6C6C, Status::Pending, "_ZN14LogicDailyData15hasUnlockedSkinEPK13LogicSkinData", "LogicDailyData15hasUnlockedSkinEPK13LogicSkinDat"},
     {0x08F6CD8, Status::Pending, "_ZN11wendelstein15VortexComponent11applyForcesEPNS_8ParticleES2_P7Vector3IfES5_ff", "wendelstein15VortexComponent11applyForcesEPNS_8P"},
     {0x08F6DF4, Status::ThirdPartyExternal, "_ZNK17DataLoaderFactory16createDataLoaderEPKcRKNSt6__ndk15arrayIiLm4EEE", "DataLoaderFactory16createDataLoaderEPKcRKNSt6__n"},
-    {0x08F73E4, Status::Pending, "_ZN15LogicClientHome18removeNotificationEi", "LogicClientHome18removeNotificationEi"},
+    {0x08F73E4, Status::Reimplemented, "_ZN15LogicClientHome18removeNotificationEi", "LogicClientHome18removeNotificationEi"},
     {0x08F74F4, Status::Pending, "_ZN10ByteStream10writeInt16Ei", "ByteStream10writeInt16Ei"},
     {0x08F7598, Status::Pending, "_ZN9BitStream15writeIntMax8191Ei", "BitStream15writeIntMax8191Ei"},
     {0x08F75A0, Status::Reimplemented, "_ZN24LatencyTestStatusMessage6decodeEv", "LatencyTestStatusMessage6decodeEv"},

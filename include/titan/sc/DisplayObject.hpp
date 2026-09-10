@@ -40,8 +40,14 @@ public:
         scaleX_ = v;
         scaleY_ = v;
     }
+    // Visible flag @+8 (C2 sets 1; setVisibleRecursive @0x9448f4 writes it —
+    // the binary does not actually recurse despite the name).
+    [[nodiscard]] bool isVisible() const { return visible_; }
+    void setVisible(bool v) { visible_ = v; }
+    void setVisibleRecursive(bool v) { visible_ = v; }
 
 private:
+    bool visible_ = true; // +8
     float scaleX_ = 1.0f; // +16 (C2 defaults from identity const)
     float x_ = 0.0f; // +32
     float y_ = 0.0f; // +36

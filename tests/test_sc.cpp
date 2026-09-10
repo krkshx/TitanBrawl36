@@ -39,6 +39,11 @@ int main() {
         CHECK(o.getScaleY() == 3.0f);
         o.setScale(0.5f);
         CHECK(o.getScaleX() == 0.5f && o.getScaleY() == 0.5f);
+        CHECK(o.isVisible());
+        o.setVisible(false);
+        CHECK(!o.isVisible());
+        o.setVisibleRecursive(true);
+        CHECK(o.isVisible());
     }
 
     if (failures == 0) std::puts("sc: all ok");
