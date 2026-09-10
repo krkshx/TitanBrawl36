@@ -110,21 +110,33 @@ int main() {
         m.encode();
         CHECK(m.stream().size() == 4); // writeInt(-1)
     }
-    // Pending nested entries throw explicitly.
+    // Pending nested entries throw explicitly (AddableFriendEntry still pending).
     {
         bool threw = false;
-        AllianceListMessage m;
-        m.headers_.push_back(std::make_unique<AllianceHeaderEntry>());
+        AddableFriendsMessage m;
+        m.entries_.push_back(std::make_unique<AddableFriendEntry>());
         try {
             m.encode();
         } catch (const pending_reverse&) {
             threw = true;
         }
         CHECK(threw);
-        AllianceListMessage empty; // empty arrays are fine
-        AllianceListMessage back;
-        roundTrip<AllianceListMessage>([](AllianceListMessage&) {}, back);
-        CHECK(back.headers_.empty());
+        AddableFriendsMessage back;
+        roundTrip<AddableFriendsMessage>([](AddableFriendsMessage&) {}, back);
+        CHECK(back.entries_.empty());
+    }
+    // Newly reversed entries round-trip for real.
+    {
+        ROUNDTRIP(AllianceListMessage, back,
+                  auto h = std::make_unique<AllianceHeaderEntry>();
+                  h->name_ = std::string("Titans");
+                  h->v24_ = 5;
+                  h->badgeRef_ = DataReference{8, 1};
+                  h->flag_ = true;
+                  m.headers_.push_back(std::move(h)));
+        CHECK(back.headers_.size() == 1);
+        CHECK(back.headers_[0]->name_.value() == "Titans");
+        CHECK(back.headers_[0]->v24_ == 5 && back.headers_[0]->flag_);
     }
     // Wave 2 spot checks.
     {
@@ -229,6 +241,34 @@ int main() {
         ROUNDTRIP(YoozooOrderDeliveryFailedMessage, back,
                   m.orderId_ = std::string("ord-1"); m.errorCode_ = 5);
         CHECK(back.orderId_.value() == "ord-1" && back.errorCode_ == 5);
+    }
+    // RLE compressed strings round-trip.
+    {
+        LogicCompressedString cs;
+        cs.setUncompressed("AAABBBCCCD");
+        auto plain = cs.getUncompressed();
+        CHECK(plain == std::vector<u8>({'A', 'A', 'A', 'B', 'B', 'B', 'C', 'C', 'C', 'D'}));
+        // Encode/decode the bytes field itself.
+        ByteStream s;
+        cs.encode(s);
+        ByteStream d;
+        d.setBuffer(s.data(), s.size());
+        LogicCompressedString back;
+        back.decode(d);
+        CHECK(back.getUncompressed() == plain);
+    }
+    // LogicClientAvatar round-trip (empty slots).
+    {
+        LogicClientAvatar av;
+        av.name_ = "Spike";
+        av.flag_ = true;
+        ByteStream s;
+        av.encode(s);
+        ByteStream d;
+        d.setBuffer(s.data(), s.size());
+        LogicClientAvatar back;
+        back.decode(d);
+        CHECK(back.name_ == "Spike" && back.flag_);
     }
 
     if (failures == 0) std::puts("msgbatch: all ok");
