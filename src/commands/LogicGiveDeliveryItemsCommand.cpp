@@ -1,10 +1,9 @@
-// Command batch A bodies — reversed from libg_decrypted.so (ARM64).
+// LogicGiveDeliveryItemsCommand bodies (203) — split out; unchanged.
 
-#include "titan/commands/CmdBatchA.hpp"
+#include "titan/commands/LogicGiveDeliveryItemsCommand.hpp"
 
 namespace titan {
 
-// ---- 203 LogicGiveDeliveryItemsCommand ----
 void LogicGiveDeliveryItemsCommand::encode(ByteStream& s) const {
     LogicCommand::encode(s);
     s.writeVInt(v1_);
@@ -21,6 +20,7 @@ void LogicGiveDeliveryItemsCommand::encode(ByteStream& s) const {
     s.writeBoolean(b1_);
     s.writeBoolean(b2_);
 }
+
 void LogicGiveDeliveryItemsCommand::decode(ByteStream& s) {
     LogicCommand::decode(s);
     v1_ = s.readVInt();
@@ -41,28 +41,6 @@ void LogicGiveDeliveryItemsCommand::decode(ByteStream& s) {
     v4_ = s.readVInt();
     b1_ = s.readBoolean();
     b2_ = s.readBoolean();
-}
-
-// ---- 206 LogicAddNotificationCommand ----
-// Wire: bool has; [vint type + notification object]. The concrete
-// notification class is pending (virtual-encode in the binary), so
-// present payloads throw loudly; absent ones round-trip.
-void LogicAddNotificationCommand::encode(ByteStream& s) const {
-    LogicCommand::encode(s);
-    s.writeBoolean(hasNested_);
-    if (hasNested_) {
-        s.writeVInt(type_);
-        if (!object_) throw pending_reverse("206 needs Notification class");
-        object_->encode(s);
-    }
-}
-void LogicAddNotificationCommand::decode(ByteStream& s) {
-    LogicCommand::decode(s);
-    hasNested_ = s.readBoolean();
-    if (hasNested_) {
-        type_ = s.readVInt();
-        throw pending_reverse("206 needs Notification class");
-    }
 }
 
 } // namespace titan
