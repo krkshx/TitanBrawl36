@@ -1,13 +1,13 @@
 // Self-check for the JSON subsystem (parse + serialize) and AnalyticEvent.
 
-#include "titan/game/AnalyticEvent.hpp"
-#include "titan/game/LogicJSONArray.hpp"
-#include "titan/game/LogicJSONBoolean.hpp"
-#include "titan/game/LogicJSONNull.hpp"
-#include "titan/game/LogicJSONNumber.hpp"
-#include "titan/game/LogicJSONObject.hpp"
-#include "titan/game/LogicJSONParser.hpp"
-#include "titan/game/LogicJSONString.hpp"
+#include "titan/game/util/AnalyticEvent.cpp"
+#include "titan/game/json/LogicJSONArray.cpp"
+#include "titan/game/json/LogicJSONBoolean.cpp"
+#include "titan/game/json/LogicJSONNull.cpp"
+#include "titan/game/json/LogicJSONNumber.cpp"
+#include "titan/game/json/LogicJSONObject.cpp"
+#include "titan/game/json/LogicJSONParser.cpp"
+#include "titan/game/json/LogicJSONString.cpp"
 
 #include <cstdio>
 

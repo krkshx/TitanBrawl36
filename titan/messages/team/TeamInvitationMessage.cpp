@@ -3,7 +3,7 @@
 // TeamInvitationMessage (24589) — split out of MsgBatch10.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/TeamInvitation.hpp"
+#include "titan/game/team/TeamInvitation.cpp"
 
 namespace titan {
 

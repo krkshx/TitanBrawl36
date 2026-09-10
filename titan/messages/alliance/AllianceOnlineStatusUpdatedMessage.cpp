@@ -3,7 +3,7 @@
 // AllianceOnlineStatusUpdatedMessage (20207) — split out of MsgBatch00.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/StatusChangeEntry.hpp"
+#include "titan/game/util/StatusChangeEntry.cpp"
 
 namespace titan {
 

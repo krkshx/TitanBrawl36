@@ -3,7 +3,7 @@
 // PlayAgainStatusMessage (24777) — split out of MsgBatch07.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/PlayAgainStatus.hpp"
+#include "titan/game/battle/PlayAgainStatus.cpp"
 
 namespace titan {
 

@@ -2,11 +2,11 @@
 // factory-create -> decode. Exercises the whole client path
 // (factory + framing + optional session crypto) over real bytes.
 
-#include "titan/crypto/Encrypter.hpp"
-#include "titan/gen/MessageFactory.hpp"
+#include "titan/crypto/Encrypter.cpp"
+#include "titan/gen/MessageFactory.cpp"
 #include "titan/messages/account/KeepAliveMessage.cpp"
 #include "titan/messages/account/ResetAccountMessage.cpp"
-#include "titan/net/Messaging.hpp"
+#include "titan/net/Messaging.cpp"
 
 #include <cstdio>
 

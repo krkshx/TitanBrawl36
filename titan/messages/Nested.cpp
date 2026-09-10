@@ -6,7 +6,7 @@
 // pending_reverse until its own reverse wave replaces the body.
 // Empty arrays (count 0) round-trip bit-exact regardless.
 
-#include "titan/core/ByteStream.hpp"
+#include "titan/core/ByteStream.cpp"
 
 #include <memory>
 #include <stdexcept>

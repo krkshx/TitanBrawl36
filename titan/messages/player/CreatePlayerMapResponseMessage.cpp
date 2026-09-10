@@ -3,7 +3,7 @@
 // CreatePlayerMapResponseMessage (22100) — split out of MsgBatch03.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/LogicPlayerMap.hpp"
+#include "titan/game/player/LogicPlayerMap.cpp"
 
 namespace titan {
 

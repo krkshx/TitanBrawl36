@@ -2,18 +2,18 @@
 
 #include "HomeViewer.hpp"
 
-#include "titan/game/ChronosTextEntry.hpp"
-#include "titan/game/LogicClientAvatar.hpp"
-#include "titan/game/LogicClientHome.hpp"
-#include "titan/game/LogicConfData.hpp"
-#include "titan/game/LogicDailyData.hpp"
-#include "titan/game/LogicGemOffer.hpp"
-#include "titan/game/LogicOfferBundle.hpp"
-#include "titan/game/FreeTextNotification.hpp"
-#include "titan/game/ForcedDrops.hpp"
-#include "titan/gen/MessageFactory.hpp"
+#include "titan/game/home/ChronosTextEntry.cpp"
+#include "titan/game/avatar/LogicClientAvatar.cpp"
+#include "titan/game/home/Home.cpp"
+#include "titan/game/data/LogicConfData.cpp"
+#include "titan/game/player/LogicDailyData.cpp"
+#include "titan/game/shop/LogicGemOffer.cpp"
+#include "titan/game/shop/LogicOfferBundle.cpp"
+#include "titan/game/notif/FreeTextNotification.cpp"
+#include "titan/game/player/ForcedDrops.cpp"
+#include "titan/gen/MessageFactory.cpp"
 #include "titan/messages/home/OwnHomeDataMessage.cpp"
-#include "titan/net/Messaging.hpp"
+#include "titan/net/Messaging.cpp"
 
 #include <QFileDialog>
 #include <QFile>

@@ -3,14 +3,14 @@
 // BattleEndMessage (23456) — split out of MsgBatch02.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/ChronosTextEntry.hpp"
-#include "titan/game/LogicGemOffer.hpp"
-#include "titan/game/LogicMilestoneProgress.hpp"
-#include "titan/game/LogicQuests.hpp"
-#include "titan/game/LogicRankedMatchRoundState.hpp"
-#include "titan/game/PlayAgainStatus.hpp"
-#include "titan/game/PlayerEntry.hpp"
-#include "titan/game/XpEntry.hpp"
+#include "titan/game/home/ChronosTextEntry.cpp"
+#include "titan/game/shop/LogicGemOffer.cpp"
+#include "titan/game/home/LogicMilestoneProgress.cpp"
+#include "titan/game/home/LogicQuests.cpp"
+#include "titan/game/battle/LogicRankedMatchRoundState.cpp"
+#include "titan/game/battle/PlayAgainStatus.cpp"
+#include "titan/game/avatar/PlayerEntry.cpp"
+#include "titan/game/player/XpEntry.cpp"
 
 namespace titan {
 

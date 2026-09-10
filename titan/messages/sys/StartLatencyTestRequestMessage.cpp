@@ -3,7 +3,7 @@
 // StartLatencyTestRequestMessage (29001) — split out of MsgBatch10.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/LatencyTestConfiguration.hpp"
+#include "titan/game/util/LatencyTestConfiguration.cpp"
 
 namespace titan {
 

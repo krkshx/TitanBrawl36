@@ -1,7 +1,115 @@
+#pragma once
+
+#include "titan/core/ChecksumEncoder.cpp"
+#include <cstddef>
+#include <optional>
+#include <string>
+#include <vector>
+
+// ByteStream — reversed from libg_decrypted.so (ARM64).
+//
+// Layout in the binary (offsets from `this`):
+//   +12 checksum state (see ChecksumEncoder)
+//   +20 length/offset (i32) — write cursor and read cursor alike
+//   +28 bitOffset for boolean bit-packing (i32, 0..7)
+//   +32 buffer (u8*)
+//   +40 capacity (i32)
+// Growth policy observed: allocate capacity+101 (boolean/byte),
+// +104 (int/bytes), +105 (vint); string/bytes grow by len+capacity+104.
+//
+// Wire format (must stay bit-exact with the client):
+// - Int: 4 bytes big-endian.
+// - Boolean: bit-packed into the current byte (bitOffset 0..7).
+// - VInt: 1..5 byte varint, sign-aware (see .cpp).
+// - String: writeInt(byteLength) + raw bytes; null -> writeInt(-1);
+//   strings >= 900001 bytes are rejected and encoded as -1 (see @0x5174d0).
+// - Bytes(data,len): writeInt(len) + raw bytes; null -> writeInt(-1).
+//
+// Reader mirrors the writer and resets bitOffset the same way:
+// readInt @0x191dc4, readVInt @0x356c40, readBoolean @0x23bc10.
+
+namespace titan {
+
+// UTF-16 length of WTF-8 bytes (LogicStringUtil::getCharLength @0x62b658:
+// BMP=1, supplementary=2, invalid=1). Used for checksum folds, which count
+// UTF-16 units while the wire carries UTF-8 bytes.
+[[nodiscard]] i32 utf16Length(const u8* data, i32 len);
+[[nodiscard]] inline i32 utf16Length(const std::string& s) {
+    return utf16Length(reinterpret_cast<const u8*>(s.data()),
+                       static_cast<i32>(s.size()));
+}
+
+class ByteStream : public ChecksumEncoder {
+public:
+    explicit ByteStream(std::size_t initialCapacity = 128);
+    ~ByteStream() override;
+
+    ByteStream(const ByteStream&) = delete;
+    ByteStream& operator=(const ByteStream&) = delete;
+
+    // --- writers (IDA refs in .cpp) ---
+    void writeBoolean(bool value);              // @0x3294c0
+    void writeInt(i32 value) override;          // @0x3f3bd0
+    void writeVInt(i32 value) override;         // @0x298f64
+    void writeVLong(i64 value) override;        // @0x3ec094
+    void writeString(const std::string* value); // @0x5174d0 (null -> -1)
+    void writeStringReference(const std::string& value); // @0x608f14 (never null)
+    void writeBytes(const u8* data, i32 len);   // @0x61bd08 (null -> -1)
+    void writeBytesWithoutLength(const u8* data, i32 len); // @0x400d5c
+    void writeRawBytes(const u8* data, i32 len); // no length prefix, no checksum
+    void writeByte(i8 value);
+    void writeShort(i16 value);
+    void writeLongLong(i64 value);
+
+    // --- readers ---
+    bool readBoolean();                    // @0x23bc10
+    i8 readByte();
+    i16 readShort();
+    i32 readInt();                         // @0x191dc4
+    i32 readVInt();                        // @0x356c40
+    i64 readVLong();                       // @0x8d3af0
+    // Encoded length of writeVLong(value) without writing anything.
+    // Threshold table copied from @0x258bb4.
+    [[nodiscard]] static int getVLongSizeInBytes(i64 value);
+    i64 readLongLong();
+    std::optional<std::string> readString();
+    std::string readStringReference(); // @0x28f62c (negative len -> "")
+    std::vector<u8> readBytes();
+    std::vector<u8> readRawBytes(i32 len);
+    std::optional<std::vector<u8>> readBytesNullable(); // -1 -> nullopt
+
+    // Load a received buffer for decoding (sets cursor to 0).
+    void setBuffer(const u8* data, i32 len);
+    void setByteArray(const u8* data, i32 len) { setBuffer(data, len); } // @0x2da99c
+
+    // --- buffer access ---
+    [[nodiscard]] const u8* data() const { return buffer_.data(); }
+    [[nodiscard]] const u8* getByteArray() const { return buffer_.data(); } // @0x42b9b0
+    [[nodiscard]] i32 size() const { return length_; }
+    [[nodiscard]] i32 getLength() const { return length_; } // @0x69da1c (max(+20,+24); equal here)
+    [[nodiscard]] i32 cursor() const { return readCursor_; }
+    [[nodiscard]] i32 remaining() const { return length_ - readCursor_; }
+    [[nodiscard]] bool isAtEnd() const { return readCursor_ >= length_; } // @0x7625a8
+    [[nodiscard]] i32 bitOffset() const { return bitOffset_; }
+    void clear();
+
+private:
+    void ensureCapacity(i32 extra);
+    void putByte(u8 b);
+    void writeIntToByteArray(i32 value); // @0x87bc64
+    [[nodiscard]] u8 readByteRaw();
+
+    std::vector<u8> buffer_;
+    i32 length_ = 0;     // +20 (write cursor)
+    i32 bitOffset_ = 0;  // +28
+    i32 readCursor_ = 0; // read cursor (binary reuses +20 after reset)
+};
+
+} // namespace titan
+
 // ByteStream — reversed from libg_decrypted.so (ARM64).
 // IDA addresses are cited per method. See docs/IDA_BASELINE.md.
 
-#include "titan/core/ByteStream.hpp"
 
 #include <cstring>
 #include <stdexcept>
@@ -14,7 +122,7 @@ constexpr i32 kMaxStringBytes = 900000;
 } // namespace
 
 // getCharLength @0x62b658 semantics over WTF-8 input.
-i32 utf16Length(const u8* data, i32 len) {
+inline i32 utf16Length(const u8* data, i32 len) {
     i32 units = 0;
     i32 i = 0;
     while (i < len) {
@@ -40,23 +148,23 @@ i32 utf16Length(const u8* data, i32 len) {
     return units;
 }
 
-ByteStream::ByteStream(std::size_t initialCapacity) {
+inline ByteStream::ByteStream(std::size_t initialCapacity) {
     buffer_.assign(initialCapacity, 0);
     length_ = 0;
     bitOffset_ = 0;
     readCursor_ = 0;
 }
 
-ByteStream::~ByteStream() = default;
+inline ByteStream::~ByteStream() = default;
 
-void ByteStream::clear() {
+inline void ByteStream::clear() {
     length_ = 0;
     bitOffset_ = 0;
     readCursor_ = 0;
     setChecksum(0);
 }
 
-void ByteStream::setBuffer(const u8* data, i32 len) {
+inline void ByteStream::setBuffer(const u8* data, i32 len) {
     if (len < 0 || data == nullptr) {
         throw std::invalid_argument("ByteStream::setBuffer: null/negative");
     }
@@ -66,7 +174,7 @@ void ByteStream::setBuffer(const u8* data, i32 len) {
     bitOffset_ = 0;
 }
 
-void ByteStream::ensureCapacity(i32 extra) {
+inline void ByteStream::ensureCapacity(i32 extra) {
     const i32 need = length_ + extra;
     if (need > static_cast<i32>(buffer_.size())) {
         // Binary grows by fixed steps (+101/+104/+105 depending on caller);
@@ -77,14 +185,14 @@ void ByteStream::ensureCapacity(i32 extra) {
     }
 }
 
-void ByteStream::putByte(u8 b) {
+inline void ByteStream::putByte(u8 b) {
     buffer_[static_cast<std::size_t>(length_)] = b;
     ++length_;
 }
 
 // @0x87bc64 — ByteStream::writeIntToByteArray
 // Big-endian 4 bytes; resets bitOffset (+28 = 0); grows capacity by +104.
-void ByteStream::writeIntToByteArray(i32 value) {
+inline void ByteStream::writeIntToByteArray(i32 value) {
     bitOffset_ = 0;
     ensureCapacity(4);
     putByte(static_cast<u8>((value >> 24) & 0xFF)); // HIBYTE
@@ -95,7 +203,7 @@ void ByteStream::writeIntToByteArray(i32 value) {
 
 // @0x3f3bd0 — ByteStream::writeInt
 //   ChecksumEncoder::writeInt(a1, v); writeIntToByteArray(a1, v)
-void ByteStream::writeInt(i32 value) {
+inline void ByteStream::writeInt(i32 value) {
     ChecksumEncoder::writeInt(value);
     writeIntToByteArray(value);
 }
@@ -103,7 +211,7 @@ void ByteStream::writeInt(i32 value) {
 // @0x3294c0 — ByteStream::writeBoolean
 // Bit-packs into the current byte when bitOffset != 0, else starts a new
 // zero byte; bitOffset = (bitOffset + 1) & 7. Checksum first.
-void ByteStream::writeBoolean(bool value) {
+inline void ByteStream::writeBoolean(bool value) {
     ChecksumEncoder::writeBoolean(value);
     const u8 bit = value ? 1u : 0u;
     if (bitOffset_ != 0) {
@@ -123,7 +231,7 @@ void ByteStream::writeBoolean(bool value) {
 // @0x298f64 — ByteStream::writeVInt
 // Checksum first, reset bitOffset, ensure length+5 fits (binary: +105),
 // then the 1..5 byte sign-aware varint (see docs/IDA_BASELINE.md).
-void ByteStream::writeVInt(i32 value) {
+inline void ByteStream::writeVInt(i32 value) {
     ChecksumEncoder::writeVInt(value);
     bitOffset_ = 0;
     ensureCapacity(5);
@@ -189,7 +297,7 @@ void ByteStream::writeVInt(i32 value) {
 // + 0x40 sign + 0x80 continuation, following bytes 7-bit LE groups with
 // 0x80 continuation (verified against the binary's range thresholds:
 // 63/-64, 0x2000/-8191, 0x100000/-1048575, 0x7FFFFFF/-134217727, ...).
-void ByteStream::writeVLong(i64 value) {
+inline void ByteStream::writeVLong(i64 value) {
     ChecksumEncoder::writeVLong(value);
     bitOffset_ = 0;
     ensureCapacity(10);
@@ -215,7 +323,7 @@ void ByteStream::writeVLong(i64 value) {
 // @0x5174d0 — ByteStream::writeString
 // Checksum with char length; null -> writeInt(-1); length comes from the
 // UTF-8 byte length; >= 900001 bytes rejected (-> -1).
-void ByteStream::writeString(const std::string* value) {
+inline void ByteStream::writeString(const std::string* value) {
     if (value == nullptr) {
         ChecksumEncoder::writeStringLength(0, true);
         writeIntToByteArray(-1);
@@ -239,7 +347,7 @@ void ByteStream::writeString(const std::string* value) {
 // Same wire layout as writeString but the reference is never null:
 // ByteLength < 900001 required, else Debugger::warning + writeInt(-1).
 // Checksum fold uses K=38 (@0x69a564).
-void ByteStream::writeStringReference(const std::string& value) {
+inline void ByteStream::writeStringReference(const std::string& value) {
     const i32 len = static_cast<i32>(value.size());
     ChecksumEncoder::writeStringReferenceLength(utf16Length(value));
     if (len >= kMaxStringBytes + 1) {
@@ -257,7 +365,7 @@ void ByteStream::writeStringReference(const std::string& value) {
 // @0x61bd08 — ByteStream::writeBytes
 // ChecksumEncoder::writeBytes; null -> writeInt(-1),
 // else writeInt(len) + raw bytes.
-void ByteStream::writeBytes(const u8* data, i32 len) {
+inline void ByteStream::writeBytes(const u8* data, i32 len) {
     ChecksumEncoder::writeBytesLength(len, data == nullptr);
     if (data == nullptr) {
         writeIntToByteArray(-1);
@@ -274,7 +382,7 @@ void ByteStream::writeBytes(const u8* data, i32 len) {
 // @0x400d5c — ByteStream::writeBytesWithoutLength
 // ChecksumEncoder::writeBytes fold, then raw copy (no length prefix,
 // bitOffset untouched, growth +100).
-void ByteStream::writeBytesWithoutLength(const u8* data, i32 len) {
+inline void ByteStream::writeBytesWithoutLength(const u8* data, i32 len) {
     ChecksumEncoder::writeBytesLength(len, data == nullptr);
     if (data == nullptr) return;
     ensureCapacity(len);
@@ -284,28 +392,28 @@ void ByteStream::writeBytesWithoutLength(const u8* data, i32 len) {
     }
 }
 
-void ByteStream::writeByte(i8 value) {
+inline void ByteStream::writeByte(i8 value) {
     bitOffset_ = 0;
     ensureCapacity(1);
     putByte(static_cast<u8>(value));
 }
 
 // Raw payload without length prefix (UdpBigMessageFragment pattern).
-void ByteStream::writeRawBytes(const u8* data, i32 len) {
+inline void ByteStream::writeRawBytes(const u8* data, i32 len) {
     if (len <= 0) return;
     ensureCapacity(len);
     std::memcpy(buffer_.data() + length_, data, static_cast<std::size_t>(len));
     length_ += len;
 }
 
-void ByteStream::writeShort(i16 value) {
+inline void ByteStream::writeShort(i16 value) {
     bitOffset_ = 0;
     ensureCapacity(2);
     putByte(static_cast<u8>((value >> 8) & 0xFF));
     putByte(static_cast<u8>(value & 0xFF));
 }
 
-void ByteStream::writeLongLong(i64 value) {
+inline void ByteStream::writeLongLong(i64 value) {
     bitOffset_ = 0;
     ensureCapacity(8);
     for (int shift = 56; shift >= 0; shift -= 8) {
@@ -315,7 +423,7 @@ void ByteStream::writeLongLong(i64 value) {
 
 // --- readers ---
 
-u8 ByteStream::readByteRaw() {
+inline u8 ByteStream::readByteRaw() {
     if (readCursor_ >= length_) {
         throw std::out_of_range("ByteStream: read past end");
     }
@@ -327,7 +435,7 @@ u8 ByteStream::readByteRaw() {
 // @0x23bc10 — ByteStream::readBoolean
 // offset += (8 - bitOffset) >> 3 (i.e. +1 when starting a fresh byte),
 // test bit bitOffset of the current byte, bitOffset = (bitOffset+1) & 7.
-bool ByteStream::readBoolean() {
+inline bool ByteStream::readBoolean() {
     const i32 bit = bitOffset_;
     readCursor_ += (8 - bit) >> 3;
     if (readCursor_ <= 0 || readCursor_ > length_) {
@@ -339,7 +447,7 @@ bool ByteStream::readBoolean() {
 }
 
 // @0x191dc4 — ByteStream::readInt (big-endian, resets bitOffset).
-i32 ByteStream::readInt() {
+inline i32 ByteStream::readInt() {
     bitOffset_ = 0;
     const u32 b0 = readByteRaw();
     const u32 b1 = readByteRaw();
@@ -348,19 +456,19 @@ i32 ByteStream::readInt() {
     return static_cast<i32>((b0 << 24) | (b1 << 16) | (b2 << 8) | b3);
 }
 
-i8 ByteStream::readByte() {
+inline i8 ByteStream::readByte() {
     bitOffset_ = 0;
     return static_cast<i8>(readByteRaw());
 }
 
-i16 ByteStream::readShort() {
+inline i16 ByteStream::readShort() {
     bitOffset_ = 0;
     const u32 hi = readByteRaw();
     const u32 lo = readByteRaw();
     return static_cast<i16>((hi << 8) | lo);
 }
 
-i64 ByteStream::readLongLong() {
+inline i64 ByteStream::readLongLong() {
     bitOffset_ = 0;
     i64 v = 0;
     for (int i = 0; i < 8; ++i) v = (v << 8) | readByteRaw();
@@ -372,7 +480,7 @@ i64 ByteStream::readLongLong() {
 // Continuation bytes carry 7 bits; the negative path sign-extends the
 // result at every length (0xFFFFFFC0 / 0xFFFFE000 / 0xFFF00000 /
 // 0xF8000000 / 0x80000000), mirroring the binary exactly.
-i32 ByteStream::readVInt() {
+inline i32 ByteStream::readVInt() {
     bitOffset_ = 0;
     const u8 first = readByteRaw();
     u32 result = first & 0x3F;
@@ -426,7 +534,7 @@ i32 ByteStream::readVInt() {
 // 0x40 sign + 0x80 continuation, then 7-bit LE groups (up to 10 bytes
 // total; the 10th byte is unconditionally final, mirroring the binary's
 // unrolled decoder). Negatives are sign-extended per length.
-i64 ByteStream::readVLong() {
+inline i64 ByteStream::readVLong() {
     bitOffset_ = 0;
     const u8 first = readByteRaw();
     u64 v = first & 0x3F;
@@ -454,7 +562,7 @@ i64 ByteStream::readVLong() {
 
 // @0x258bb4 — ByteStream::getVLongSizeInBytes (static in our port; the
 // binary takes an unused this). Threshold table copied exactly.
-int ByteStream::getVLongSizeInBytes(i64 value) {
+inline int ByteStream::getVLongSizeInBytes(i64 value) {
     if (value < 0) {
         if (value > -64) return 1;
         if (value > -8192) return 2;
@@ -479,7 +587,7 @@ int ByteStream::getVLongSizeInBytes(i64 value) {
     return 10;
 }
 
-std::optional<std::string> ByteStream::readString() {
+inline std::optional<std::string> ByteStream::readString() {
     const i32 len = readInt();
     if (len < 0) {
         return std::nullopt;
@@ -495,7 +603,7 @@ std::optional<std::string> ByteStream::readString() {
 
 // @0x28f62c — ByteStream::readStringReference
 // readInt length; negative -> Debugger::warning + empty string (never null).
-std::string ByteStream::readStringReference() {
+inline std::string ByteStream::readStringReference() {
     const i32 len = readInt();
     if (len < 0) {
         return {};
@@ -509,7 +617,7 @@ std::string ByteStream::readStringReference() {
     return out;
 }
 
-std::optional<std::vector<u8>> ByteStream::readBytesNullable() {
+inline std::optional<std::vector<u8>> ByteStream::readBytesNullable() {
     const i32 len = readInt();
     if (len < 0) {
         return std::nullopt;
@@ -522,7 +630,7 @@ std::optional<std::vector<u8>> ByteStream::readBytesNullable() {
     return out;
 }
 
-std::vector<u8> ByteStream::readRawBytes(i32 len) {
+inline std::vector<u8> ByteStream::readRawBytes(i32 len) {
     if (len < 0) {
         throw std::out_of_range("ByteStream::readRawBytes negative len");
     }
@@ -534,7 +642,7 @@ std::vector<u8> ByteStream::readRawBytes(i32 len) {
     return out;
 }
 
-std::vector<u8> ByteStream::readBytes() {
+inline std::vector<u8> ByteStream::readBytes() {
     const i32 len = readInt();
     if (len < 0) {
         return {};
@@ -548,3 +656,4 @@ std::vector<u8> ByteStream::readBytes() {
 }
 
 } // namespace titan
+

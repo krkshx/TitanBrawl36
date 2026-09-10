@@ -3,7 +3,7 @@
 // BattleReportStreamMessage (24413) — split out of MsgBatch02.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/BattleReportStreamEntry.hpp"
+#include "titan/game/stream/BattleReportStreamEntry.cpp"
 
 namespace titan {
 

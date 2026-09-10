@@ -24,10 +24,10 @@ endif()
 # NOTE: titan/gen/* is produced by tools/generate_*.py. Re-run the generators
 # after inventory updates. Per-class sources (messages/commands/game/sc) are
 # globbed: one file per class, see docs/REVERSE_STATUS.md.
-# Messages live in titan/messages/<family>/*.cpp (CPP-only, no headers).
+# Messages/commands/game live in titan/<module>/<family>/*.cpp (CPP-only).
 file(GLOB_RECURSE TITAN_MSG_SRC CONFIGURE_DEPENDS titan/messages/*.cpp)
-file(GLOB TITAN_CMD_SRC CONFIGURE_DEPENDS titan/commands/*.cpp)
-file(GLOB TITAN_GAME_SRC CONFIGURE_DEPENDS titan/game/*.cpp)
+file(GLOB_RECURSE TITAN_CMD_SRC CONFIGURE_DEPENDS titan/commands/*.cpp)
+file(GLOB_RECURSE TITAN_GAME_SRC CONFIGURE_DEPENDS titan/game/*.cpp)
 file(GLOB TITAN_SC_SRC CONFIGURE_DEPENDS titan/sc/*.cpp)
 add_library(titan_core STATIC
   titan/core/ChecksumEncoder.cpp
@@ -39,6 +39,7 @@ add_library(titan_core STATIC
   ${TITAN_GAME_SRC}
   ${TITAN_SC_SRC}
   titan/crypto/Encrypter.cpp
+  titan/gen/FunctionRegistry.cpp
   titan/gen/MessageFactory.cpp
   titan/gen/LogicCommands.cpp
   titan/gen/Registry.cpp

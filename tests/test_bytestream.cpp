@@ -1,7 +1,7 @@
 // Self-check for ByteStream wire format (no external deps).
 // Round-trips every VInt length class plus int/boolean/string/bytes.
 
-#include "titan/core/ByteStream.hpp"
+#include "titan/core/ByteStream.cpp"
 
 #include <cassert>
 #include <cstdio>

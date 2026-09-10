@@ -6,7 +6,7 @@ pending reverse: overrides throw pending_reverse until their wave lands;
 the base prefix (LogicCommand::encode/decode) is real.
 
 Run:  python tools/generate_commands.py
-Out:  titan/gen/LogicCommands.hpp, titan/gen/LogicCommands.cpp
+Out:  titan/gen/LogicCommands.cpp (CPP-only: decls + inline defs)
 """
 import csv
 import os
@@ -37,12 +37,10 @@ def main():
                 if line and not line.startswith("#"):
                     done.add(line)
 
-    gen_inc = os.path.join(ROOT, "titan", "gen")
     gen_src = os.path.join(ROOT, "titan", "gen")
-    os.makedirs(gen_inc, exist_ok=True)
     os.makedirs(gen_src, exist_ok=True)
 
-    with open(os.path.join(gen_inc, "LogicCommands.hpp"), "w",
+    with open(os.path.join(gen_src, "LogicCommands.cpp"), "w",
               encoding="utf-8", newline="\n") as fh:
         fh.write("""#pragma once
 
@@ -50,8 +48,9 @@ def main():
 // Mirrors LogicCommandManager::createCommand (0x7c41d8).
 // Subclass bodies throw pending_reverse until reversed; edit the generator
 // output only by re-running after adding real bodies elsewhere.
+// CPP-only: declarations + inline definitions in one TU (includable).
 
-#include "titan/commands/LogicCommand.hpp"
+#include "titan/commands/LogicCommand.cpp"
 
 #include <memory>
 
@@ -88,19 +87,15 @@ std::unique_ptr<LogicCommand> decodeSingleCommand(ByteStream& s);
                  "class LogicCommandBase511 : public LogicCommand {\n"
                  "public:\n"
                  "    int getCommandType() const override { return 511; }\n"
-                 "};\n\n} // namespace titan\n")
-
-    with open(os.path.join(gen_src, "LogicCommands.cpp"), "w",
-              encoding="utf-8", newline="\n") as fh:
-        fh.write("// Generated — do not edit.\n"
-                 '#include "titan/gen/LogicCommands.hpp"\n')
+                 "};\n\n} // namespace titan\n\n")
         import glob as _glob
+        fh.write("// All command classes (handwritten, one .cpp per class).\n")
         for path in sorted(_glob.glob(os.path.join(
-                ROOT, "titan", "commands", "Logic*Command.hpp"))):
-            fh.write('#include "titan/commands/%s"\n'
-                     % os.path.basename(path))
+                ROOT, "titan", "commands", "*", "Logic*Command.cpp"))):
+            rel = os.path.relpath(path, ROOT)
+            fh.write('#include "%s"\n' % rel)
         fh.write("\nnamespace titan {\n\n"
-                 "std::unique_ptr<LogicCommand> createCommandByType(int type) {\n"
+                 "inline std::unique_ptr<LogicCommand> createCommandByType(int type) {\n"
                  "    switch (type) {\n")
         for t, c in rows:
             target = "LogicCommandBase511" if c == "LogicCommand" else c
@@ -108,23 +103,23 @@ std::unique_ptr<LogicCommand> decodeSingleCommand(ByteStream& s);
         fh.write("        default: return nullptr;\n"
                  "    }\n"
                  "}\n\n"
-                 "void encodeCommandList(ByteStream& s,\n"
+                 "inline void encodeCommandList(ByteStream& s,\n"
                  "                       const std::vector<std::unique_ptr<LogicCommand>>& cmds) {\n"
                  "    s.writeVInt(static_cast<i32>(cmds.size()));\n"
                  "    for (const auto& c : cmds) encodeSingleCommand(s, c);\n"
                  "}\n\n"
-                 "void decodeCommandList(ByteStream& s,\n"
+                 "inline void decodeCommandList(ByteStream& s,\n"
                  "                       std::vector<std::unique_ptr<LogicCommand>>& cmds) {\n"
                  "    const i32 n = s.readVInt();\n"
                  "    cmds.clear();\n"
                  "    for (i32 i = 0; i < n; ++i) cmds.push_back(decodeSingleCommand(s));\n"
                  "}\n\n"
-                 "void encodeSingleCommand(ByteStream& s, const std::unique_ptr<LogicCommand>& c) {\n"
+                 "inline void encodeSingleCommand(ByteStream& s, const std::unique_ptr<LogicCommand>& c) {\n"
                  "    if (!c) throw std::runtime_error(\"null command\");\n"
                  "    s.writeVInt(c->getCommandType());\n"
                  "    c->encode(s);\n"
                  "}\n\n"
-                 "std::unique_ptr<LogicCommand> decodeSingleCommand(ByteStream& s) {\n"
+                 "inline std::unique_ptr<LogicCommand> decodeSingleCommand(ByteStream& s) {\n"
                  "    auto c = createCommandByType(s.readVInt());\n"
                  "    if (!c) throw std::runtime_error(\"unknown command type\");\n"
                  "    c->decode(s);\n"

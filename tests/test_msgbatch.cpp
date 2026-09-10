@@ -1,14 +1,14 @@
 // Self-check for message batches 00-03.
 
-#include "titan/game/AllianceHeaderEntry.hpp"
-#include "titan/game/LogicClientAvatar.hpp"
-#include "titan/game/LogicClientHome.hpp"
-#include "titan/game/LogicCompressedString.hpp"
-#include "titan/game/LogicConfData.hpp"
-#include "titan/game/LogicDailyData.hpp"
-#include "titan/game/ForcedDrops.hpp"
+#include "titan/game/alliance/AllianceHeaderEntry.cpp"
+#include "titan/game/avatar/LogicClientAvatar.cpp"
+#include "titan/game/home/Home.cpp"
+#include "titan/game/util/LogicCompressedString.cpp"
+#include "titan/game/data/LogicConfData.cpp"
+#include "titan/game/player/LogicDailyData.cpp"
+#include "titan/game/player/ForcedDrops.cpp"
 #include "titan/messages/AllMessages.cpp"
-#include "titan/game/AddableFriendEntry.hpp"
+#include "titan/game/social/AddableFriendEntry.cpp"
 
 #include <cstdio>
 

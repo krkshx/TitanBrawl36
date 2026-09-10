@@ -3,8 +3,8 @@
 // EndClientTurnMessage (14102) — split out of MsgBatch04.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/commands/LogicCommand.hpp"
-#include "titan/gen/LogicCommands.hpp"
+#include "titan/commands/LogicCommand.cpp"
+#include "titan/gen/LogicCommands.cpp"
 
 namespace titan {
 

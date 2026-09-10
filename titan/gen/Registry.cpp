@@ -1,5 +1,5 @@
 // Generated — do not edit. Registry aggregator.
-#include "titan/gen/FunctionRegistry.hpp"
+#include "titan/gen/FunctionRegistry.cpp"
 
 namespace titan::registry {
 

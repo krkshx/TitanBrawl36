@@ -1,7 +1,7 @@
 // Self-check for session crypto scaffolding.
 
-#include "titan/crypto/Encrypter.hpp"
-#include "titan/crypto/PepperBox.hpp"
+#include "titan/crypto/Encrypter.cpp"
+#include "titan/crypto/PepperBox.cpp"
 
 #include <cstdio>
 #include <cstring>

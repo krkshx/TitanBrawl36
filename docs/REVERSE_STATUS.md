@@ -157,20 +157,33 @@ game struct layouts, only method symbols). Fields therefore cite binary
 offsets (`v144_` = `*(this+144)`) and earn semantic names once a getter
 proves them (`getDiamonds`); garbage names are never invented.
 
-## Layout rule (strict): one class per file, one home per class
+## Layout rule (strict): one class per file, one home per class, CPP-only
 
-- `titan/messages/<family>/<Class>.cpp` — 335 messages, CPP-only, no
-  headers. Families: `account alliance battle billing device events home
-  player ranking scid social sys team tv`. Out-of-line bodies are
-  `inline`; shared bases live in `messages/Common.cpp`
+- `titan/messages/<family>/<Class>.cpp` — 335 messages, no headers.
+  Families: `account alliance battle billing device events home player
+  ranking scid social sys team tv`. Out-of-line bodies are `inline`;
+  shared bases live in `messages/Common.cpp`
   (`MessagePrelude.cpp`, `Nested.cpp` alongside); the aggregate
   `messages/AllMessages.cpp` is generated.
-- `titan/commands/<Class>.hpp` — 59 commands.
-- `titan/game/<Class>.hpp` (+ `titan/game/<Class>.cpp` when big) —
-  every reversed nested/data class lives here, no exceptions.
+- `titan/commands/<family>/<Class>.cpp` — 59 commands, no headers.
+  Families: `avatar home notif progress purchase quests rewards sys`.
+  Base in `commands/LogicCommand.cpp`; `AllCommands.cpp` is generated;
+  the manager (`gen/LogicCommands.cpp`) holds decls + inline defs.
+- `titan/game/<family>/<Class>.cpp` — 204 nested/data classes, no
+  headers. Families: `alliance avatar battle data home json notif
+  player shop social stream team util`. Generators emit straight into
+  families (`gen_dataclasses` → `data/`, `gen_notifications` → `notif/`).
+- `titan/core/`, `titan/crypto/`, `titan/net/`, `titan/sc/` — flat,
+  one `.cpp` per class, no headers. `titan/gen/` outputs are CPP-only
+  too (`FunctionRegistry.cpp`, `MessageFactory.cpp` with inline defs).
+- SCC-merge exception (proved cyclic, no include order compiles them
+  separately): `game/home/Home.cpp` holds `GatchaDrop` +
+  `LogicClientHome` + `LogicHomeMode`; `sc/DisplayObject.cpp` holds
+  `DisplayObject` + `Sprite`. These are the only multi-class files.
 - `titan/messages/pending/` — ONLY not-yet-reversed stubs
   (`TITAN_PENDING_ENTRY`) plus documented `using` aliases where the stub
   name differs from the binary's class. No forwarders: when a stub gets
   reversed, its pending file is DELETED and includers switch to `game/`.
-- `AllCommands.hpp` is generated.
-- New code must follow this: no two message/command classes share a file.
+- `AllCommands.cpp` is generated.
+- New code must follow this: one class per file, except the two
+  documented SCC-merges above.

@@ -3,8 +3,8 @@
 // SeasonRewardsMessage (24123) — split out of MsgBatch09.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/LogicGemOffer.hpp"
-#include "titan/game/RewardEntry.hpp"
+#include "titan/game/shop/LogicGemOffer.cpp"
+#include "titan/game/player/RewardEntry.cpp"
 
 namespace titan {
 

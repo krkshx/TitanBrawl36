@@ -1,10 +1,9 @@
 // Self-check for the sc engine port (starts with Debugger).
 
-#include "titan/sc/Debugger.hpp"
-#include "titan/sc/DisplayObject.hpp"
-#include "titan/sc/MovieClip.hpp"
-#include "titan/sc/MovieClipRef.hpp"
-#include "titan/sc/Sprite.hpp"
+#include "titan/sc/Debugger.cpp"
+#include "titan/sc/DisplayObject.cpp"
+#include "titan/sc/MovieClip.cpp"
+#include "titan/sc/MovieClipRef.cpp"
 
 #include <cstdio>
 

@@ -2,7 +2,7 @@
 
 #include "HeroCards.hpp"
 
-#include "titan/game/LogicData.hpp"
+#include "titan/game/data/LogicData.cpp"
 
 #include <QPainter>
 

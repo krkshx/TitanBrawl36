@@ -3,7 +3,7 @@
 // TeamStreamMessage (24131) — split out of MsgBatch11.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/StreamEntry.hpp"
+#include "titan/game/stream/StreamEntry.cpp"
 
 namespace titan {
 

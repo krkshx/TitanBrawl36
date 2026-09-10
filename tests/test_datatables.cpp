@@ -2,11 +2,11 @@
 // Loads the real decompiled assets (pass assets dir as argv[1],
 // or set TITAN_ASSETS, else tries ../assets and assets).
 
-#include "titan/game/DataTables.hpp"
-#include "titan/game/LogicCharacterData.hpp"
-#include "titan/game/LogicData.hpp"
-#include "titan/game/LogicGlobalData.hpp"
-#include "titan/game/LogicSkinData.hpp"
+#include "titan/game/data/DataTables.cpp"
+#include "titan/game/data/LogicCharacterData.cpp"
+#include "titan/game/data/LogicData.cpp"
+#include "titan/game/data/LogicGlobalData.cpp"
+#include "titan/game/data/LogicSkinData.cpp"
 
 #include <cstdio>
 #include <cstdlib>

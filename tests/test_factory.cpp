@@ -1,7 +1,7 @@
 // Factory + framing self-check.
 
-#include "titan/gen/MessageFactory.hpp"
-#include "titan/net/Messaging.hpp"
+#include "titan/gen/MessageFactory.cpp"
+#include "titan/net/Messaging.cpp"
 
 #include <cstdio>
 

@@ -1,7 +1,7 @@
 // Registry self-check: every IDA function listed exactly once,
 // known splits add up, and spot-checks resolve by address.
 
-#include "titan/gen/FunctionRegistry.hpp"
+#include "titan/gen/FunctionRegistry.cpp"
 
 #include <cstdio>
 

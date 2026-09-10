@@ -3,13 +3,13 @@
 // Shared message bases and entry-array helpers.
 // Split out of the old MsgBatch*.hpp files so every message owns its file.
 
-#include "titan/core/DataReference.hpp"
-#include "titan/core/LogicLong.hpp"
-#include "titan/core/PiranhaMessage.hpp"
-#include "titan/game/LogicClientAvatar.hpp"
-#include "titan/game/LogicCompressedString.hpp"
+#include "titan/core/DataReference.cpp"
+#include "titan/core/LogicLong.cpp"
+#include "titan/core/PiranhaMessage.cpp"
+#include "titan/game/avatar/LogicClientAvatar.cpp"
+#include "titan/game/util/LogicCompressedString.cpp"
 #include "titan/messages/Nested.cpp"
-#include "titan/game/LogicRankedMatchPlayer.hpp"
+#include "titan/game/battle/LogicRankedMatchPlayer.cpp"
 
 #include <memory>
 #include <optional>

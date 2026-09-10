@@ -3,7 +3,7 @@
 // AnalyticEventMessage (10110) — split out of MsgBatch00.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/AnalyticEvent.hpp"
+#include "titan/game/util/AnalyticEvent.cpp"
 
 namespace titan {
 

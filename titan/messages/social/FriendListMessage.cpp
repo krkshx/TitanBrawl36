@@ -3,7 +3,7 @@
 // FriendListMessage (20105) — split out of MsgBatch04.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/FriendEntry.hpp"
+#include "titan/game/social/FriendEntry.cpp"
 
 namespace titan {
 

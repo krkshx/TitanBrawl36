@@ -3,7 +3,7 @@
 // OwnHomeDataMessage (24101) — split out of MsgBatch07.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/LogicClientHome.hpp"
+#include "titan/game/home/Home.cpp"
 
 namespace titan {
 

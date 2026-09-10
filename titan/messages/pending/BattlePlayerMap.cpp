@@ -4,7 +4,7 @@
 // (see game/LogicBattlePlayerMap.hpp). Alias kept so existing users
 // (EventData, StartLoadingMessage) don't churn.
 
-#include "titan/game/LogicBattlePlayerMap.hpp"
+#include "titan/game/battle/LogicBattlePlayerMap.cpp"
 
 namespace titan {
 

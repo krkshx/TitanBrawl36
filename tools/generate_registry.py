@@ -7,7 +7,7 @@ Every function known to IDA ends up in the registry with a status:
   Pending            - game code still to reverse
 
 Run:  python tools/generate_registry.py
-Out:  titan/gen/FunctionRegistry.hpp
+Out:  titan/gen/FunctionRegistry.cpp
       titan/gen/Registry_N.cpp (4 translation units, sharded for fast builds)
       titan/gen/Registry.cpp   (aggregator: counts + address lookup)
 """
@@ -351,7 +351,7 @@ def main():
     os.makedirs(gen_inc, exist_ok=True)
     os.makedirs(gen_src, exist_ok=True)
 
-    with open(os.path.join(gen_inc, "FunctionRegistry.hpp"), "w",
+    with open(os.path.join(gen_src, "FunctionRegistry.cpp"), "w",
               encoding="utf-8", newline="\n") as fh:
         fh.write("""#pragma once
 
@@ -402,7 +402,7 @@ const Entry* findByAddress(std::uint32_t address);
                   newline="\n") as fh:
             fh.write("// Generated — do not edit. Part %d/%d (%d entries).\n"
                      % (i + 1, n, len(part)))
-            fh.write('#include "titan/gen/FunctionRegistry.hpp"\n\n'
+            fh.write('#include "titan/gen/FunctionRegistry.cpp"\n\n'
                      "namespace titan::registry::detail {\n\n")
             fh.write("extern const Entry kPart%d[] = {\n" % i)
             for addr, name, _size in part:
@@ -418,7 +418,7 @@ const Entry* findByAddress(std::uint32_t address);
     with open(os.path.join(gen_src, "Registry.cpp"), "w", encoding="utf-8",
               newline="\n") as fh:
         fh.write("// Generated — do not edit. Registry aggregator.\n")
-        fh.write('#include "titan/gen/FunctionRegistry.hpp"\n\n'
+        fh.write('#include "titan/gen/FunctionRegistry.cpp"\n\n'
                  "namespace titan::registry {\n\n"
                  "namespace detail {\n")
         for i in range(n):

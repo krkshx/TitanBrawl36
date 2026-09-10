@@ -1,5 +1,5 @@
 // Generated — do not edit. Part 1/4 (9266 entries).
-#include "titan/gen/FunctionRegistry.hpp"
+#include "titan/gen/FunctionRegistry.cpp"
 
 namespace titan::registry::detail {
 

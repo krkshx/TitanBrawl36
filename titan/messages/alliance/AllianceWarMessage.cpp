@@ -3,8 +3,8 @@
 // AllianceWarMessage (24776) — split out of MsgBatch00.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/AllianceWarFaction.hpp"
-#include "titan/game/AllianceWarNode.hpp"
+#include "titan/game/alliance/AllianceWarFaction.cpp"
+#include "titan/game/alliance/AllianceWarNode.cpp"
 
 namespace titan {
 

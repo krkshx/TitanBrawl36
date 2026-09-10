@@ -5,8 +5,8 @@
 // Pure Qt view over decoded protocol data; art is placeholder rects
 // (per-hero art lives in .sc files — a later wave).
 
-#include "titan/game/DataTables.hpp"
-#include "titan/game/LogicClientAvatar.hpp"
+#include "titan/game/data/DataTables.cpp"
+#include "titan/game/avatar/LogicClientAvatar.cpp"
 
 #include <QWidget>
 

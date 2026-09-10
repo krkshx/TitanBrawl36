@@ -1,8 +1,8 @@
 // Self-check for BitStream (LSB-first) and LogicCommand dispatch.
 
-#include "titan/commands/AllCommands.hpp"
-#include "titan/core/BitStream.hpp"
-#include "titan/gen/LogicCommands.hpp"
+#include "titan/commands/AllCommands.cpp"
+#include "titan/core/BitStream.cpp"
+#include "titan/gen/LogicCommands.cpp"
 
 #include <cstdio>
 

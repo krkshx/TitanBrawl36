@@ -3,7 +3,7 @@
 // DailyEventsMessage (24123) — split out of MsgBatch03.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/EventData.hpp"
+#include "titan/game/home/EventData.cpp"
 
 namespace titan {
 

@@ -5,7 +5,7 @@
 // (LogicClientHome) don't churn. Concrete types come from
 // game/NotificationFactory.hpp.
 
-#include "titan/game/BaseNotification.hpp"
+#include "titan/game/notif/BaseNotification.cpp"
 
 namespace titan {
 

@@ -7,12 +7,12 @@ docs/REVERSE_STATUS.md). Every subclass calls BaseNotification::encode
 first, then its own fields; decodes mirror the encodes.
 
 Run:  python3 tools/gen_notifications.py
-Out:  titan/game/<Class>.hpp
+Out:  titan/game/notif/<Class>.cpp
 """
 import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "titan", "game")
+OUT = os.path.join(ROOT, "titan", "game", "notif")
 
 
 def emit(cls, tid, enc, dec, typ, doc, members, enc_body, dec_body):
@@ -27,7 +27,7 @@ def emit(cls, tid, enc, dec, typ, doc, members, enc_body, dec_body):
                 f"// Wire: BaseNotification fields{doc}\n"
                 f"// Decode mirrors the same order.")
     body = "#pragma once\n\n" + head + "\n\n"
-    body += '#include "titan/game/BaseNotification.hpp"\n\n'
+    body += '#include "titan/game/notif/BaseNotification.cpp"\n\n'
     body += "namespace titan {\n\n"
     body += f"class {cls} : public BaseNotification {{\npublic:\n"
     body += f"    {cls}() {{ type_ = {tid}; }}\n\n"
@@ -35,7 +35,7 @@ def emit(cls, tid, enc, dec, typ, doc, members, enc_body, dec_body):
     body += "    void decode(ByteStream& s) override {\n" + dec_body + "\n    }\n"
     body += f"    [[nodiscard]] int notificationType() const override {{ return {tid}; }}\n"
     body += "\n" + members + "\n};\n\n} // namespace titan\n"
-    with open(os.path.join(OUT, cls + ".hpp"), "w", encoding="utf-8") as fh:
+    with open(os.path.join(OUT, cls + ".cpp"), "w", encoding="utf-8") as fh:
         fh.write(body)
     print("wrote", cls)
 

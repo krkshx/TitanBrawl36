@@ -1,6 +1,6 @@
 #pragma once
 
-#include "titan/core/PiranhaMessage.hpp"
+#include "titan/core/PiranhaMessage.cpp"
 
 // ResetAccountMessage (10116) — reversed from libg_decrypted.so.
 //   getMessageType @0x6cdf20 -> 10116 (0x2784)

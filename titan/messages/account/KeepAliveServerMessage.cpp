@@ -5,7 +5,7 @@
 //   encode         @0x2e0090 -> base encode only
 // Split out of KeepAliveMessages.hpp; wire format unchanged.
 
-#include "titan/core/PiranhaMessage.hpp"
+#include "titan/core/PiranhaMessage.cpp"
 
 namespace titan {
 

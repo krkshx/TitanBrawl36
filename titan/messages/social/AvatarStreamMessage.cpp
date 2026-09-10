@@ -3,7 +3,7 @@
 // AvatarStreamMessage (24411) — split out of MsgBatch02.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/AvatarStreamEntry.hpp"
+#include "titan/game/stream/AvatarStreamEntry.cpp"
 
 namespace titan {
 

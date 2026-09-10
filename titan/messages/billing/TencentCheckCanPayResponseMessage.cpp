@@ -3,7 +3,7 @@
 // TencentCheckCanPayResponseMessage (24223) — split out of MsgBatch12.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/LogicTencentAntiAddictionInstruction.hpp"
+#include "titan/game/util/LogicTencentAntiAddictionInstruction.cpp"
 
 namespace titan {
 

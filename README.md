@@ -7,11 +7,13 @@ Android), reversed function-by-function through IDA Pro. Cross-platform
 ## Layout
 
 - `titan/` — the library (`titan_core`), single tree, no `include/`+`src/`
-  split: `core/` (ByteStream, crypto primitives), `messages/<family>/`
-  (335 protocol classes, CPP-only — one `.cpp` per class, no headers),
-  `commands/` (59), `game/` (logic + data classes), `crypto/` (session
-  crypto, libsodium optional), `sc/` (engine), `net/` (framing), `gen/`
-  (generated factory + registry).
+  split, CPP-only (no headers anywhere): `core/` (streams, message base),
+  `messages/<family>/` (335 protocol classes, one `.cpp` per class),
+  `commands/<family>/` (59, one `.cpp` per class + generated
+  `AllCommands.cpp`), `game/<family>/` (logic + data classes, one `.cpp`
+  per class), `crypto/` (session crypto, libsodium optional), `sc/`
+  (engine), `net/` (framing), `gen/` (generated factory + registry,
+  also CPP-only).
 - `titan/messages/pending/` — only not-yet-reversed stubs and
   documented aliases. No forwarders (deleted on reversal).
 - `tests/` — 13 self-check suites, all must stay green.

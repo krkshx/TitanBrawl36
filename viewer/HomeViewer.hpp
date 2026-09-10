@@ -4,8 +4,8 @@
 // a .bin capture) and shows the fields. Qt only; core stays clean.
 
 #include "HeroCards.hpp"
-#include "titan/core/PiranhaMessage.hpp"
-#include "titan/game/DataTables.hpp"
+#include "titan/core/PiranhaMessage.cpp"
+#include "titan/game/data/DataTables.cpp"
 
 #include <QMainWindow>
 #include <QTabWidget>

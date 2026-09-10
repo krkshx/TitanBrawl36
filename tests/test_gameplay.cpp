@@ -1,18 +1,18 @@
 // Self-check for command execute() semantics (gameplay wave).
 
-#include "titan/commands/LogicChangeAvatarNameCommand.hpp"
-#include "titan/commands/LogicDeleteNotificationCommand.hpp"
-#include "titan/commands/LogicDiamondsAddedCommand.hpp"
-#include "titan/commands/LogicPurchaseDoubleCoinsCommand.hpp"
-#include "titan/game/LogicClientAvatar.hpp"
-#include "titan/game/LogicClientHome.hpp"
-#include "titan/game/LogicConfData.hpp"
-#include "titan/game/LogicDailyData.hpp"
-#include "titan/game/LogicData.hpp"
-#include "titan/game/GatchaDrop.hpp"
-#include "titan/game/IntValueEntry.hpp"
-#include "titan/game/LogicHomeMode.hpp"
-#include "titan/game/NotificationFactory.hpp"
+#include "titan/commands/avatar/LogicChangeAvatarNameCommand.cpp"
+#include "titan/commands/notif/LogicDeleteNotificationCommand.cpp"
+#include "titan/commands/rewards/LogicDiamondsAddedCommand.cpp"
+#include "titan/commands/purchase/LogicPurchaseDoubleCoinsCommand.cpp"
+#include "titan/game/avatar/LogicClientAvatar.cpp"
+#include "titan/game/home/Home.cpp"
+#include "titan/game/data/LogicConfData.cpp"
+#include "titan/game/player/LogicDailyData.cpp"
+#include "titan/game/data/LogicData.cpp"
+#include "titan/game/home/Home.cpp"
+#include "titan/game/player/IntValueEntry.cpp"
+#include "titan/game/home/Home.cpp"
+#include "titan/game/notif/NotificationFactory.cpp"
 
 #include <cstdio>
 #include <memory>

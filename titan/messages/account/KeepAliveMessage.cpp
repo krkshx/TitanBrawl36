@@ -6,7 +6,7 @@
 //   decode         @0x265844 -> empty
 // Split out of KeepAliveMessages.hpp; wire format unchanged.
 
-#include "titan/core/PiranhaMessage.hpp"
+#include "titan/core/PiranhaMessage.cpp"
 
 namespace titan {
 

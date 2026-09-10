@@ -3,7 +3,7 @@
 // LobbyInfoMessage (23457) — split out of MsgBatch06.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/LobbyInfoEntry.hpp"
+#include "titan/game/battle/LobbyInfoEntry.cpp"
 
 namespace titan {
 

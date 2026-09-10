@@ -3,7 +3,7 @@
 // PlayerProfileMessage (24113) — split out of MsgBatch07.hpp; wire format unchanged.
 
 #include "titan/messages/MessagePrelude.cpp"
-#include "titan/game/PlayerProfile.hpp"
+#include "titan/game/player/PlayerProfile.cpp"
 
 namespace titan {
 
