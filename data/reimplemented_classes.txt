@@ -519,3 +519,4 @@ VanityItemRewardNotification
 AllianceRankingData
 PlayerRankingData
 RankingEntry
+LogicRewards

@@ -7,7 +7,7 @@
 //   vint @+48/+64, string (nullable String* @+72).
 
 #include "titan/game/BaseNotification.hpp"
-#include "titan/messages/pending/LogicRewards.hpp"
+#include "titan/game/LogicRewards.hpp"
 
 #include <memory>
 #include <optional>

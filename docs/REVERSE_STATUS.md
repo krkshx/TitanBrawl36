@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2057 reimplemented, 9717 third-party, 25290 pending**
+Registry (compiled in): **2060 reimplemented, 9717 third-party, 25287 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2057 fns | `src/` + tests |
-| Game code pending | 25290 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2060 fns | `src/` + tests |
+| Game code pending | 25287 | `FunctionRegistry` status `Pending` |
 
 ## Done
 

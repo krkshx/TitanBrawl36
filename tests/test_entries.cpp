@@ -52,6 +52,7 @@
 #include "titan/game/TeamJoinRequest.hpp"
 #include "titan/game/TeamMemberEntry.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
+#include "titan/game/LogicRewards.hpp"
 #include "titan/game/LogicTencentAntiAddictionInstruction.hpp"
 #include "titan/game/LogicUuid.hpp"
 #include "titan/game/LogicVector2.hpp"
@@ -1372,7 +1373,7 @@ int main() {
         h.daily_ = std::make_unique<LogicDailyData>();
         h.daily_->forced_ = std::make_unique<ForcedDrops>();
         h.conf_ = std::make_unique<LogicConfData>();
-        h.notifications_.emplace_back(63, std::make_unique<BaseNotification>());
+        h.notifications_.emplace_back(999, std::make_unique<BaseNotification>());
         bool threw = false;
         try {
             ByteStream enc;
@@ -1421,6 +1422,41 @@ int main() {
             back);
         CHECK(back.id8_.low == 99 && back.v16_ == 1 && back.v20_ == 2);
         CHECK(back.player_ && !back.alliance_);
+    }
+    // LogicRewards (@0x2c2fac) closes two notification loops.
+    {
+        LogicRewards back;
+        entryRoundTrip<LogicRewards>(
+            [](LogicRewards& e) {
+                auto o = std::make_unique<LogicGemOffer>();
+                o->v0_ = 2;
+                e.offers_.push_back(std::move(o));
+            },
+            back);
+        CHECK(back.offers_.size() == 1 && back.offers_[0]->v0_ == 2);
+    }
+    {
+        ChallengeRewardNotification back;
+        entryRoundTrip<ChallengeRewardNotification>(
+            [](ChallengeRewardNotification& e) {
+                e.rewards_ = std::make_unique<LogicRewards>();
+                e.v48_ = 1;
+                e.v64_ = 1;
+                e.s72_ = std::string("ch");
+            },
+            back);
+        CHECK(back.rewards_ && back.v48_ == 1 && back.s72_.value() == "ch");
+        CHECK(back.notificationType() == 63);
+    }
+    {
+        BrawlPassAutoCollectSeasonNotification back;
+        entryRoundTrip<BrawlPassAutoCollectSeasonNotification>(
+            [](BrawlPassAutoCollectSeasonNotification& e) {
+                e.rewards_ = std::make_unique<LogicRewards>();
+                e.v48_ = 9;
+            },
+            back);
+        CHECK(back.rewards_ && back.v48_ == 9 && back.notificationType() == 69);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

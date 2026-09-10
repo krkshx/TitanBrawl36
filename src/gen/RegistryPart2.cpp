@@ -6713,7 +6713,7 @@ extern const Entry kPart2[] = {
     {0x0892FA4, Status::Pending, "_ZN9NamePopup13buttonClickedEP12CustomButton", "NamePopup13buttonClickedEP12CustomButton"},
     {0x0892FC4, Status::ThirdPartyExternal, "_ZNKSt6__ndk110__function6__funcIZN7GLImage16createWithFormatEiiiiPKv9ImageWrap11ImageFilterRbE3$_8NS_9allocatorIS8_EEFvvEE7__cloneEPNS0_6__baseISB_EE", "global"},
     {0x0893004, Status::ThirdPartyExternal, "_hb_unicode_compose", "global"},
-    {0x0893024, Status::Pending, "_ZN12LogicRewards8destructEv", "LogicRewards8destructEv"},
+    {0x0893024, Status::Reimplemented, "_ZN12LogicRewards8destructEv", "LogicRewards8destructEv"},
     {0x0893090, Status::Pending, "_ZN5lzham12lzcompressor19get_max_block_ratioEv", "lzham12lzcompressor19get_max_block_ratioEv"},
     {0x0893144, Status::Pending, "_ZN22PurchaseBrawlPassPopupC2Ev", "PurchaseBrawlPassPopupC2Ev"},
     {0x0893538, Status::Pending, "_ZN13OpenGLContextD2Ev", "OpenGLContextD2Ev"},

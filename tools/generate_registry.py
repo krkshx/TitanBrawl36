@@ -171,6 +171,7 @@ REIMPLEMENTED_EXTRA = {
     "BaseNotification": ("6encodeE", "6decodeE"),
     "FreeTextNotification": ("6encodeE", "6decodeE"),
     "LogicTencentAntiAddictionInstruction": ("6encodeE", "6decodeE"),
+    "LogicRewards": ("6encodeE", "6decodeE"),
     "RankingEntry": ("6encodeE", "6decodeE"),
     "PlayerRankingData": ("6encodeE", "6decodeE"),
     "AllianceRankingData": ("6encodeE", "6decodeE"),

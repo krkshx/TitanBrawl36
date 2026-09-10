@@ -6,7 +6,7 @@
 //   vint @+48 last.
 
 #include "titan/game/BaseNotification.hpp"
-#include "titan/messages/pending/LogicRewards.hpp"
+#include "titan/game/LogicRewards.hpp"
 
 #include <memory>
 
