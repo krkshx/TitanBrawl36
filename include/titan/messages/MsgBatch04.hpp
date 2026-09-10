@@ -6,6 +6,7 @@
 #include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
 #include "titan/core/PiranhaMessage.hpp"
+#include "titan/game/LogicClientAvatar.hpp" // real LogicClientAvatar/LogicDataSlot
 #include "titan/messages/Nested.hpp"
 
 #include <memory>
@@ -18,7 +19,6 @@ TITAN_PENDING_ENTRY(FriendEntry);
 TITAN_PENDING_ENTRY(FriendOnlineStatus);
 TITAN_PENDING_ENTRY(FriendSuggestionEntry);
 TITAN_PENDING_ENTRY(BattleLogPlayerEntry);
-TITAN_PENDING_ENTRY(LogicClientAvatar);
 
 // ---- 24116 DebugNewbieCoopOverrideSetMessage: int ----
 class DebugNewbieCoopOverrideSetMessage : public PiranhaMessage {

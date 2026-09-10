@@ -6,6 +6,7 @@
 #include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
 #include "titan/core/PiranhaMessage.hpp"
+#include "titan/game/LogicCompressedString.hpp" // real LogicCompressedString
 #include "titan/messages/MsgBatch04.hpp" // LogicClientAvatar
 #include "titan/messages/Nested.hpp"
 
@@ -18,7 +19,6 @@ namespace titan {
 TITAN_PENDING_ENTRY(LatencyData);
 TITAN_PENDING_ENTRY(RankingEntry);
 TITAN_PENDING_ENTRY(LobbyInfoEntry);
-TITAN_PENDING_ENTRY(LogicCompressedString);
 
 // ---- 10159 KunlunBillingRequestMessage: 4 stringrefs ----
 class KunlunBillingRequestMessage : public PiranhaMessage {

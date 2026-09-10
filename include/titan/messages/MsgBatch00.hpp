@@ -9,6 +9,7 @@
 #include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
 #include "titan/core/PiranhaMessage.hpp"
+#include "titan/game/AllianceEntries.hpp" // real AllianceHeader/Full/Member
 #include "titan/messages/Nested.hpp"
 
 #include <memory>
@@ -18,9 +19,6 @@
 namespace titan {
 
 TITAN_PENDING_ENTRY(AddableFriendEntry);
-TITAN_PENDING_ENTRY(AllianceFullEntry);
-TITAN_PENDING_ENTRY(AllianceHeaderEntry);
-TITAN_PENDING_ENTRY(AllianceMemberEntry);
 TITAN_PENDING_ENTRY(AllianceTeamEntry);
 TITAN_PENDING_ENTRY(AllianceWarNode);
 TITAN_PENDING_ENTRY(AllianceWarFaction);
@@ -225,16 +223,20 @@ public:
     void encode() override {
         PiranhaMessage::encode();
         stream().writeInt(packageType_);
-        stream().writeBytes(payload_.empty() ? nullptr : payload_.data(),
-                            static_cast<i32>(payload_.size()));
+        if (payload_) {
+            const auto& p = *payload_;
+            stream().writeBytes(p.data(), static_cast<i32>(p.size()));
+        } else {
+            stream().writeBytes(nullptr, 0);
+        }
     }
     void decode() override {
         PiranhaMessage::decode();
         packageType_ = stream().readInt();
-        payload_ = stream().readBytes();
+        payload_ = stream().readBytesNullable();
     }
     i32 packageType_ = 0;
-    std::vector<u8> payload_;
+    std::optional<std::vector<u8>> payload_;
 };
 
 // ---- 24301 AllianceDataMessage: bool + full entry ----
