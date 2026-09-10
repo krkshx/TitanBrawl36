@@ -89,6 +89,25 @@ REIMPLEMENTED_METHODS = ("6encodeEv", "6decodeEv", "14getMessageTypeEv",
                         "18getServiceNodeTypeEv", "20getMessageTypeNameEv",
                         "8destructEv")
 
+# Non-message classes: ported method tails (mangled tail startswith).
+REIMPLEMENTED_EXTRA = {
+    "BitStream": ("8writeIntE", "16writePositiveIntE", "12writeBooleanE",
+                  "12readBooleanE", "16writePositiveVIntE", "15readPositiveIntE",
+                  "16readPositiveVIntE", "12getByteArrayE", "9getLengthE",
+                  "14ensureCapacityE", "8destructE", "C1", "C2", "D0", "D2"),
+    "LogicCommandManager": ("13createCommandE", "13encodeCommandE",
+                            "13decodeCommandE", "6encodeE", "6decodeE"),
+    "GlobalID": ("10getClassIDE", "13getInstanceIDE"),
+    "LogicCompressedString": ("6encodeE", "6decodeE", "8compressE",
+                              "10decompressE"),
+    "LogicDataSlot": ("6encodeE", "6decodeE"),
+    "LogicClientAvatar": ("6encodeE", "6decodeE"),
+    "PlayerDisplayData": ("6encodeE", "6decodeE"),
+    "AllianceHeaderEntry": ("6encodeE", "6decodeE"),
+    "AllianceFullEntry": ("6encodeE", "6decodeE"),
+    "AllianceMemberEntry": ("6encodeE", "6decodeE"),
+}
+
 
 def class_of(name):
     # Returns the class name for _ZN<len><Class>... / _ZNK<len><Class>...
@@ -110,6 +129,9 @@ def status_of(name):
     if cls is not None and cls in REIMPLEMENTED_CLASSES:
         rest = name.split(cls, 1)[1]
         if any(rest.startswith(t) or rest == t for t in REIMPLEMENTED_METHODS):
+            return "Reimplemented"
+        extra = REIMPLEMENTED_EXTRA.get(cls, ())
+        if any(rest.startswith(t) for t in extra):
             return "Reimplemented"
     for marker in THIRD_PARTY_MARKERS:
         if marker in name:

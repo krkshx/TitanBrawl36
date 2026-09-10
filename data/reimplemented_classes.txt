@@ -73,6 +73,7 @@ BindKakaoAccountMessage
 BindLineAccountMessage
 BindTencentAccountMessage
 BindYoozooAccountMessage
+BitStream
 BrawlTvChannelListMessage
 BrawlTvChannelNextUpMessage
 BuyBundleBillingPackResponseMessage
@@ -135,6 +136,7 @@ GetSeasonRewardsMessage
 GetTokenFriendMessage
 GetTokenFriendResultMessage
 GlobalChatLineMessage
+GlobalID
 GoHomeFromMapEditorMessage
 GoHomeFromOfflinePractiseMessage
 GoHomeFromSpectateMessage
@@ -172,6 +174,8 @@ LobbyInfoMessage
 LogicAccountTransferCodeRequestMessage
 LogicAccountTransferCodeResponseMessage
 LogicClientAvatar
+LogicCommand
+LogicCommandManager
 LogicCompressedString
 LogicDataSlot
 LogicDeviceLinkCodeDeactivatedMessage
