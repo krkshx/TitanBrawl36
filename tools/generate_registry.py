@@ -128,6 +128,10 @@ REIMPLEMENTED_EXTRA = {
     "ReleaseEntry": ("6encodeE", "6decodeE"),
     "TimedIntValueEntry": ("6encodeE", "6decodeE"),
     "CustomEvent": ("6encodeE", "6decodeE"),
+    "VanityItemEntry": ("6encodeE", "6decodeE"),
+    "VanityItemProp": ("6encodeE", "6decodeE"),
+    "LogicCondition": ("6encodeE", "6decodeE"),
+    "LogicRewardConfig": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

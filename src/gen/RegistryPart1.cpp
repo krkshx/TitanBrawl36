@@ -598,7 +598,7 @@ extern const Entry kPart1[] = {
     {0x0427AF0, Status::Pending, "_ZN13ShopBgElement20addItemsToScrollAreaEP10ScrollArea", "ShopBgElement20addItemsToScrollAreaEP10ScrollAre"},
     {0x0427B00, Status::Pending, "_ZN19LogicResourceBundle8copyFromEPKS_", "LogicResourceBundle8copyFromEPKS_"},
     {0x0427C38, Status::Pending, "_ZN21LogicCompressedString5clearEv", "LogicCompressedString5clearEv"},
-    {0x0427C6C, Status::Pending, "_ZN15VanityItemEntry6encodeEP10ByteStream", "VanityItemEntry6encodeEP10ByteStream"},
+    {0x0427C6C, Status::Reimplemented, "_ZN15VanityItemEntry6encodeEP10ByteStream", "VanityItemEntry6encodeEP10ByteStream"},
     {0x0427D18, Status::Pending, "_ZN26ChampionshipChallengePopup18getLastFinishedMapEv", "ChampionshipChallengePopup18getLastFinishedMapEv"},
     {0x0427DDC, Status::Reimplemented, "_ZN25RankedMatchBanHeroMessage6encodeEv", "RankedMatchBanHeroMessage6encodeEv"},
     {0x0427E14, Status::Pending, "_ZNK28DeviceLinkCodeReceivedScreen15getValidSecondsEv", "DeviceLinkCodeReceivedScreen15getValidSecondsEv"},

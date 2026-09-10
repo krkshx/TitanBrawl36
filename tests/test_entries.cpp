@@ -11,6 +11,8 @@
 #include "titan/game/EventSlot.hpp"
 #include "titan/game/LogicBitList.hpp"
 #include "titan/game/LogicConfData.hpp"
+#include "titan/game/LogicCondition.hpp"
+#include "titan/game/LogicRewardConfig.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
 #include "titan/game/EventData.hpp"
@@ -29,6 +31,8 @@
 #include "titan/game/QuestData.hpp"
 #include "titan/game/ReleaseEntry.hpp"
 #include "titan/game/TimedIntValueEntry.hpp"
+#include "titan/game/VanityItemEntry.hpp"
+#include "titan/game/VanityItemProp.hpp"
 #include "titan/game/VanityItems.hpp"
 #include "titan/game/TimedOffer.hpp"
 #include "titan/game/LogicPlayerMap.hpp"
@@ -572,6 +576,80 @@ int main() {
         CHECK(back.intValues_.size() == 1 && back.intValues_[0]->b_ == 5);
         CHECK(back.timed_.size() == 1 && back.timed_[0]->v_[2] == 7);
         CHECK(back.customs_.size() == 1);
+    }
+    // Vanity/RewardConfig wave (@0x427c6c, @0x88d288/@0x710eb4 + leaves).
+    {
+        VanityItemProp back;
+        entryRoundTrip<VanityItemProp>(
+            [](VanityItemProp& e) {
+                e.a_ = 3;
+                e.b_ = 4;
+            },
+            back);
+        CHECK(back.a_ == 3 && back.b_ == 4);
+    }
+    {
+        LogicCondition back;
+        entryRoundTrip<LogicCondition>(
+            [](LogicCondition& e) {
+                e.v8_ = 8;
+                e.v12_ = 12;
+            },
+            back);
+        CHECK(back.v8_ == 8 && back.v12_ == 12);
+    }
+    {
+        VanityItemEntry back;
+        entryRoundTrip<VanityItemEntry>(
+            [](VanityItemEntry& e) {
+                e.ref_ = DataReference{16, 9};
+                auto p = std::make_unique<VanityItemProp>();
+                p->a_ = 1;
+                e.props_.push_back(std::move(p));
+            },
+            back);
+        CHECK(back.ref_.has_value() && back.props_.size() == 1);
+        CHECK(back.props_[0]->a_ == 1);
+    }
+    {
+        // VanityItems with a real entry (closes another DailyData loop).
+        VanityItems back;
+        entryRoundTrip<VanityItems>(
+            [](VanityItems& e) {
+                auto en = std::make_unique<VanityItemEntry>();
+                en->ref_ = DataReference{16, 1};
+                e.items_.push_back(std::move(en));
+            },
+            back);
+        CHECK(back.items_.size() == 1 && back.items_[0]->ref_.has_value());
+    }
+    {
+        LogicRewardConfig back;
+        entryRoundTrip<LogicRewardConfig>(
+            [](LogicRewardConfig& e) {
+                e.cond_ = std::make_unique<LogicCondition>();
+                e.cond_->v8_ = 1;
+                e.offer_ = std::make_unique<LogicGemOffer>();
+                e.offer_->v4_ = 9;
+            },
+            back);
+        CHECK(back.cond_ && back.cond_->v8_ == 1);
+        CHECK(back.offer_ && back.offer_->v4_ == 9);
+    }
+    {
+        // RewardData with a real config (closes the ranked loop).
+        LogicPlayerRankedSeasonData back2;
+        entryRoundTrip<LogicPlayerRankedSeasonData>(
+            [](LogicPlayerRankedSeasonData& e) {
+                auto r = std::make_unique<LogicPlayerRewardData>();
+                r->config_ = std::make_unique<LogicRewardConfig>();
+                r->config_->cond_ = std::make_unique<LogicCondition>();
+                e.rewards_.push_back(std::move(r));
+            },
+            back2);
+        CHECK(back2.rewards_.size() == 1 && back2.rewards_[0]->config_);
+        CHECK(back2.rewards_[0]->config_->cond_ != nullptr);
+        CHECK(!back2.rewards_[0]->config_->offer_);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

@@ -442,3 +442,7 @@ LogicConfData
 QuestData
 ReleaseEntry
 TimedIntValueEntry
+LogicCondition
+LogicRewardConfig
+VanityItemEntry
+VanityItemProp

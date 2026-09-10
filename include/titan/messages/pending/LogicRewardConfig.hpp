@@ -1,11 +1,6 @@
 #pragma once
 
-// LogicRewardConfig — not yet reversed; encode/decode throw pending_reverse.
+// LogicRewardConfig — reversed (see game/LogicRewardConfig.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LogicRewardConfig);
-
-} // namespace titan
+#include "titan/game/LogicRewardConfig.hpp"
