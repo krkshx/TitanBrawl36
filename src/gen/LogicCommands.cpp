@@ -1,5 +1,7 @@
 // Generated — do not edit.
 #include "titan/gen/LogicCommands.hpp"
+#include "titan/commands/CmdBatchA.hpp"
+#include "titan/commands/CmdBatchB.hpp"
 
 namespace titan {
 

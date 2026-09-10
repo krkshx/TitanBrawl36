@@ -1,5 +1,7 @@
 // Self-check for BitStream (LSB-first) and LogicCommand dispatch.
 
+#include "titan/commands/CmdBatchA.hpp"
+#include "titan/commands/CmdBatchB.hpp"
 #include "titan/core/BitStream.hpp"
 #include "titan/gen/LogicCommands.hpp"
 
@@ -115,6 +117,47 @@ int main() {
         std::vector<std::unique_ptr<LogicCommand>> back;
         decodeCommandList(d, back);
         CHECK(back.empty());
+    }
+    // Real command bodies round-trip (base prefix + own fields).
+    {
+        ByteStream s;
+        encodeSingleCommand(s, [] {
+            auto c = std::make_unique<LogicChangeAvatarNameCommand>();
+            c->name_ = "Spike";
+            c->v_ = 3;
+            return c;
+        }());
+        ByteStream d;
+        d.setBuffer(s.data(), s.size());
+        auto back = decodeSingleCommand(d);
+        CHECK(back->getCommandType() == 201);
+        auto* real = static_cast<LogicChangeAvatarNameCommand*>(back.get());
+        CHECK(real->name_ == "Spike" && real->v_ == 3);
+    }
+    {
+        // 223 null cooldown list -> VInt(-1).
+        LogicCooldownAddedCommand c;
+        c.isNull_ = true;
+        ByteStream s;
+        c.encode(s);
+        ByteStream d;
+        d.setBuffer(s.data(), s.size());
+        LogicCooldownAddedCommand back;
+        back.decode(d);
+        CHECK(back.isNull_ && back.entries_.empty());
+    }
+    {
+        // 538 dataref + vint.
+        LogicSelectEmoteCommand c;
+        c.ref_ = DataReference{29, 7};
+        c.v_ = 2;
+        ByteStream s;
+        c.encode(s);
+        ByteStream d;
+        d.setBuffer(s.data(), s.size());
+        LogicSelectEmoteCommand back;
+        back.decode(d);
+        CHECK(back.ref_->classId == 29 && back.v_ == 2);
     }
 
     if (failures == 0) std::puts("bitstream: all ok");

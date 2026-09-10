@@ -46,6 +46,7 @@ add_library(titan_core STATIC
   src/messages/MsgBatch14.cpp
   src/game/LogicCompressedString.cpp
   src/game/DataTables.cpp
+  src/commands/CmdBatchA.cpp
   src/gen/MessageFactory.cpp
   src/gen/LogicCommands.cpp
   src/crypto/Encrypter.cpp
