@@ -471,3 +471,7 @@ LogicRankedMatch
 LogicRankedMatchPlayer
 RewardEntry
 TeamInvitation
+ChronosFileEntry
+LogicRankedMatchResultDebugInfo
+LogicRankedMatchRoundState
+TeamInvitationDataEntry

@@ -1,11 +1,6 @@
 #pragma once
 
-// ChronosFileEntry — not yet reversed; encode/decode throw pending_reverse.
+// ChronosFileEntry — reversed (see game/ChronosFileEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(ChronosFileEntry);
-
-} // namespace titan
+#include "titan/game/ChronosFileEntry.hpp"

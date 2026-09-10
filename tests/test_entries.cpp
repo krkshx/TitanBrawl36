@@ -4,6 +4,7 @@
 #include "titan/game/AdStatus.hpp"
 #include "titan/game/AllianceWarFaction.hpp"
 #include "titan/game/AllianceWarNode.hpp"
+#include "titan/game/ChronosFileEntry.hpp"
 #include "titan/game/AllianceEventStreamEntry.hpp"
 #include "titan/game/AllianceTeamEntry.hpp"
 #include "titan/game/AvatarStreamEntry.hpp"
@@ -24,11 +25,14 @@
 #include "titan/game/LogicPlayer.hpp"
 #include "titan/game/LogicRankedMatch.hpp"
 #include "titan/game/LogicRankedMatchPlayer.hpp"
+#include "titan/game/LogicRankedMatchRoundState.hpp"
+#include "titan/game/LogicRankedMatchResultDebugInfo.hpp"
 #include "titan/game/LogicRankedSeason.hpp"
 #include "titan/game/LogicRankRewardConfig.hpp"
 #include "titan/game/TeamEntry.hpp"
 #include "titan/game/TeamInviteEntry.hpp"
 #include "titan/game/TeamInvitation.hpp"
+#include "titan/game/TeamInvitationDataEntry.hpp"
 #include "titan/game/TeamJoinRequest.hpp"
 #include "titan/game/TeamMemberEntry.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
@@ -1035,6 +1039,49 @@ int main() {
             },
             back);
         CHECK(back.id0_.low == 9 && back.friend_ && back.friend_->ints_[0] == 3);
+    }
+    // RoundState + misc wave (@0x8e26bc, @0x8c31b0, @0x65bdf8, @0x639e40).
+    {
+        LogicRankedMatchRoundState back;
+        entryRoundTrip<LogicRankedMatchRoundState>(
+            [](LogicRankedMatchRoundState& e) {
+                e.head_[0] = 1;
+                e.head_[10] = 10;
+                e.rewards1_.emplace();
+                auto r = std::make_unique<LogicPlayerRewardData>();
+                r->v16_ = 3;
+                e.rewards1_->push_back(std::move(r));
+                e.rankReward_ = std::make_unique<LogicRankRewardConfig>();
+                e.rankReward_->v8_ = 8;
+                e.debug_ = std::make_unique<LogicRankedMatchResultDebugInfo>();
+                e.debug_->v_[5] = 5;
+            },
+            back);
+        CHECK(back.head_[0] == 1 && back.head_[10] == 10);
+        CHECK(back.rewards1_.has_value() && back.rewards1_->size() == 1);
+        CHECK(!back.rewards2_.has_value());
+        CHECK(back.rankReward_ && back.rankReward_->v8_ == 8);
+        CHECK(back.debug_ && back.debug_->v_[5] == 5);
+    }
+    {
+        TeamInvitationDataEntry back;
+        entryRoundTrip<TeamInvitationDataEntry>(
+            [](TeamInvitationDataEntry& e) {
+                e.id0_ = LogicLong{4, 5};
+                e.name_ = std::string("t");
+            },
+            back);
+        CHECK(back.id0_.low == 5 && back.name_.value() == "t");
+    }
+    {
+        ChronosFileEntry back;
+        entryRoundTrip<ChronosFileEntry>(
+            [](ChronosFileEntry& e) {
+                e.s0_ = std::string("a.csv");
+                e.s16_ = std::string("b.csv");
+            },
+            back);
+        CHECK(back.s0_ == "a.csv" && back.s16_ == "b.csv");
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {
