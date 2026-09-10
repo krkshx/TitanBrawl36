@@ -33,11 +33,10 @@ Every message goes on the wire as header + payload
   padded tweetnacl API, inverted-failure convention mapped to nullopt);
   `LoginFailed`-family response (20103) carries the 24B server nonce +
   32B session key; decrypt failures answer with `CryptoError`.
-- OPEN QUESTION (next wave): live traffic may use
-  `PepperPerMessageEncrypter::encrypt @0x39d734` (per-message nonce prefix
-  on the wire + secretbox) instead of the rolling-nonce `PepperEncrypter`;
-  the session-setup call site decides. Our `SodiumPepper` backend models
-  the simple form; do NOT attempt real logins until this is resolved.
+- RESOLVED: live traffic uses plain `PepperEncrypter` (both instances
+  built by `Messaging::Messaging @0x1b4b64` at +0x148/+0x150), rolling
+  secretbox nonce advanced BEFORE each use (`@0x4491dc`/`@0x39f6b4`).
+  `PepperPerMessageEncrypter` is a different path, not the session one.
 - Port: libsodium behind `TITAN_WITH_SODIUM`; `titan::crypto::Encrypter`.
 
 ## Message dispatch

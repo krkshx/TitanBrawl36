@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2096 reimplemented, 9717 third-party, 25251 pending**
+Registry (compiled in): **2101 reimplemented, 9717 third-party, 25246 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2096 fns | `src/` + tests |
-| Game code pending | 25251 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2101 fns | `src/` + tests |
+| Game code pending | 25246 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -61,6 +61,10 @@ Registry (compiled in): **2096 reimplemented, 9717 third-party, 25251 pending**
   `LogicPlayerRankedSeasonData` (`@0x286950/@0x97acd8`) + `LogicPlayerRewardData`
   (`@0x243790`), `VanityItemEntry` (`@0x427c6c`) + `VanityItemProp` (`@0x8bd8d0`),
   `LogicRewardConfig` (`@0x88d288/@0x710eb4`) + `LogicCondition` (`@0x89d570`).
+- Session crypto resolved: `Messaging` builds two plain `PepperEncrypter`
+  (`@0x1b4b64`); encrypt `@0x4491dc` / decrypt `@0x39f6b4` advance the nonce
+  BEFORE use (port fixed to match); `PepperCrypto::box`/`box_open`
+  (`@0x3677b0`/`@0x5863c0`) ported over libsodium (see `docs/PROTOCOL.md`).
 - Notification wave (COMPLETE): `BaseNotification` (`@0x7beae0/@0x605478`)
   + all 29 subclasses, each with verified type id (getters `@0x9aca40`…),
   factory `NotificationFactory::create @0x5f5d50` fully mapped (63–94;

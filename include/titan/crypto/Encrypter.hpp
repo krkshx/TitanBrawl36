@@ -8,7 +8,11 @@
 //   - MAC overhead 16 bytes (SECRETBOX_MACBYTES @0xb9ff58 = 0x10).
 //   - Nonce starts random (generateRandom @0x46a64c), then LE += 2 per
 //     message via nextNonce @0x6fb2ac, before each encrypt/decrypt.
-//   - Separate instances: Messaging+0x148 (decrypt), +0x150 (encrypt).
+//   - Separate instances: Messaging+0x148 (decrypt), +0x150 (encrypt),
+//     both plain PepperEncrypter built by Messaging::Messaging @0x1b4b64
+//     (NOT PepperPerMessageEncrypter — that class is for another path).
+//   - C2(key, nonce) @0x7020c4; encrypt @0x4491dc / decrypt @0x39f6b4
+//     (both nextNonce-first, overhead slot = 16).
 //   - Key exchange: NaCl box + Blake2b (PepperCrypto::box_open @0x5863c0);
 //     PepperLoginResponse (20103) carries 24B server nonce + 32B session
 //     key; installed as PepperEncrypter(key, nonce) x2
@@ -42,9 +46,11 @@ struct SodiumMissing : std::runtime_error {
 class Encrypter {
 public:
     virtual ~Encrypter() = default;
-    // Encrypt: returns ciphertext (plaintext + 16B MAC), advances nonce by 2.
+    // Encrypt: returns ciphertext (plaintext + 16B MAC). The nonce
+    // advances by 2 BEFORE each use (encrypt @0x4491dc, decrypt @0x39f6b4),
+    // so the installed initial value never goes on the wire.
     virtual std::vector<u8> encrypt(const u8* plain, std::size_t len) = 0;
-    // Decrypt: returns plaintext, advances nonce by 2. Throws on MAC failure.
+    // Decrypt: returns plaintext. Throws on MAC failure.
     virtual std::vector<u8> decrypt(const u8* cipher, std::size_t len) = 0;
     [[nodiscard]] virtual std::size_t overhead() const { return kMacBytes; }
 };

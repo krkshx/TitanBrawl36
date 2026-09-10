@@ -2554,7 +2554,7 @@ extern const Entry kPart2[] = {
     {0x0701EA0, Status::Pending, "_ZN16DataGainListener13onFastforwardEv", "DataGainListener13onFastforwardEv"},
     {0x0701EB4, Status::Pending, "_ZN12KakaoManager9enterGameEv", "KakaoManager9enterGameEv"},
     {0x0702000, Status::Pending, "_ZN14ShadowRenderer15destructStaticsEv", "ShadowRenderer15destructStaticsEv"},
-    {0x07020C4, Status::Pending, "_ZN15PepperEncrypterC2EN12PepperCrypto9SecureKeyILm32EEENS1_ILm24EEE", "PepperEncrypterC2EN12PepperCrypto9SecureKeyILm32"},
+    {0x07020C4, Status::Reimplemented, "_ZN15PepperEncrypterC2EN12PepperCrypto9SecureKeyILm32EEENS1_ILm24EEE", "PepperEncrypterC2EN12PepperCrypto9SecureKeyILm32"},
     {0x0702104, Status::Pending, "_ZN20PlayerThumbnailPopup13buttonClickedEP12CustomButton", "PlayerThumbnailPopup13buttonClickedEP12CustomBut"},
     {0x07023C4, Status::Pending, "_ZNK8Settings9isPvpSeenEv", "Settings9isPvpSeenEv"},
     {0x0702450, Status::Pending, "_ZThn96_N13SimpleWebview13buttonClickedEP12CustomButton", "global"},
