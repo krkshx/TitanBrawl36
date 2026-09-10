@@ -140,6 +140,21 @@ public:
     void setHeroLevel(const LogicData& hero, i32 level) {
         setCommodityCount(5, hero, level - 1);
     }
+    // addFreeDiamonds @0x61f7c0: no-op on 0, error on negative, else
+    // diamonds += n AND freeDiamonds += n (listener callback skipped).
+    // addPaidDiamonds @0x73f334: no-op on 0, else diamonds += n AND
+    // cumulativePurchasedDiamonds += n (NOT free).
+    void addFreeDiamonds(i32 amount) {
+        if (amount == 0) return;
+        if (amount < 0) sc::Debugger::error("LogicClientAvatar::addFreeDiamonds: negative");
+        v144_ += amount;
+        v148_ += amount;
+    }
+    void addPaidDiamonds(i32 amount) {
+        if (amount == 0) return;
+        v144_ += amount;
+        v152_ += amount;
+    }
 };
 
 } // namespace titan

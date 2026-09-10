@@ -188,6 +188,21 @@ int main() {
         CHECK(conf.getLevelUpCost(4) == 0);
         CHECK(conf.getLevelUpCost(0) == 0);
     }
+    // Diamond helpers (@0x61f7c0/@0x73f334).
+    {
+        LogicClientAvatar av;
+        av.setDiamonds(100);
+        av.setFreeDiamonds(10);
+        av.addFreeDiamonds(0);
+        CHECK(av.getDiamonds() == 100 && av.getFreeDiamonds() == 10);
+        av.addFreeDiamonds(25);
+        CHECK(av.getDiamonds() == 125 && av.getFreeDiamonds() == 35);
+        av.addPaidDiamonds(0);
+        CHECK(av.getCumulativePurchasedDiamonds() == 0);
+        av.addPaidDiamonds(40);
+        CHECK(av.getDiamonds() == 165 && av.getFreeDiamonds() == 35);
+        CHECK(av.getCumulativePurchasedDiamonds() == 40);
+    }
 
     if (failures == 0) std::puts("gameplay: all ok");
     return failures == 0 ? 0 : 1;
