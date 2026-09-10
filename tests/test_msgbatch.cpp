@@ -7,7 +7,7 @@
 #include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicDailyData.hpp"
 #include "titan/game/ForcedDrops.hpp"
-#include "titan/messages/AllMessages.hpp"
+#include "titan/messages/AllMessages.cpp"
 #include "titan/game/AddableFriendEntry.hpp"
 
 #include <cstdio>

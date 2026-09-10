@@ -17,7 +17,7 @@
 #include "titan/game/EventSlot.hpp"
 #include "titan/game/FriendOnlineStatusEntry.hpp"
 #include "titan/game/GatchaDrop.hpp"
-#include "titan/messages/pending/FriendOnlineStatus.hpp" // alias check
+#include "titan/messages/pending/FriendOnlineStatus.cpp" // alias check
 #include "titan/game/HeroDataEntry.hpp"
 #include "titan/game/HeroEntry.hpp"
 #include "titan/game/LogicBitList.hpp"

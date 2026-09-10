@@ -1,0 +1,680 @@
+// Generated — do not edit. 324 ids, 335 classes.
+#include "titan/messages/account/AccountIdentifiersMessage.cpp"
+#include "titan/messages/account/AccountSwitchedMessage.cpp"
+#include "titan/messages/account/AdUpdateConversionValueMessage.cpp"
+#include "titan/messages/account/AdjustPackageMessage.cpp"
+#include "titan/messages/account/AnalyticEventMessage.cpp"
+#include "titan/messages/account/ApiTokenMessage.cpp"
+#include "titan/messages/account/AskApiTokenMessage.cpp"
+#include "titan/messages/account/AskPlayerJWTokenMessage.cpp"
+#include "titan/messages/account/AttributionEventMessage.cpp"
+#include "titan/messages/account/AttributionMessage.cpp"
+#include "titan/messages/account/AuthenticationCheckMessage.cpp"
+#include "titan/messages/account/AuthenticationResponseMessage.cpp"
+#include "titan/messages/account/ClientCapabilitiesMessage.cpp"
+#include "titan/messages/account/ClientCryptoErrorMessage.cpp"
+#include "titan/messages/account/ClientHelloMessage.cpp"
+#include "titan/messages/account/ClientInfoMessage.cpp"
+#include "titan/messages/account/CreateAccountFailedMessage.cpp"
+#include "titan/messages/account/CreateAccountMessage.cpp"
+#include "titan/messages/account/CreateAccountOkMessage.cpp"
+#include "titan/messages/account/CryptoErrorMessage.cpp"
+#include "titan/messages/account/DisconnectedMessage.cpp"
+#include "titan/messages/account/ExtendedSetEncryptionMessage.cpp"
+#include "titan/messages/account/KeepAliveMessage.cpp"
+#include "titan/messages/account/KeepAliveServerMessage.cpp"
+#include "titan/messages/account/LogicAccountTransferCodeRequestMessage.cpp"
+#include "titan/messages/account/LogicAccountTransferCodeResponseMessage.cpp"
+#include "titan/messages/account/LoginFailedMessage.cpp"
+#include "titan/messages/account/LoginMessage.cpp"
+#include "titan/messages/account/LoginOkMessage.cpp"
+#include "titan/messages/account/LoginUsingSessionMessage.cpp"
+#include "titan/messages/account/PlayerJWTokenMessage.cpp"
+#include "titan/messages/account/ResetAccountMessage.cpp"
+#include "titan/messages/account/ServerHelloMessage.cpp"
+#include "titan/messages/account/SetCountryMessage.cpp"
+#include "titan/messages/account/SetCountryResponseMessage.cpp"
+#include "titan/messages/account/SetEncryptionMessage.cpp"
+#include "titan/messages/account/SetRegionMessage.cpp"
+#include "titan/messages/account/SetRegionResponseMessage.cpp"
+#include "titan/messages/account/TitanDisconnectedMessage.cpp"
+#include "titan/messages/account/UnlockAccountFailedMessage.cpp"
+#include "titan/messages/account/UnlockAccountMessage.cpp"
+#include "titan/messages/account/UnlockAccountOkMessage.cpp"
+#include "titan/messages/alliance/AllianceDataMessage.cpp"
+#include "titan/messages/alliance/AllianceInvitationSendFailedMessage.cpp"
+#include "titan/messages/alliance/AllianceListMessage.cpp"
+#include "titan/messages/alliance/AllianceMemberMessage.cpp"
+#include "titan/messages/alliance/AllianceMemberRemovedMessage.cpp"
+#include "titan/messages/alliance/AllianceOnlineStatusUpdatedMessage.cpp"
+#include "titan/messages/alliance/AllianceResponseMessage.cpp"
+#include "titan/messages/alliance/AllianceStreamEntryMessage.cpp"
+#include "titan/messages/alliance/AllianceStreamEntryRemovedMessage.cpp"
+#include "titan/messages/alliance/AllianceStreamMessage.cpp"
+#include "titan/messages/alliance/AllianceTeamRemovedMessage.cpp"
+#include "titan/messages/alliance/AllianceTeamsMessage.cpp"
+#include "titan/messages/alliance/AllianceWarMessage.cpp"
+#include "titan/messages/alliance/AskForAllianceDataMessage.cpp"
+#include "titan/messages/alliance/AskForAllianceStreamMessage.cpp"
+#include "titan/messages/alliance/AskForJoinableAlliancesListMessage.cpp"
+#include "titan/messages/alliance/ChangeAllianceMemberRoleMessage.cpp"
+#include "titan/messages/alliance/ChangeAllianceSettingsMessage.cpp"
+#include "titan/messages/alliance/ChangeAllianceSettingsOkMessage.cpp"
+#include "titan/messages/alliance/ChatToAllianceStreamMessage.cpp"
+#include "titan/messages/alliance/CreateAllianceMessage.cpp"
+#include "titan/messages/alliance/GetAllianceInviteTokenMessage.cpp"
+#include "titan/messages/alliance/GetAllianceInviteTokenResultMessage.cpp"
+#include "titan/messages/alliance/JoinAllianceMessage.cpp"
+#include "titan/messages/alliance/JoinAllianceUsingInvitationMessage.cpp"
+#include "titan/messages/alliance/JoinAllianceUsingTokenMessage.cpp"
+#include "titan/messages/alliance/JoinableAllianceListMessage.cpp"
+#include "titan/messages/alliance/KickAllianceMemberMessage.cpp"
+#include "titan/messages/alliance/LeaveAllianceMessage.cpp"
+#include "titan/messages/alliance/MyAllianceMessage.cpp"
+#include "titan/messages/alliance/ReportAllianceStreamMessage.cpp"
+#include "titan/messages/alliance/RequestJoinAllianceMessage.cpp"
+#include "titan/messages/alliance/RespondToAllianceJoinRequestMessage.cpp"
+#include "titan/messages/alliance/SearchAlliancesMessage.cpp"
+#include "titan/messages/alliance/SendAllianceInvitationMessage.cpp"
+#include "titan/messages/alliance/SendAllianceInvitationToFriendMessage.cpp"
+#include "titan/messages/alliance/SendAllianceMailMessage.cpp"
+#include "titan/messages/alliance/SetAllianceCountryMessage.cpp"
+#include "titan/messages/battle/AskForBattleEndMessage.cpp"
+#include "titan/messages/battle/AskForBattleReplayStreamMessage.cpp"
+#include "titan/messages/battle/BattleEndMessage.cpp"
+#include "titan/messages/battle/BattleLogMessage.cpp"
+#include "titan/messages/battle/BattleLogReplayAvailableMessage.cpp"
+#include "titan/messages/battle/BattleLogViewReplayMessage.cpp"
+#include "titan/messages/battle/BattleReportStreamMessage.cpp"
+#include "titan/messages/battle/CancelMatchmakingMessage.cpp"
+#include "titan/messages/battle/ClientInputMessage.cpp"
+#include "titan/messages/battle/CreateGameFailedMessage.cpp"
+#include "titan/messages/battle/CreateGameMessage.cpp"
+#include "titan/messages/battle/EndClientTurnMessage.cpp"
+#include "titan/messages/battle/GetCurrentBattleReplayDataMessage.cpp"
+#include "titan/messages/battle/GoHomeFromOfflinePractiseMessage.cpp"
+#include "titan/messages/battle/GoHomeFromSpectateMessage.cpp"
+#include "titan/messages/battle/HomeBattleReplayDataMessage.cpp"
+#include "titan/messages/battle/HomeBattleReplayFailedMessage.cpp"
+#include "titan/messages/battle/HomeBattleReplayMessage.cpp"
+#include "titan/messages/battle/HomeBattleReplayViewedMessage.cpp"
+#include "titan/messages/battle/LobbyInfoMessage.cpp"
+#include "titan/messages/battle/LookForGameRoomRequestMessage.cpp"
+#include "titan/messages/battle/MapPreviewMessage.cpp"
+#include "titan/messages/battle/MatchMakingCancelledMessage.cpp"
+#include "titan/messages/battle/MatchMakingStatusMessage.cpp"
+#include "titan/messages/battle/MatchmakeFailedMessage.cpp"
+#include "titan/messages/battle/MatchmakeRequestMessage.cpp"
+#include "titan/messages/battle/OutOfSyncMessage.cpp"
+#include "titan/messages/battle/PlayAgainMessage.cpp"
+#include "titan/messages/battle/PlayAgainStatusMessage.cpp"
+#include "titan/messages/battle/PvpMatchmakeNotificationMessage.cpp"
+#include "titan/messages/battle/RankedMatchBanEndedMessage.cpp"
+#include "titan/messages/battle/RankedMatchBanHeroMessage.cpp"
+#include "titan/messages/battle/RankedMatchBanHeroResponseMessage.cpp"
+#include "titan/messages/battle/RankedMatchBanStartedMessage.cpp"
+#include "titan/messages/battle/RankedMatchFinalPreparationStartedMessage.cpp"
+#include "titan/messages/battle/RankedMatchHeroDataUpdatedMessage.cpp"
+#include "titan/messages/battle/RankedMatchHeroPickedMessage.cpp"
+#include "titan/messages/battle/RankedMatchPickHeroFailedMessage.cpp"
+#include "titan/messages/battle/RankedMatchPickHeroMessage.cpp"
+#include "titan/messages/battle/RankedMatchPickStartedMessage.cpp"
+#include "titan/messages/battle/RankedMatchStartedMessage.cpp"
+#include "titan/messages/battle/RankedMatchTerminatedMessage.cpp"
+#include "titan/messages/battle/RankedMatchUpdateHeroDataMessage.cpp"
+#include "titan/messages/battle/RequestMatchCancelMessage.cpp"
+#include "titan/messages/battle/SinglePlayerMatchRequestMessage.cpp"
+#include "titan/messages/battle/SpectateFailedMessage.cpp"
+#include "titan/messages/battle/StartGameMessage.cpp"
+#include "titan/messages/battle/StartMissionMessage.cpp"
+#include "titan/messages/battle/StartSpectateMessage.cpp"
+#include "titan/messages/battle/StopSpectateMessage.cpp"
+#include "titan/messages/battle/ViewReplayByStringIdMessage.cpp"
+#include "titan/messages/battle/VisionUpdateMessage.cpp"
+#include "titan/messages/billing/AppleBillingProcessedByServerMessage.cpp"
+#include "titan/messages/billing/AppleBillingRequestMessage.cpp"
+#include "titan/messages/billing/BillingCancelledByClientMessage.cpp"
+#include "titan/messages/billing/BillingRequestFailedMessage.cpp"
+#include "titan/messages/billing/BuyBundleBillingPackResponseMessage.cpp"
+#include "titan/messages/billing/CafeBazaarBillingProcessedByServerMessage.cpp"
+#include "titan/messages/billing/CafeBazaarBillingRequestMessage.cpp"
+#include "titan/messages/billing/GoogleBillingProcessedByServerMessage.cpp"
+#include "titan/messages/billing/GoogleBillingRequestMessage.cpp"
+#include "titan/messages/billing/KunlunBillingProcessedByServerMessage.cpp"
+#include "titan/messages/billing/KunlunBillingRequestMessage.cpp"
+#include "titan/messages/billing/SetSupportedCreatorMessage.cpp"
+#include "titan/messages/billing/SetSupportedCreatorResponseMessage.cpp"
+#include "titan/messages/billing/TencentAccountAlreadyBoundMessage.cpp"
+#include "titan/messages/billing/TencentAccountBoundMessage.cpp"
+#include "titan/messages/billing/TencentAntiAddictionInstructionExecutedMessage.cpp"
+#include "titan/messages/billing/TencentAntiAddictionInstructionMessage.cpp"
+#include "titan/messages/billing/TencentBillingProcessedByServerMessage.cpp"
+#include "titan/messages/billing/TencentBillingRequestMessage.cpp"
+#include "titan/messages/billing/TencentCheckCanPayMessage.cpp"
+#include "titan/messages/billing/TencentCheckCanPayResponseMessage.cpp"
+#include "titan/messages/billing/YoozooBillingProcessedByServerMessage.cpp"
+#include "titan/messages/billing/YoozooBillingRequestMessage.cpp"
+#include "titan/messages/billing/YoozooOrderAvailableMessage.cpp"
+#include "titan/messages/billing/YoozooOrderDeliveryFailedMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkCodeDeactivatedMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkCodeRequestMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkCodeResponseMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkConfirmYesMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkDoneMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkEnterCodeMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkErrorMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkMenuClosedMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkNewDeviceLinkedMessage.cpp"
+#include "titan/messages/device/LogicDeviceLinkResponseMessage.cpp"
+#include "titan/messages/device/SetDeviceTokenMessage.cpp"
+#include "titan/messages/events/DailyEventsMessage.cpp"
+#include "titan/messages/events/GetSeasonRewardsMessage.cpp"
+#include "titan/messages/events/SeasonRewardsMessage.cpp"
+#include "titan/messages/home/ChronosEventSeenMessage.cpp"
+#include "titan/messages/home/GoHomeMessage.cpp"
+#include "titan/messages/home/HomeLogicStoppedMessage.cpp"
+#include "titan/messages/home/OwnHomeDataMessage.cpp"
+#include "titan/messages/home/PersonalBreakStartedMessage.cpp"
+#include "titan/messages/home/StartLoadingMessage.cpp"
+#include "titan/messages/home/StopHomeLogicMessage.cpp"
+#include "titan/messages/player/AvatarNameChangeFailedMessage.cpp"
+#include "titan/messages/player/AvatarNameCheckRequestMessage.cpp"
+#include "titan/messages/player/AvatarNameCheckResponseMessage.cpp"
+#include "titan/messages/player/ChangeAvatarNameMessage.cpp"
+#include "titan/messages/player/ChangePlayerMapNameMessage.cpp"
+#include "titan/messages/player/ChangePlayerMapNameResponseMessage.cpp"
+#include "titan/messages/player/CreatePlayerMapMessage.cpp"
+#include "titan/messages/player/CreatePlayerMapResponseMessage.cpp"
+#include "titan/messages/player/DeletePlayerMapMessage.cpp"
+#include "titan/messages/player/DeletePlayerMapResponseMessage.cpp"
+#include "titan/messages/player/EnterMapEditorMessage.cpp"
+#include "titan/messages/player/GetPlayerMapsMessage.cpp"
+#include "titan/messages/player/GetPlayerProfileMessage.cpp"
+#include "titan/messages/player/GoHomeFromMapEditorMessage.cpp"
+#include "titan/messages/player/PlayerMapGreenlightedMessage.cpp"
+#include "titan/messages/player/PlayerMapInfoUpdatedMessage.cpp"
+#include "titan/messages/player/PlayerMapsMessage.cpp"
+#include "titan/messages/player/PlayerProfileMessage.cpp"
+#include "titan/messages/player/PublishPlayerMapMessage.cpp"
+#include "titan/messages/player/PublishPlayerMapResponseMessage.cpp"
+#include "titan/messages/player/ReportPlayerMapMessage.cpp"
+#include "titan/messages/player/ReportPlayerMapResponseMessage.cpp"
+#include "titan/messages/player/SignoffPlayerMapMessage.cpp"
+#include "titan/messages/player/SubmitPlayerMapMessage.cpp"
+#include "titan/messages/player/SubmitPlayerMapResponseMessage.cpp"
+#include "titan/messages/player/UpdatePlayerMapMessage.cpp"
+#include "titan/messages/player/UpdatePlayerMapResponseMessage.cpp"
+#include "titan/messages/ranking/GetBattleLogMessage.cpp"
+#include "titan/messages/ranking/GetLeaderboardMessage.cpp"
+#include "titan/messages/ranking/LeaderboardMessage.cpp"
+#include "titan/messages/scid/BindFacebookAccountMessage.cpp"
+#include "titan/messages/scid/BindGamecenterAccountMessage.cpp"
+#include "titan/messages/scid/BindGoogleServiceAccountMessage.cpp"
+#include "titan/messages/scid/BindKakaoAccountMessage.cpp"
+#include "titan/messages/scid/BindLineAccountMessage.cpp"
+#include "titan/messages/scid/BindTencentAccountMessage.cpp"
+#include "titan/messages/scid/BindYoozooAccountMessage.cpp"
+#include "titan/messages/scid/FacebookAccountAlreadyBoundMessage.cpp"
+#include "titan/messages/scid/FacebookAccountBoundMessage.cpp"
+#include "titan/messages/scid/FacebookAccountUnboundMessage.cpp"
+#include "titan/messages/scid/GamecenterAccountAlreadyBoundMessage.cpp"
+#include "titan/messages/scid/GamecenterAccountBoundMessage.cpp"
+#include "titan/messages/scid/GoogleServiceAccountAlreadyBoundMessage.cpp"
+#include "titan/messages/scid/GoogleServiceAccountBoundMessage.cpp"
+#include "titan/messages/scid/KakaoAccountAlreadyBoundMessage.cpp"
+#include "titan/messages/scid/KakaoAccountBoundMessage.cpp"
+#include "titan/messages/scid/KakaoAccountUnboundMessage.cpp"
+#include "titan/messages/scid/LineAccountAlreadyBoundMessage.cpp"
+#include "titan/messages/scid/LineAccountBoundMessage.cpp"
+#include "titan/messages/scid/LineAccountUnboundMessage.cpp"
+#include "titan/messages/scid/SCIDAccountAlreadyBoundMessage.cpp"
+#include "titan/messages/scid/SCIDAccountBoundMessage.cpp"
+#include "titan/messages/scid/SCIDBindAccountMessage.cpp"
+#include "titan/messages/scid/SCIDLogoutAllDevicesMessage.cpp"
+#include "titan/messages/scid/SCIDLogoutAllDevicesResultMessage.cpp"
+#include "titan/messages/scid/UnbindFacebookAccountMessage.cpp"
+#include "titan/messages/scid/UnbindKakaoAccountMessage.cpp"
+#include "titan/messages/scid/UnbindLineAccountMessage.cpp"
+#include "titan/messages/social/AcceptFriendFailedMessage.cpp"
+#include "titan/messages/social/AcceptFriendMessage.cpp"
+#include "titan/messages/social/AcceptTokenFriendMessage.cpp"
+#include "titan/messages/social/AddFriendByAvatarNameAndCodeMessage.cpp"
+#include "titan/messages/social/AddFriendByEmailMessage.cpp"
+#include "titan/messages/social/AddFriendFailedMessage.cpp"
+#include "titan/messages/social/AddFriendMessage.cpp"
+#include "titan/messages/social/AddableFriendsMessage.cpp"
+#include "titan/messages/social/AskForAddableFriendsMessage.cpp"
+#include "titan/messages/social/AskForAvatarStreamMessage.cpp"
+#include "titan/messages/social/AskForFriendListMessage.cpp"
+#include "titan/messages/social/AskForFriendSuggestionsMessage.cpp"
+#include "titan/messages/social/AskForPlayingFacebookFriendsMessage.cpp"
+#include "titan/messages/social/AskForPlayingGamecenterFriendsMessage.cpp"
+#include "titan/messages/social/AskForPlayingKakaoFriendsMessage.cpp"
+#include "titan/messages/social/AskForPlayingLineFriendsMessage.cpp"
+#include "titan/messages/social/AskForPlayingSupercellFriendsMessage.cpp"
+#include "titan/messages/social/AskForPlayingTencentFriendsMessage.cpp"
+#include "titan/messages/social/AvatarStreamEntryMessage.cpp"
+#include "titan/messages/social/AvatarStreamEntryRemovedMessage.cpp"
+#include "titan/messages/social/AvatarStreamMessage.cpp"
+#include "titan/messages/social/ChatAccountBanStatusMessage.cpp"
+#include "titan/messages/social/FriendListMessage.cpp"
+#include "titan/messages/social/FriendListUpdateMessage.cpp"
+#include "titan/messages/social/FriendOnlineStatusEntryMessage.cpp"
+#include "titan/messages/social/FriendOnlineStatusMessage.cpp"
+#include "titan/messages/social/FriendSuggestionsMessage.cpp"
+#include "titan/messages/social/GetTokenFriendMessage.cpp"
+#include "titan/messages/social/GetTokenFriendResultMessage.cpp"
+#include "titan/messages/social/GlobalChatLineMessage.cpp"
+#include "titan/messages/social/PlayerStatusMessage.cpp"
+#include "titan/messages/social/RemoveAvatarStreamEntryMessage.cpp"
+#include "titan/messages/social/RemoveFriendMessage.cpp"
+#include "titan/messages/social/ReportUserMessage.cpp"
+#include "titan/messages/social/ReportUserStatusMessage.cpp"
+#include "titan/messages/social/SendGlobalChatLineMessage.cpp"
+#include "titan/messages/social/SetBlockFriendRequestsMessage.cpp"
+#include "titan/messages/social/SetInvitesBlockedMessage.cpp"
+#include "titan/messages/social/UnbotifyReportMessage.cpp"
+#include "titan/messages/sys/AntiAddictionDataUpdatedMessage.cpp"
+#include "titan/messages/sys/AvailableServerCommandMessage.cpp"
+#include "titan/messages/sys/DebugCommandMessage.cpp"
+#include "titan/messages/sys/DebugNewbieCoopOverrideSetMessage.cpp"
+#include "titan/messages/sys/DebugPlayerMapReviewResultOverrideSetMessage.cpp"
+#include "titan/messages/sys/LatencyTestResultMessage.cpp"
+#include "titan/messages/sys/LatencyTestStatusMessage.cpp"
+#include "titan/messages/sys/NotificationMessage.cpp"
+#include "titan/messages/sys/RequestLatencyTestStatusMessage.cpp"
+#include "titan/messages/sys/ServerErrorMessage.cpp"
+#include "titan/messages/sys/ShutdownStartedMessage.cpp"
+#include "titan/messages/sys/StartLatencyTestRequestMessage.cpp"
+#include "titan/messages/sys/SupercellIdNotificationMessage.cpp"
+#include "titan/messages/sys/TriggerStartLatencyTestMessage.cpp"
+#include "titan/messages/sys/UdpBigMessageFragmentMessage.cpp"
+#include "titan/messages/sys/UdpCheckConnectionMessage.cpp"
+#include "titan/messages/sys/UdpConnectionInfoMessage.cpp"
+#include "titan/messages/sys/UdpLatencyTestRequestMessage.cpp"
+#include "titan/messages/sys/UdpLatencyTestResponseMessage.cpp"
+#include "titan/messages/team/SetTeamChatMutedMessage.cpp"
+#include "titan/messages/team/TeamAllianceMemberInviteMessage.cpp"
+#include "titan/messages/team/TeamBotSlotDisableMessage.cpp"
+#include "titan/messages/team/TeamChangeMemberSettingsMessage.cpp"
+#include "titan/messages/team/TeamChatMessage.cpp"
+#include "titan/messages/team/TeamClearInviteMessage.cpp"
+#include "titan/messages/team/TeamCreateMessage.cpp"
+#include "titan/messages/team/TeamErrorMessage.cpp"
+#include "titan/messages/team/TeamGameStartingMessage.cpp"
+#include "titan/messages/team/TeamInvitationMessage.cpp"
+#include "titan/messages/team/TeamInvitationResponseMessage.cpp"
+#include "titan/messages/team/TeamInviteMessage.cpp"
+#include "titan/messages/team/TeamInviteResponseMessage.cpp"
+#include "titan/messages/team/TeamInviteStatusMessage.cpp"
+#include "titan/messages/team/TeamJoinMessage.cpp"
+#include "titan/messages/team/TeamJoinOrCreateRoomMessage.cpp"
+#include "titan/messages/team/TeamKickMessage.cpp"
+#include "titan/messages/team/TeamLeaveMessage.cpp"
+#include "titan/messages/team/TeamLeftMessage.cpp"
+#include "titan/messages/team/TeamMemberStatusMessage.cpp"
+#include "titan/messages/team/TeamMessage.cpp"
+#include "titan/messages/team/TeamPostAdMessage.cpp"
+#include "titan/messages/team/TeamPremadeChatMessage.cpp"
+#include "titan/messages/team/TeamReportChatMessage.cpp"
+#include "titan/messages/team/TeamRequestJoinApproveMessage.cpp"
+#include "titan/messages/team/TeamRequestJoinCancelMessage.cpp"
+#include "titan/messages/team/TeamRequestJoinMessage.cpp"
+#include "titan/messages/team/TeamSetEventMessage.cpp"
+#include "titan/messages/team/TeamSetLocationMessage.cpp"
+#include "titan/messages/team/TeamSetMemberReadyMessage.cpp"
+#include "titan/messages/team/TeamSetPlayerMapMessage.cpp"
+#include "titan/messages/team/TeamSpectateMessage.cpp"
+#include "titan/messages/team/TeamStreamEntryRemovedMessage.cpp"
+#include "titan/messages/team/TeamStreamMessage.cpp"
+#include "titan/messages/team/TeamToggleMemberSideMessage.cpp"
+#include "titan/messages/team/TeamTogglePractiseMessage.cpp"
+#include "titan/messages/team/TeamToggleSettingsMessage.cpp"
+#include "titan/messages/tv/BrawlTvChannelListMessage.cpp"
+#include "titan/messages/tv/BrawlTvChannelNextUpMessage.cpp"
+#include "titan/messages/tv/ListBrawlTvChannelsMessage.cpp"
+#include "titan/messages/tv/TuneBrawlTvChannelMessage.cpp"
+
+namespace titan {
+
+std::unique_ptr<PiranhaMessage> createMessageByType(int type) {
+    switch (type) {
+        case 10055: return std::make_unique<AskPlayerJWTokenMessage>();
+        case 10099: return std::make_unique<ClientCryptoErrorMessage>();
+        case 10100: return std::make_unique<ClientHelloMessage>();
+        case 10101: return std::make_unique<LoginMessage>();
+        case 10102: return std::make_unique<LoginUsingSessionMessage>();
+        case 10103: return std::make_unique<CreateAccountMessage>();
+        case 10107: return std::make_unique<ClientCapabilitiesMessage>();
+        case 10108: return std::make_unique<KeepAliveMessage>();
+        case 10109: return std::make_unique<UdpCheckConnectionMessage>();
+        case 10110: return std::make_unique<AnalyticEventMessage>();
+        case 10111: return std::make_unique<AccountIdentifiersMessage>();
+        case 10112: return std::make_unique<AuthenticationCheckMessage>();
+        case 10113: return std::make_unique<SetDeviceTokenMessage>();
+        case 10116: return std::make_unique<ResetAccountMessage>();
+        case 10117: return std::make_unique<ReportUserMessage>();
+        case 10118: return std::make_unique<AccountSwitchedMessage>();
+        case 10119: return std::make_unique<ReportAllianceStreamMessage>();
+        case 10121: return std::make_unique<UnlockAccountMessage>();
+        case 10150: return std::make_unique<AppleBillingRequestMessage>();
+        case 10151: return std::make_unique<GoogleBillingRequestMessage>();
+        case 10152: return std::make_unique<TencentBillingRequestMessage>();
+        case 10153: return std::make_unique<CafeBazaarBillingRequestMessage>();
+        case 10159: return std::make_unique<KunlunBillingRequestMessage>();
+        case 10160: return std::make_unique<BillingCancelledByClientMessage>();
+        case 10177: return std::make_unique<ClientInfoMessage>();
+        case 10212: return std::make_unique<ChangeAvatarNameMessage>();
+        case 10309: return std::make_unique<GetAllianceInviteTokenMessage>();
+        case 10321: return std::make_unique<AttributionEventMessage>();
+        case 10401: return std::make_unique<CreateGameMessage>();
+        case 10501: return std::make_unique<AcceptFriendMessage>();
+        case 10502: return std::make_unique<AddFriendMessage>();
+        case 10503: return std::make_unique<AskForAddableFriendsMessage>();
+        case 10504: return std::make_unique<AskForFriendListMessage>();
+        case 10506: return std::make_unique<RemoveFriendMessage>();
+        case 10507: return std::make_unique<AddFriendByEmailMessage>();
+        case 10509: return std::make_unique<AddFriendByAvatarNameAndCodeMessage>();
+        case 10512: return std::make_unique<AskForPlayingGamecenterFriendsMessage>();
+        case 10513: return std::make_unique<AskForPlayingFacebookFriendsMessage>();
+        case 10514: return std::make_unique<AskForPlayingKakaoFriendsMessage>();
+        case 10515: return std::make_unique<AskForPlayingTencentFriendsMessage>();
+        case 10516: return std::make_unique<AskForPlayingLineFriendsMessage>();
+        case 10517: return std::make_unique<AskForPlayingSupercellFriendsMessage>();
+        case 10523: return std::make_unique<YoozooBillingRequestMessage>();
+        case 10555: return std::make_unique<ClientInputMessage>();
+        case 10576: return std::make_unique<SetBlockFriendRequestsMessage>();
+        case 10599: return std::make_unique<AskForFriendSuggestionsMessage>();
+        case 10636: return std::make_unique<SCIDBindAccountMessage>();
+        case 11736: return std::make_unique<SCIDLogoutAllDevicesMessage>();
+        case 12100: return std::make_unique<CreatePlayerMapMessage>();
+        case 12101: return std::make_unique<DeletePlayerMapMessage>();
+        case 12102: return std::make_unique<GetPlayerMapsMessage>();
+        case 12103: return std::make_unique<UpdatePlayerMapMessage>();
+        case 12104: return std::make_unique<SubmitPlayerMapMessage>();
+        case 12105: return std::make_unique<PublishPlayerMapMessage>();
+        case 12106: return std::make_unique<ChangePlayerMapNameMessage>();
+        case 12107: return std::make_unique<EnterMapEditorMessage>();
+        case 12108: return std::make_unique<GoHomeFromMapEditorMessage>();
+        case 12110: return std::make_unique<TeamSetPlayerMapMessage>();
+        case 12111: return std::make_unique<SignoffPlayerMapMessage>();
+        case 12125: return std::make_unique<ReportPlayerMapMessage>();
+        case 12152: return std::make_unique<RankedMatchBanHeroMessage>();
+        case 12155: return std::make_unique<RankedMatchPickHeroMessage>();
+        case 12157: return std::make_unique<RankedMatchUpdateHeroDataMessage>();
+        case 12905: return std::make_unique<GetCurrentBattleReplayDataMessage>();
+        case 12998: return std::make_unique<SetCountryMessage>();
+        case 13922: return std::make_unique<AcceptTokenFriendMessage>();
+        case 14101: return std::make_unique<GoHomeMessage>();
+        case 14102: return std::make_unique<EndClientTurnMessage>();
+        // collision (see data/factory_notes.csv): StartGameMessage
+        case 14103: return std::make_unique<MatchmakeRequestMessage>();
+        // collision (see data/factory_notes.csv): StartSpectateMessage
+        case 14104: return std::make_unique<StartMissionMessage>();
+        case 14105: return std::make_unique<HomeLogicStoppedMessage>();
+        case 14106: return std::make_unique<CancelMatchmakingMessage>();
+        case 14107: return std::make_unique<StopSpectateMessage>();
+        case 14108: return std::make_unique<GoHomeFromSpectateMessage>();
+        case 14109: return std::make_unique<GoHomeFromOfflinePractiseMessage>();
+        case 14110: return std::make_unique<AskForBattleEndMessage>();
+        case 14113: return std::make_unique<GetPlayerProfileMessage>();
+        // collision (see data/factory_notes.csv): HomeBattleReplayMessage
+        case 14114: return std::make_unique<GetBattleLogMessage>();
+        case 14115: return std::make_unique<BattleLogViewReplayMessage>();
+        case 14116: return std::make_unique<ViewReplayByStringIdMessage>();
+        case 14117: return std::make_unique<RequestMatchCancelMessage>();
+        case 14118: return std::make_unique<SinglePlayerMatchRequestMessage>();
+        case 14166: return std::make_unique<ChronosEventSeenMessage>();
+        case 14177: return std::make_unique<PlayAgainMessage>();
+        case 14178: return std::make_unique<DebugCommandMessage>();
+        case 14199: return std::make_unique<LookForGameRoomRequestMessage>();
+        case 14201: return std::make_unique<BindFacebookAccountMessage>();
+        case 14202: return std::make_unique<BindKakaoAccountMessage>();
+        case 14203: return std::make_unique<BindLineAccountMessage>();
+        case 14211: return std::make_unique<UnbindFacebookAccountMessage>();
+        case 14212: return std::make_unique<BindGamecenterAccountMessage>();
+        case 14213: return std::make_unique<UnbindKakaoAccountMessage>();
+        case 14214: return std::make_unique<UnbindLineAccountMessage>();
+        case 14262: return std::make_unique<BindGoogleServiceAccountMessage>();
+        // collision (see data/factory_notes.csv): BindYoozooAccountMessage
+        case 14266: return std::make_unique<BindTencentAccountMessage>();
+        case 14267: return std::make_unique<TencentAntiAddictionInstructionExecutedMessage>();
+        case 14268: return std::make_unique<TencentCheckCanPayMessage>();
+        case 14277: return std::make_unique<GetSeasonRewardsMessage>();
+        case 14299: return std::make_unique<SetAllianceCountryMessage>();
+        case 14301: return std::make_unique<CreateAllianceMessage>();
+        case 14302: return std::make_unique<AskForAllianceDataMessage>();
+        case 14303: return std::make_unique<AskForJoinableAlliancesListMessage>();
+        case 14304: return std::make_unique<AskForAllianceStreamMessage>();
+        case 14305: return std::make_unique<JoinAllianceMessage>();
+        case 14306: return std::make_unique<ChangeAllianceMemberRoleMessage>();
+        case 14307: return std::make_unique<KickAllianceMemberMessage>();
+        case 14308: return std::make_unique<LeaveAllianceMessage>();
+        case 14315: return std::make_unique<ChatToAllianceStreamMessage>();
+        case 14316: return std::make_unique<ChangeAllianceSettingsMessage>();
+        case 14317: return std::make_unique<RequestJoinAllianceMessage>();
+        case 14321: return std::make_unique<RespondToAllianceJoinRequestMessage>();
+        case 14322: return std::make_unique<SendAllianceInvitationMessage>();
+        case 14323: return std::make_unique<JoinAllianceUsingInvitationMessage>();
+        case 14324: return std::make_unique<SearchAlliancesMessage>();
+        case 14326: return std::make_unique<SendAllianceInvitationToFriendMessage>();
+        case 14330: return std::make_unique<SendAllianceMailMessage>();
+        case 14350: return std::make_unique<TeamCreateMessage>();
+        case 14351: return std::make_unique<TeamJoinMessage>();
+        case 14352: return std::make_unique<TeamKickMessage>();
+        case 14353: return std::make_unique<TeamLeaveMessage>();
+        case 14354: return std::make_unique<TeamChangeMemberSettingsMessage>();
+        case 14355: return std::make_unique<TeamSetMemberReadyMessage>();
+        case 14356: return std::make_unique<TeamTogglePractiseMessage>();
+        case 14357: return std::make_unique<TeamToggleMemberSideMessage>();
+        case 14358: return std::make_unique<TeamSpectateMessage>();
+        case 14359: return std::make_unique<TeamChatMessage>();
+        case 14360: return std::make_unique<TeamPostAdMessage>();
+        case 14361: return std::make_unique<TeamMemberStatusMessage>();
+        case 14362: return std::make_unique<TeamSetEventMessage>();
+        case 14363: return std::make_unique<TeamSetLocationMessage>();
+        case 14364: return std::make_unique<TeamReportChatMessage>();
+        case 14365: return std::make_unique<TeamInviteMessage>();
+        case 14366: return std::make_unique<PlayerStatusMessage>();
+        case 14367: return std::make_unique<TeamClearInviteMessage>();
+        case 14368: return std::make_unique<TeamInviteResponseMessage>();
+        case 14369: return std::make_unique<TeamPremadeChatMessage>();
+        case 14370: return std::make_unique<TeamAllianceMemberInviteMessage>();
+        case 14371: return std::make_unique<TeamJoinOrCreateRoomMessage>();
+        case 14372: return std::make_unique<TeamToggleSettingsMessage>();
+        case 14373: return std::make_unique<TeamBotSlotDisableMessage>();
+        case 14403: return std::make_unique<GetLeaderboardMessage>();
+        case 14405: return std::make_unique<AskForAvatarStreamMessage>();
+        case 14406: return std::make_unique<AskForBattleReplayStreamMessage>();
+        case 14418: return std::make_unique<RemoveAvatarStreamEntryMessage>();
+        case 14479: return std::make_unique<TeamInvitationResponseMessage>();
+        case 14600: return std::make_unique<AvatarNameCheckRequestMessage>();
+        case 14700: return std::make_unique<ListBrawlTvChannelsMessage>();
+        case 14701: return std::make_unique<TuneBrawlTvChannelMessage>();
+        case 14715: return std::make_unique<SendGlobalChatLineMessage>();
+        case 14777: return std::make_unique<SetInvitesBlockedMessage>();
+        case 14778: return std::make_unique<SetTeamChatMutedMessage>();
+        case 14867: return std::make_unique<SetRegionMessage>();
+        case 14880: return std::make_unique<TeamRequestJoinCancelMessage>();
+        case 14881: return std::make_unique<TeamRequestJoinMessage>();
+        case 14882: return std::make_unique<TeamRequestJoinApproveMessage>();
+        case 15793: return std::make_unique<GetTokenFriendMessage>();
+        case 16000: return std::make_unique<LogicDeviceLinkCodeRequestMessage>();
+        case 16001: return std::make_unique<LogicDeviceLinkMenuClosedMessage>();
+        case 16002: return std::make_unique<LogicDeviceLinkEnterCodeMessage>();
+        case 16003: return std::make_unique<LogicDeviceLinkConfirmYesMessage>();
+        case 16939: return std::make_unique<AskApiTokenMessage>();
+        case 17000: return std::make_unique<LogicAccountTransferCodeRequestMessage>();
+        case 17190: return std::make_unique<JoinAllianceUsingTokenMessage>();
+        case 17337: return std::make_unique<UnbotifyReportMessage>();
+        case 17338: return std::make_unique<AdjustPackageMessage>();
+        case 18686: return std::make_unique<SetSupportedCreatorMessage>();
+        case 19001: return std::make_unique<LatencyTestResultMessage>();
+        case 19002: return std::make_unique<UdpLatencyTestRequestMessage>();
+        case 19003: return std::make_unique<TriggerStartLatencyTestMessage>();
+        case 19004: return std::make_unique<RequestLatencyTestStatusMessage>();
+        // collision (see data/factory_notes.csv): SetEncryptionMessage
+        case 20000: return std::make_unique<ExtendedSetEncryptionMessage>();
+        case 20100: return std::make_unique<ServerHelloMessage>();
+        // collision (see data/factory_notes.csv): CreateAccountOkMessage, UdpBigMessageFragmentMessage
+        case 20101: return std::make_unique<CreateAccountFailedMessage>();
+        case 20103: return std::make_unique<LoginFailedMessage>();
+        // collision (see data/factory_notes.csv): LoginOkMessage
+        case 20104: return std::make_unique<AuthenticationResponseMessage>();
+        case 20105: return std::make_unique<FriendListMessage>();
+        case 20106: return std::make_unique<FriendListUpdateMessage>();
+        case 20107: return std::make_unique<AddableFriendsMessage>();
+        case 20108: return std::make_unique<KeepAliveServerMessage>();
+        case 20109: return std::make_unique<FriendOnlineStatusMessage>();
+        case 20112: return std::make_unique<AddFriendFailedMessage>();
+        case 20117: return std::make_unique<ReportUserStatusMessage>();
+        case 20118: return std::make_unique<ChatAccountBanStatusMessage>();
+        case 20121: return std::make_unique<BillingRequestFailedMessage>();
+        case 20132: return std::make_unique<UnlockAccountOkMessage>();
+        case 20133: return std::make_unique<UnlockAccountFailedMessage>();
+        case 20151: return std::make_unique<AppleBillingProcessedByServerMessage>();
+        case 20152: return std::make_unique<GoogleBillingProcessedByServerMessage>();
+        case 20153: return std::make_unique<TencentBillingProcessedByServerMessage>();
+        case 20154: return std::make_unique<CafeBazaarBillingProcessedByServerMessage>();
+        case 20156: return std::make_unique<KunlunBillingProcessedByServerMessage>();
+        case 20161: return std::make_unique<ShutdownStartedMessage>();
+        case 20171: return std::make_unique<PersonalBreakStartedMessage>();
+        case 20173: return std::make_unique<YoozooBillingProcessedByServerMessage>();
+        case 20199: return std::make_unique<FriendSuggestionsMessage>();
+        case 20205: return std::make_unique<AvatarNameChangeFailedMessage>();
+        case 20207: return std::make_unique<AllianceOnlineStatusUpdatedMessage>();
+        case 20300: return std::make_unique<AvatarNameCheckResponseMessage>();
+        case 20402: return std::make_unique<CreateGameFailedMessage>();
+        case 20405: return std::make_unique<MatchMakingStatusMessage>();
+        case 20406: return std::make_unique<MatchMakingCancelledMessage>();
+        case 20501: return std::make_unique<AcceptFriendFailedMessage>();
+        case 20523: return std::make_unique<YoozooOrderAvailableMessage>();
+        case 20545: return std::make_unique<YoozooOrderDeliveryFailedMessage>();
+        case 20559: return std::make_unique<StartLoadingMessage>();
+        case 20801: return std::make_unique<NotificationMessage>();
+        case 20931: return std::make_unique<AntiAddictionDataUpdatedMessage>();
+        case 22089: return std::make_unique<GetTokenFriendResultMessage>();
+        case 22100: return std::make_unique<CreatePlayerMapResponseMessage>();
+        case 22101: return std::make_unique<DeletePlayerMapResponseMessage>();
+        case 22102: return std::make_unique<PlayerMapsMessage>();
+        case 22103: return std::make_unique<UpdatePlayerMapResponseMessage>();
+        case 22104: return std::make_unique<SubmitPlayerMapResponseMessage>();
+        case 22105: return std::make_unique<PublishPlayerMapResponseMessage>();
+        case 22106: return std::make_unique<ChangePlayerMapNameResponseMessage>();
+        case 22107: return std::make_unique<PlayerMapInfoUpdatedMessage>();
+        case 22109: return std::make_unique<DebugPlayerMapReviewResultOverrideSetMessage>();
+        case 22111: return std::make_unique<PlayerMapGreenlightedMessage>();
+        case 22125: return std::make_unique<ReportPlayerMapResponseMessage>();
+        case 22150: return std::make_unique<RankedMatchStartedMessage>();
+        case 22151: return std::make_unique<RankedMatchBanStartedMessage>();
+        case 22152: return std::make_unique<RankedMatchBanHeroResponseMessage>();
+        case 22153: return std::make_unique<RankedMatchBanEndedMessage>();
+        case 22154: return std::make_unique<RankedMatchPickStartedMessage>();
+        case 22155: return std::make_unique<RankedMatchPickHeroFailedMessage>();
+        case 22156: return std::make_unique<RankedMatchHeroPickedMessage>();
+        case 22157: return std::make_unique<RankedMatchHeroDataUpdatedMessage>();
+        case 22158: return std::make_unique<RankedMatchFinalPreparationStartedMessage>();
+        case 22159: return std::make_unique<RankedMatchTerminatedMessage>();
+        case 22202: return std::make_unique<MapPreviewMessage>();
+        case 22377: return std::make_unique<GoogleServiceAccountBoundMessage>();
+        case 22687: return std::make_unique<GamecenterAccountAlreadyBoundMessage>();
+        case 22957: return std::make_unique<PvpMatchmakeNotificationMessage>();
+        case 23067: return std::make_unique<SCIDLogoutAllDevicesResultMessage>();
+        case 23302: return std::make_unique<GetAllianceInviteTokenResultMessage>();
+        case 23456: return std::make_unique<BattleEndMessage>();
+        case 23457: return std::make_unique<LobbyInfoMessage>();
+        case 23458: return std::make_unique<BattleLogMessage>();
+        case 23459: return std::make_unique<BattleLogReplayAvailableMessage>();
+        case 23494: return std::make_unique<GoogleServiceAccountAlreadyBoundMessage>();
+        case 23774: return std::make_unique<PlayerJWTokenMessage>();
+        case 24101: return std::make_unique<OwnHomeDataMessage>();
+        case 24104: return std::make_unique<OutOfSyncMessage>();
+        case 24105: return std::make_unique<SpectateFailedMessage>();
+        case 24106: return std::make_unique<StopHomeLogicMessage>();
+        case 24108: return std::make_unique<MatchmakeFailedMessage>();
+        case 24109: return std::make_unique<VisionUpdateMessage>();
+        case 24111: return std::make_unique<AvailableServerCommandMessage>();
+        case 24112: return std::make_unique<UdpConnectionInfoMessage>();
+        case 24113: return std::make_unique<PlayerProfileMessage>();
+        case 24114: return std::make_unique<HomeBattleReplayDataMessage>();
+        case 24115: return std::make_unique<ServerErrorMessage>();
+        // collision (see data/factory_notes.csv): HomeBattleReplayFailedMessage
+        case 24116: return std::make_unique<DebugNewbieCoopOverrideSetMessage>();
+        case 24117: return std::make_unique<HomeBattleReplayViewedMessage>();
+        // collision (see data/factory_notes.csv): SeasonRewardsMessage
+        case 24123: return std::make_unique<DailyEventsMessage>();
+        case 24124: return std::make_unique<TeamMessage>();
+        case 24125: return std::make_unique<TeamLeftMessage>();
+        case 24129: return std::make_unique<TeamErrorMessage>();
+        case 24130: return std::make_unique<TeamGameStartingMessage>();
+        case 24131: return std::make_unique<TeamStreamMessage>();
+        case 24177: return std::make_unique<SetRegionResponseMessage>();
+        case 24178: return std::make_unique<SetCountryResponseMessage>();
+        case 24201: return std::make_unique<FacebookAccountBoundMessage>();
+        case 24202: return std::make_unique<FacebookAccountAlreadyBoundMessage>();
+        case 24203: return std::make_unique<KakaoAccountBoundMessage>();
+        case 24204: return std::make_unique<KakaoAccountAlreadyBoundMessage>();
+        case 24205: return std::make_unique<LineAccountAlreadyBoundMessage>();
+        case 24206: return std::make_unique<LineAccountBoundMessage>();
+        case 24214: return std::make_unique<FacebookAccountUnboundMessage>();
+        case 24215: return std::make_unique<KakaoAccountUnboundMessage>();
+        case 24216: return std::make_unique<LineAccountUnboundMessage>();
+        case 24220: return std::make_unique<TencentAccountBoundMessage>();
+        case 24221: return std::make_unique<TencentAccountAlreadyBoundMessage>();
+        case 24222: return std::make_unique<TencentAntiAddictionInstructionMessage>();
+        case 24223: return std::make_unique<TencentCheckCanPayResponseMessage>();
+        case 24301: return std::make_unique<AllianceDataMessage>();
+        case 24304: return std::make_unique<JoinableAllianceListMessage>();
+        case 24308: return std::make_unique<AllianceMemberMessage>();
+        case 24309: return std::make_unique<AllianceMemberRemovedMessage>();
+        case 24310: return std::make_unique<AllianceListMessage>();
+        case 24311: return std::make_unique<AllianceStreamMessage>();
+        case 24312: return std::make_unique<AllianceStreamEntryMessage>();
+        case 24313: return std::make_unique<ChangeAllianceSettingsOkMessage>();
+        case 24318: return std::make_unique<AllianceStreamEntryRemovedMessage>();
+        case 24319: return std::make_unique<TeamStreamEntryRemovedMessage>();
+        case 24321: return std::make_unique<AllianceInvitationSendFailedMessage>();
+        case 24333: return std::make_unique<AllianceResponseMessage>();
+        case 24364: return std::make_unique<AllianceTeamsMessage>();
+        case 24365: return std::make_unique<AllianceTeamRemovedMessage>();
+        case 24399: return std::make_unique<MyAllianceMessage>();
+        case 24403: return std::make_unique<LeaderboardMessage>();
+        case 24411: return std::make_unique<AvatarStreamMessage>();
+        case 24412: return std::make_unique<AvatarStreamEntryMessage>();
+        case 24413: return std::make_unique<BattleReportStreamMessage>();
+        case 24418: return std::make_unique<AvatarStreamEntryRemovedMessage>();
+        case 24555: return std::make_unique<FriendOnlineStatusEntryMessage>();
+        case 24582: return std::make_unique<TeamInviteStatusMessage>();
+        case 24589: return std::make_unique<TeamInvitationMessage>();
+        case 24700: return std::make_unique<BrawlTvChannelListMessage>();
+        case 24701: return std::make_unique<BrawlTvChannelNextUpMessage>();
+        case 24715: return std::make_unique<GlobalChatLineMessage>();
+        case 24758: return std::make_unique<ApiTokenMessage>();
+        case 24776: return std::make_unique<AllianceWarMessage>();
+        case 24777: return std::make_unique<PlayAgainStatusMessage>();
+        case 25165: return std::make_unique<SCIDAccountBoundMessage>();
+        // collision (see data/factory_notes.csv): TitanDisconnectedMessage
+        case 25892: return std::make_unique<DisconnectedMessage>();
+        case 26002: return std::make_unique<LogicDeviceLinkCodeResponseMessage>();
+        case 26003: return std::make_unique<LogicDeviceLinkNewDeviceLinkedMessage>();
+        case 26004: return std::make_unique<LogicDeviceLinkCodeDeactivatedMessage>();
+        case 26005: return std::make_unique<LogicDeviceLinkResponseMessage>();
+        case 26007: return std::make_unique<LogicDeviceLinkDoneMessage>();
+        case 26008: return std::make_unique<LogicDeviceLinkErrorMessage>();
+        case 26085: return std::make_unique<GamecenterAccountBoundMessage>();
+        case 27002: return std::make_unique<LogicAccountTransferCodeResponseMessage>();
+        case 28363: return std::make_unique<BuyBundleBillingPackResponseMessage>();
+        case 28686: return std::make_unique<SetSupportedCreatorResponseMessage>();
+        case 28689: return std::make_unique<SCIDAccountAlreadyBoundMessage>();
+        case 29001: return std::make_unique<StartLatencyTestRequestMessage>();
+        case 29002: return std::make_unique<UdpLatencyTestResponseMessage>();
+        case 29003: return std::make_unique<LatencyTestStatusMessage>();
+        case 29900: return std::make_unique<SupercellIdNotificationMessage>();
+        case 29997: return std::make_unique<CryptoErrorMessage>();
+        case 30000: return std::make_unique<AttributionMessage>();
+        case 40000: return std::make_unique<AdUpdateConversionValueMessage>();
+        default: return nullptr;
+    }
+}
+
+} // namespace titan

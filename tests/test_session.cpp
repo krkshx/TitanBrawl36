@@ -4,8 +4,8 @@
 
 #include "titan/crypto/Encrypter.hpp"
 #include "titan/gen/MessageFactory.hpp"
-#include "titan/messages/KeepAliveMessage.hpp"
-#include "titan/messages/ResetAccountMessage.hpp"
+#include "titan/messages/account/KeepAliveMessage.cpp"
+#include "titan/messages/account/ResetAccountMessage.cpp"
 #include "titan/net/Messaging.hpp"
 
 #include <cstdio>

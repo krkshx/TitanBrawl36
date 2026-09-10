@@ -21,34 +21,35 @@ if(TITAN_WARNINGS_AS_ERRORS)
 endif()
 
 # ---- Library ---------------------------------------------------------------
-# NOTE: src/gen/* is produced by tools/generate_*.py. Re-run the generators
+# NOTE: titan/gen/* is produced by tools/generate_*.py. Re-run the generators
 # after inventory updates. Per-class sources (messages/commands/game/sc) are
 # globbed: one file per class, see docs/REVERSE_STATUS.md.
-file(GLOB TITAN_MSG_SRC CONFIGURE_DEPENDS src/messages/*.cpp)
-file(GLOB TITAN_CMD_SRC CONFIGURE_DEPENDS src/commands/*.cpp)
-file(GLOB TITAN_GAME_SRC CONFIGURE_DEPENDS src/game/*.cpp)
-file(GLOB TITAN_SC_SRC CONFIGURE_DEPENDS src/sc/*.cpp)
+# Messages live in titan/messages/<family>/*.cpp (CPP-only, no headers).
+file(GLOB_RECURSE TITAN_MSG_SRC CONFIGURE_DEPENDS titan/messages/*.cpp)
+file(GLOB TITAN_CMD_SRC CONFIGURE_DEPENDS titan/commands/*.cpp)
+file(GLOB TITAN_GAME_SRC CONFIGURE_DEPENDS titan/game/*.cpp)
+file(GLOB TITAN_SC_SRC CONFIGURE_DEPENDS titan/sc/*.cpp)
 add_library(titan_core STATIC
-  src/core/ChecksumEncoder.cpp
-  src/core/ByteStream.cpp
-  src/core/BitStream.cpp
-  src/core/PiranhaMessage.cpp
+  titan/core/ChecksumEncoder.cpp
+  titan/core/ByteStream.cpp
+  titan/core/BitStream.cpp
+  titan/core/PiranhaMessage.cpp
   ${TITAN_MSG_SRC}
   ${TITAN_CMD_SRC}
   ${TITAN_GAME_SRC}
   ${TITAN_SC_SRC}
-  src/crypto/Encrypter.cpp
-  src/gen/MessageFactory.cpp
-  src/gen/LogicCommands.cpp
-  src/gen/Registry.cpp
-  src/gen/RegistryPart0.cpp
-  src/gen/RegistryPart1.cpp
-  src/gen/RegistryPart2.cpp
-  src/gen/RegistryPart3.cpp
+  titan/crypto/Encrypter.cpp
+  titan/gen/MessageFactory.cpp
+  titan/gen/LogicCommands.cpp
+  titan/gen/Registry.cpp
+  titan/gen/RegistryPart0.cpp
+  titan/gen/RegistryPart1.cpp
+  titan/gen/RegistryPart2.cpp
+  titan/gen/RegistryPart3.cpp
 )
 
 target_include_directories(titan_core PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include>
 )
 
@@ -141,5 +142,5 @@ if(TITAN_BUILD_VIEWER)
 endif()
 
 # ---- Install (keeps all platforms happy) -----------------------------------
-install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY titan/ DESTINATION include/titan)
 install(TARGETS titan_core ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)

@@ -6,7 +6,7 @@ pending reverse: overrides throw pending_reverse until their wave lands;
 the base prefix (LogicCommand::encode/decode) is real.
 
 Run:  python tools/generate_commands.py
-Out:  include/titan/gen/LogicCommands.hpp, src/gen/LogicCommands.cpp
+Out:  titan/gen/LogicCommands.hpp, titan/gen/LogicCommands.cpp
 """
 import csv
 import os
@@ -26,7 +26,7 @@ def main():
                 continue
             rows.append((int(t.strip()), c.strip()))
 
-    # Classes with handwritten bodies (src/commands/) are skipped here;
+    # Classes with handwritten bodies (titan/commands/) are skipped here;
     # the factory still covers them via HANDWRITTEN below.
     done = set()
     done_path = os.path.join(ROOT, "data", "commands_done.txt")
@@ -37,8 +37,8 @@ def main():
                 if line and not line.startswith("#"):
                     done.add(line)
 
-    gen_inc = os.path.join(ROOT, "include", "titan", "gen")
-    gen_src = os.path.join(ROOT, "src", "gen")
+    gen_inc = os.path.join(ROOT, "titan", "gen")
+    gen_src = os.path.join(ROOT, "titan", "gen")
     os.makedirs(gen_inc, exist_ok=True)
     os.makedirs(gen_src, exist_ok=True)
 
@@ -73,7 +73,7 @@ std::unique_ptr<LogicCommand> decodeSingleCommand(ByteStream& s);
             if c == "LogicCommand":
                 continue  # base itself (type 511); see below
             if c in done:
-                continue  # handwritten real body in src/commands/
+                continue  # handwritten real body in titan/commands/
             fh.write("class %s : public LogicCommand {\n"
                      "public:\n"
                      "    int getCommandType() const override { return %d; }\n"
@@ -96,7 +96,7 @@ std::unique_ptr<LogicCommand> decodeSingleCommand(ByteStream& s);
                  '#include "titan/gen/LogicCommands.hpp"\n')
         import glob as _glob
         for path in sorted(_glob.glob(os.path.join(
-                ROOT, "include", "titan", "commands", "Logic*Command.hpp"))):
+                ROOT, "titan", "commands", "Logic*Command.hpp"))):
             fh.write('#include "titan/commands/%s"\n'
                      % os.path.basename(path))
         fh.write("\nnamespace titan {\n\n"

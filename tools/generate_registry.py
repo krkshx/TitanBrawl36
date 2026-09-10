@@ -7,9 +7,9 @@ Every function known to IDA ends up in the registry with a status:
   Pending            - game code still to reverse
 
 Run:  python tools/generate_registry.py
-Out:  include/titan/gen/FunctionRegistry.hpp
-      src/gen/Registry_N.cpp (4 translation units, sharded for fast builds)
-      src/gen/Registry.cpp   (aggregator: counts + address lookup)
+Out:  titan/gen/FunctionRegistry.hpp
+      titan/gen/Registry_N.cpp (4 translation units, sharded for fast builds)
+      titan/gen/Registry.cpp   (aggregator: counts + address lookup)
 """
 import csv
 import glob
@@ -32,7 +32,7 @@ THIRD_PARTY_MARKERS = [
     "FCC_", "af_", "bdf_", "pcf_", "fnt_", "svg_", "wmem", "locale_",
 ]
 
-# Mangled names of functions already hand-reimplemented in src/.
+# Mangled names of functions already hand-reimplemented in titan/.
 REIMPLEMENTED = {
     "_ZN15ChecksumEncoder12writeBooleanEb",
     "_ZN15ChecksumEncoder9writeVIntEi",
@@ -346,8 +346,8 @@ def main():
                 rows.append((rec["address"], rec["name"], rec["size"]))
     rows.sort(key=lambda r: int(r[0], 16))
 
-    gen_inc = os.path.join(ROOT, "include", "titan", "gen")
-    gen_src = os.path.join(ROOT, "src", "gen")
+    gen_inc = os.path.join(ROOT, "titan", "gen")
+    gen_src = os.path.join(ROOT, "titan", "gen")
     os.makedirs(gen_inc, exist_ok=True)
     os.makedirs(gen_src, exist_ok=True)
 

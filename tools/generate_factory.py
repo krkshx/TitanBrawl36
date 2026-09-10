@@ -10,8 +10,9 @@ value); the factory picks the first alphabetically and lists the others
 in a comment until version-based disambiguation is reversed.
 
 Run:  python tools/generate_factory.py
-Out:  include/titan/gen/MessageFactory.hpp, src/gen/MessageFactory.cpp
+Out:  titan/gen/MessageFactory.hpp, titan/gen/MessageFactory.cpp
 """
+import glob
 import json
 import os
 from collections import defaultdict
@@ -34,25 +35,20 @@ EXTRA_IDS = {
     "KeepAliveServerMessage": 20108,
 }
 
-# Class -> header (batches own their classes; specials listed explicitly).
+# Class -> source TU (families own their classes; specials listed explicitly).
 HEADER_OF = {
-    "ResetAccountMessage": "titan/messages/ResetAccountMessage.hpp",
-    "KeepAliveMessage": "titan/messages/KeepAliveMessage.hpp",
-    "KeepAliveServerMessage": "titan/messages/KeepAliveServerMessage.hpp",
+    "ResetAccountMessage": "titan/messages/account/ResetAccountMessage.cpp",
+    "KeepAliveMessage": "titan/messages/account/KeepAliveMessage.cpp",
+    "KeepAliveServerMessage": "titan/messages/account/KeepAliveServerMessage.cpp",
 }
 
 
 def header_for(cls, batches):
     if cls in HEADER_OF:
         return HEADER_OF[cls]
-    per_class = os.path.join(ROOT, "include", "titan", "messages", cls + ".hpp")
-    if os.path.exists(per_class):
-        return "titan/messages/%s.hpp" % cls
-    for n, members in batches.items():
-        if cls in members:
-            return f"titan/messages/MsgBatch{n:02d}.hpp"
-    if cls in EXTRA_IDS:
-        return "titan/messages/MsgBatch14.hpp"
+    hits = sorted(glob.glob(os.path.join(ROOT, "titan", "messages", "*", cls + ".cpp")))
+    if hits:
+        return os.path.relpath(hits[0], ROOT)
     raise KeyError(cls)
 
 
@@ -74,8 +70,8 @@ def main():
     headers = sorted({header_for(c, {n: batches[n] for n in range(len(batches))})
                       for c in ids})
 
-    gen_inc = os.path.join(ROOT, "include", "titan", "gen")
-    gen_src = os.path.join(ROOT, "src", "gen")
+    gen_inc = os.path.join(ROOT, "titan", "gen")
+    gen_src = os.path.join(ROOT, "titan", "gen")
     os.makedirs(gen_inc, exist_ok=True)
     os.makedirs(gen_src, exist_ok=True)
 

@@ -9,14 +9,14 @@ tables without a known binary class get a derived name + REVIEW mark.
 NOT registry-counted: facades are column-driven, not per-function reverses.
 
 Run:  python3 tools/gen_dataclasses.py
-Out:  include/titan/game/Logic<X>Data.hpp
+Out:  titan/game/Logic<X>Data.hpp
 """
 import csv
 import os
 import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "include", "titan", "game")
+OUT = os.path.join(ROOT, "titan", "game")
 MAP = os.path.join(ROOT, "data", "datatable_map.csv")
 ASSETS = os.environ.get("TITAN_ASSETS",
                          os.path.join(ROOT, "assets"))

@@ -7,12 +7,12 @@ docs/REVERSE_STATUS.md). Every subclass calls BaseNotification::encode
 first, then its own fields; decodes mirror the encodes.
 
 Run:  python3 tools/gen_notifications.py
-Out:  include/titan/game/<Class>.hpp
+Out:  titan/game/<Class>.hpp
 """
 import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "include", "titan", "game")
+OUT = os.path.join(ROOT, "titan", "game")
 
 
 def emit(cls, tid, enc, dec, typ, doc, members, enc_body, dec_body):

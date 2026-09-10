@@ -12,7 +12,7 @@
 #include "titan/game/FreeTextNotification.hpp"
 #include "titan/game/ForcedDrops.hpp"
 #include "titan/gen/MessageFactory.hpp"
-#include "titan/messages/OwnHomeDataMessage.hpp"
+#include "titan/messages/home/OwnHomeDataMessage.cpp"
 #include "titan/net/Messaging.hpp"
 
 #include <QFileDialog>

@@ -159,15 +159,18 @@ proves them (`getDiamonds`); garbage names are never invented.
 
 ## Layout rule (strict): one class per file, one home per class
 
-- `include/titan/messages/<Class>.hpp` (+ `src/messages/<Class>.cpp`
-  when it has out-of-line bodies) — 335 messages.
-- `include/titan/commands/<Class>.hpp` — 59 commands.
-- `include/titan/game/<Class>.hpp` (+ `src/game/<Class>.cpp` when big) —
+- `titan/messages/<family>/<Class>.cpp` — 335 messages, CPP-only, no
+  headers. Families: `account alliance battle billing device events home
+  player ranking scid social sys team tv`. Out-of-line bodies are
+  `inline`; shared bases live in `messages/Common.cpp`
+  (`MessagePrelude.cpp`, `Nested.cpp` alongside); the aggregate
+  `messages/AllMessages.cpp` is generated.
+- `titan/commands/<Class>.hpp` — 59 commands.
+- `titan/game/<Class>.hpp` (+ `titan/game/<Class>.cpp` when big) —
   every reversed nested/data class lives here, no exceptions.
-- `include/titan/messages/pending/` — ONLY not-yet-reversed stubs
+- `titan/messages/pending/` — ONLY not-yet-reversed stubs
   (`TITAN_PENDING_ENTRY`) plus documented `using` aliases where the stub
   name differs from the binary's class. No forwarders: when a stub gets
   reversed, its pending file is DELETED and includers switch to `game/`.
-- Shared bases live in `messages/Common.hpp`; aggregates
-  (`AllMessages.hpp`, `AllCommands.hpp`) are generated.
+- `AllCommands.hpp` is generated.
 - New code must follow this: no two message/command classes share a file.
