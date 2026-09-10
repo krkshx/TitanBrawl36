@@ -43,6 +43,7 @@ add_library(titan_core STATIC
   src/messages/MsgBatch13.cpp
   src/messages/MsgBatch14.cpp
   src/game/LogicCompressedString.cpp
+  src/gen/MessageFactory.cpp
   src/gen/Registry.cpp
   src/gen/RegistryPart0.cpp
   src/gen/RegistryPart1.cpp
@@ -79,6 +80,10 @@ if(TITAN_BUILD_TESTS)
   add_executable(titan_msgbatch_test tests/test_msgbatch.cpp)
   target_link_libraries(titan_msgbatch_test PRIVATE titan_core)
   add_test(NAME msgbatch COMMAND titan_msgbatch_test)
+
+  add_executable(titan_factory_test tests/test_factory.cpp)
+  target_link_libraries(titan_factory_test PRIVATE titan_core)
+  add_test(NAME factory COMMAND titan_factory_test)
 endif()
 
 # ---- Install (keeps all platforms happy) -----------------------------------
