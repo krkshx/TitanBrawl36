@@ -2,10 +2,13 @@
 
 #include "HomeViewer.hpp"
 
+#include "titan/game/ChronosTextEntry.hpp"
 #include "titan/game/LogicClientAvatar.hpp"
 #include "titan/game/LogicClientHome.hpp"
 #include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicDailyData.hpp"
+#include "titan/game/LogicGemOffer.hpp"
+#include "titan/game/LogicOfferBundle.hpp"
 #include "titan/game/FreeTextNotification.hpp"
 #include "titan/game/ForcedDrops.hpp"
 #include "titan/gen/MessageFactory.hpp"
@@ -151,10 +154,13 @@ HomeViewer::HomeViewer(QWidget* parent) : QMainWindow(parent) {
     cards_ = new HeroCards();
     notifs_ = new QTreeWidget();
     notifs_->setHeaderLabels({"notification", "detail"});
+    shop_ = new QTreeWidget();
+    shop_->setHeaderLabels({"offer", "detail"});
     auto* tabs = new QTabWidget(this);
     tabs->addTab(splitter, "Data");
     tabs->addTab(cards_, "Heroes");
     tabs->addTab(notifs_, "Notifications");
+    tabs->addTab(shop_, "Shop");
 
     demoBtn_ = new QPushButton("Build demo OwnHomeData", this);
     loadBtn_ = new QPushButton("Load .bin capture…", this);
@@ -212,11 +218,32 @@ void HomeViewer::showFrame(const std::vector<u8>& frame) {
                                  << detail);
             }
         }
+        shop_->clear();
+        if (home->home_ && home->home_->daily_) {
+            int idx = 0;
+            for (const auto& o : home->home_->daily_->offers_) {
+                QString detail;
+                if (o) {
+                    detail = QString("%1 gems, v24=%2 v28=%3")
+                                 .arg(o->gems_.size())
+                                 .arg(o->v24_)
+                                 .arg(o->v28_);
+                    if (o->str_) {
+                        detail += QString(" \"%1\"").arg(
+                            QString::fromStdString(*o->str_));
+                    }
+                }
+                new QTreeWidgetItem(
+                    shop_, QStringList()
+                               << QString("offer %1").arg(idx++) << detail);
+            }
+        }
         statusBar()->showMessage(
             QString("decoded %1 (%2 bytes)").arg(home->getMessageTypeName()).arg(frame.size()));
     } else {
         tree_->clear();
         notifs_->clear();
+        shop_->clear();
         cards_->setData(nullptr, nullptr);
         auto* root = new QTreeWidgetItem(
             tree_, QStringList() << QString::fromStdString(m->getMessageTypeName())
@@ -230,6 +257,7 @@ void HomeViewer::showFrame(const std::vector<u8>& frame) {
 void HomeViewer::showError(const QString& what) {
     tree_->clear();
     notifs_->clear();
+    shop_->clear();
     hex_->clear();
     statusBar()->showMessage("error: " + what);
 }
@@ -253,6 +281,16 @@ void HomeViewer::onDemo() {
     note->v8_ = 1;
     note->s24_ = std::string("Welcome back!");
     m.home_->notifications_.emplace_back(81, std::move(note));
+    auto offer = std::make_unique<titan::LogicOfferBundle>();
+    offer->v24_ = 1;
+    offer->v28_ = 2;
+    offer->str_ = std::string("starter");
+    auto gem = std::make_unique<titan::LogicGemOffer>();
+    gem->v0_ = 7;
+    offer->gems_.push_back(std::move(gem));
+    offer->text_ = std::make_unique<titan::ChronosTextEntry>();
+    offer->text_->text_ = std::string("bundle");
+    m.home_->daily_->offers_.push_back(std::move(offer));
     m.f152_ = 1;
     showFrame(titan::net::encodeFrame(m));
 }

@@ -85,6 +85,7 @@
 #include "titan/game/VanityItemEntry.hpp"
 #include "titan/game/VanityItemProp.hpp"
 #include "titan/game/XpEntry.hpp"
+#include "titan/game/LogicData.hpp"
 #include "titan/game/VanityItems.hpp"
 #include "titan/game/TimedOffer.hpp"
 #include "titan/game/LogicPlayerMap.hpp"
@@ -477,6 +478,21 @@ int main() {
         VanityItems back2;
         entryRoundTrip<VanityItems>([](VanityItems&) {}, back2);
         CHECK(back2.items_.empty());
+    }
+    {
+        // VanityItems::has/add (@0x448ce8/@0x8a55b4, identity semantics).
+        VanityItems items;
+        LogicData emote(nullptr, 14, 0);
+        CHECK(!items.has(emote));
+        items.add(emote);
+        CHECK(items.has(emote));
+        LogicData other(nullptr, 14, 1);
+        CHECK(!items.has(other));
+        items.add(emote); // duplicate -> no-op
+        CHECK(items.items_.size() == 1);
+        CHECK(items.items_[0]->props_.size() == 1);
+        CHECK(items.items_[0]->props_[0]->a_ == 1);
+        CHECK(items.items_[0]->props_[0]->b_ == 1);
     }
     // BitList (@0x9740d8/@0x5c241c, C2 @0x7c7788) + users.
     {

@@ -39,6 +39,7 @@ private:
     QTextEdit* hex_;
     HeroCards* cards_;
     QTreeWidget* notifs_;
+    QTreeWidget* shop_;
     QPushButton* demoBtn_;
     QPushButton* loadBtn_;
     std::unique_ptr<titan::PiranhaMessage> last_;
