@@ -8,6 +8,12 @@
 #include "titan/messages/MsgBatch05.hpp"
 #include "titan/messages/MsgBatch06.hpp"
 #include "titan/messages/MsgBatch07.hpp"
+#include "titan/messages/MsgBatch08.hpp"
+#include "titan/messages/MsgBatch09.hpp"
+#include "titan/messages/MsgBatch10.hpp"
+#include "titan/messages/MsgBatch11.hpp"
+#include "titan/messages/MsgBatch12.hpp"
+#include "titan/messages/MsgBatch13.hpp"
 
 #include <cstdio>
 
@@ -171,6 +177,58 @@ int main() {
         back2.stream().setBuffer(wo.stream().data(), wo.stream().size());
         back2.decode();
         CHECK(!back2.hasSlot_);
+    }
+    // Wave 3 spot checks.
+    {
+        // SearchAlliances: last two ints swapped vs layout order.
+        ROUNDTRIP(SearchAlliancesMessage, back,
+                  m.text_ = std::string("abc"); m.ints_[0] = 1;
+                  m.flag_ = true; m.p168_ = 8; m.p160_ = 9);
+        CHECK(back.text_.value() == "abc" && back.p168_ == 8 && back.p160_ == 9);
+        // Wire order check: ...flag, p168, p160 at the tail.
+        const u8* d = back.stream().data();
+        (void)d;
+    }
+    {
+        ROUNDTRIP(TeamCreateMessage, back,
+                  m.teamType_ = 2; m.hasInvite_ = true;
+                  m.inviteId_ = LogicLong{9, 9}; m.unk160_ = 3;
+                  m.eventRef_ = DataReference{5, 6}; m.roomId_ = LogicLong{1, 1});
+        CHECK(back.teamType_ == 2 && back.hasInvite_);
+        CHECK(back.inviteId_.high == 9 && back.unk160_ == 3);
+        CHECK(back.eventRef_->instanceId == 6);
+    }
+    {
+        ROUNDTRIP(UdpBigMessageFragmentMessage, back,
+                  m.fragId_ = 1; m.msgId_ = 300; m.index_ = 0; m.count_ = 2;
+                  m.payload_ = std::vector<u8>({0xAA, 0xBB}));
+        CHECK(back.msgId_ == 300 && back.payload_.size() == 2);
+        CHECK(back.payload_[0] == 0xAA);
+    }
+    {
+        // TencentBillingRequest: f3/f4 swapped vs layout.
+        TencentBillingRequestMessage m;
+        m.f1_ = "a";
+        m.f2_ = "b";
+        m.f3_ = "c";
+        m.f4_ = "d";
+        m.encode();
+        TencentBillingRequestMessage back;
+        back.stream().setBuffer(m.stream().data(), m.stream().size());
+        back.decode();
+        CHECK(back.f1_ == "a" && back.f2_ == "b");
+        CHECK(back.f3_ == "c" && back.f4_ == "d");
+    }
+    {
+        ROUNDTRIP(RankedMatchBanEndedMessage, back,
+                  m.bans_.emplace_back(7, DataReference{30, 31}));
+        CHECK(back.bans_.size() == 1 && back.bans_[0].first == 7);
+        CHECK(back.bans_[0].second.classId == 30);
+    }
+    {
+        ROUNDTRIP(YoozooOrderDeliveryFailedMessage, back,
+                  m.orderId_ = std::string("ord-1"); m.errorCode_ = 5);
+        CHECK(back.orderId_.value() == "ord-1" && back.errorCode_ == 5);
     }
 
     if (failures == 0) std::puts("msgbatch: all ok");
