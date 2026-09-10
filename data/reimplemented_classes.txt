@@ -520,3 +520,11 @@ AllianceRankingData
 PlayerRankingData
 RankingEntry
 LogicRewards
+AnalyticEvent
+LogicJSONArray
+LogicJSONBoolean
+LogicJSONNull
+LogicJSONNumber
+LogicJSONObject
+LogicJSONParser
+LogicJSONString

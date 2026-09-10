@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2060 reimplemented, 9717 third-party, 25287 pending**
+Registry (compiled in): **2096 reimplemented, 9717 third-party, 25251 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2060 fns | `src/` + tests |
-| Game code pending | 25287 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2096 fns | `src/` + tests |
+| Game code pending | 25251 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -73,7 +73,13 @@ Registry (compiled in): **2060 reimplemented, 9717 third-party, 25287 pending**
   `RankingEntry` (`@0x770f68/@0x88e8d8`; slots resolved to
   `PlayerRankingData` (`@0x8a6d9c`) + `AllianceRankingData` (`@0x6ef580`))
   + `decodeLogicLong` helper.
-  Deferred: `AnalyticEvent` (`@0x2787dc`, needs LogicJSONParser subsystem).
+  JSON subsystem: node model (Null/Boolean/Number/String/Array/Object),
+  recursive-descent parser (BOM skip, ws<=32, escapes incl. \uXXXX, int
+  exact / float-through-float32, empty forms, fail->null) and compact
+  serializer — verified against parseValue @0x8909a4, parseObject @0x90fb70,
+  parseArray @0x6ef9d0, parseNumber @0x7c35ec, writeString @0x614418,
+  writeToString ×6, createJSONString @0x595724.
+  `AnalyticEvent` (`@0x2787dc/@0x945888`) live via JSON (own test_json).
 
 ## Verify flags (against live captures later)
 

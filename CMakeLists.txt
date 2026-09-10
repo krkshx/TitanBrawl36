@@ -114,6 +114,10 @@ if(TITAN_BUILD_TESTS)
   add_executable(titan_entries_test tests/test_entries.cpp)
   target_link_libraries(titan_entries_test PRIVATE titan_core)
   add_test(NAME entries COMMAND titan_entries_test)
+
+  add_executable(titan_json_test tests/test_json.cpp)
+  target_link_libraries(titan_json_test PRIVATE titan_core)
+  add_test(NAME json COMMAND titan_json_test)
 endif()
 
 # ---- Install (keeps all platforms happy) -----------------------------------
