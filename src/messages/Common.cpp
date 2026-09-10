@@ -4,7 +4,7 @@
 
 namespace titan {
 
-// ---- AllianceSettingsBase (14316 + 14301) ----
+
 void AllianceSettingsBase::encodeSettings() {
     stream().writeString(name_ ? &*name_ : nullptr);
     stream().writeString(description_ ? &*description_ : nullptr);
@@ -24,7 +24,7 @@ void AllianceSettingsBase::decodeSettings() {
     familyFriendly_ = stream().readBoolean();
 }
 
-// ---- PlayingFriendsQuery family ----
+
 void PlayingFriendsQuery::encodeIds(bool useVInt, bool useRef) {
     if (null_) {
         if (useVInt) stream().writeVInt(-1);
@@ -48,7 +48,7 @@ void PlayingFriendsQuery::decodeIds(bool useVInt, bool useRef) {
     }
 }
 
-// ---- Bind* family ----
+
 void BindAccountMessage::encodeBind() {
     if (hasForce_) stream().writeBoolean(force_);
     stream().writeString(accountId_ ? &*accountId_ : nullptr);
@@ -67,6 +67,29 @@ void BindAccountMessage::decodeBind() {
     blobs_.clear();
     for (int i = 0; i < blobCount_; ++i) blobs_.push_back(stream().readBytes());
     if (hasVintTail_) vintTail_ = stream().readVInt();
+}
+
+// Wire: string id, bool hasAvatar, [logiclong], string name,
+// [bool flag], LogicClientAvatar, [string extra].
+void AccountAlreadyBoundBase::encodeBound(bool hasFlag, bool hasExtra) {
+    stream().writeString(accountId_ ? &*accountId_ : nullptr);
+    stream().writeBoolean(hasAvatarId_);
+    if (hasAvatarId_) avatarId_.encode(stream());
+    stream().writeString(avatarName_ ? &*avatarName_ : nullptr);
+    if (hasFlag) stream().writeBoolean(flag_);
+    if (!avatar_) throw pending_reverse("AccountAlreadyBound needs LogicClientAvatar");
+    avatar_->encode(stream());
+    if (hasExtra) stream().writeString(extra_ ? &*extra_ : nullptr);
+}
+void AccountAlreadyBoundBase::decodeBound(bool hasFlag, bool hasExtra) {
+    accountId_ = stream().readString();
+    hasAvatarId_ = stream().readBoolean();
+    if (hasAvatarId_) avatarId_ = LogicLong::decode(stream());
+    avatarName_ = stream().readString();
+    if (hasFlag) flag_ = stream().readBoolean();
+    avatar_ = std::make_unique<LogicClientAvatar>();
+    avatar_->decode(stream());
+    if (hasExtra) extra_ = stream().readString();
 }
 
 } // namespace titan

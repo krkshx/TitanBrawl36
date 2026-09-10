@@ -6,6 +6,7 @@
 #include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
 #include "titan/core/PiranhaMessage.hpp"
+#include "titan/game/LogicClientAvatar.hpp"
 #include "titan/game/LogicCompressedString.hpp"
 #include "titan/messages/Nested.hpp"
 #include "titan/messages/pending/LogicRankedMatchPlayer.hpp"
@@ -66,6 +67,19 @@ public:
     i32 vintTail_ = 0;
     bool hasVintTail_ = false;
     int blobCount_ = 0; // 0 or 3 depending on subclass
+};
+
+// Shared shape for *AccountAlreadyBound: string id, bool hasAvatar,
+// [logiclong], string name, [bool flag], LogicClientAvatar, [string extra].
+class AccountAlreadyBoundBase : public PiranhaMessage {
+public:
+    void encodeBound(bool hasFlag, bool hasExtra);
+    void decodeBound(bool hasFlag, bool hasExtra);
+    std::optional<std::string> accountId_, avatarName_, extra_;
+    bool hasAvatarId_ = false;
+    LogicLong avatarId_;
+    bool flag_ = false;
+    std::unique_ptr<LogicClientAvatar> avatar_;
 };
 
 // VInt-counted arrays of nested entries.
