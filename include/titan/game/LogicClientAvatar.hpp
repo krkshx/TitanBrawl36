@@ -1,36 +1,19 @@
 #pragma once
 
-// LogicClientAvatar + LogicDataSlot — reversed from libg_decrypted.so (ARM64).
+// LogicClientAvatar::encode/decode (field order verified against binary).
+// Wire: 3x logiclong, stringref name, bool, int, vint(8, version-checked),
+// 8x (vint count + LogicDataSlot array), 9x vint.
+// Split out of the old LogicClientAvatar.hpp; wire format unchanged.
 
-#include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
+#include "titan/game/LogicDataSlot.hpp"
 #include "titan/messages/Nested.hpp"
 
-#include <optional>
 #include <string>
 #include <vector>
 
 namespace titan {
 
-// LogicDataSlot::encode @0x7646e4, decode @0x2d49cc.
-// Wire: dataref + vint count.
-class LogicDataSlot : public NestedEntry {
-public:
-    void encode(ByteStream& s) const override {
-        DataReference::encodeNullable(s, data_);
-        s.writeVInt(count_);
-    }
-    void decode(ByteStream& s) override {
-        data_ = DataReference::decodeNullable(s);
-        count_ = s.readVInt();
-    }
-    std::optional<DataReference> data_;
-    i32 count_ = 0;
-};
-
-// LogicClientAvatar::encode/decode (field order verified against binary).
-// Wire: 3x logiclong, stringref name, bool, int, vint(8, version-checked),
-// 8x (vint count + LogicDataSlot array), 9x vint.
 class LogicClientAvatar : public NestedEntry {
 public:
     static constexpr i32 kVersion = 8;

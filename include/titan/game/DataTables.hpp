@@ -3,31 +3,17 @@
 // DataTables — CSV-backed game data, mirroring LogicDataTables.
 //
 // Table map: LogicResources::createDataTableResourcesArray @0x421b04
-// (see data/datatable_map.csv). CSV dialect (Supercell): row 0 = column
-// names, row 1 = column types, rows 2+ = data; comma-separated with
-// double-quoted fields. instanceId = data-row index (0-based), so
+// (see data/datatable_map.csv). instanceId = data-row index (0-based), so
 // GlobalID = classId * 1000000 + row.
+// Split out of the old DataTables.hpp (CsvTable lives in CsvTable.hpp).
 
+#include "titan/game/CsvTable.hpp"
 #include "titan/game/GlobalID.hpp"
 
-#include <cstdint>
-#include <optional>
 #include <string>
 #include <vector>
 
 namespace titan {
-
-struct CsvTable {
-    std::vector<std::string> columns;
-    std::vector<std::string> types;
-    std::vector<std::vector<std::string>> rows; // rows[i] == instance i
-
-    [[nodiscard]] int columnIndex(const std::string& name) const;
-    [[nodiscard]] std::string get(int row, const std::string& col,
-                                  const std::string& fallback = "") const;
-    [[nodiscard]] int getInt(int row, const std::string& col, int fallback = 0) const;
-    [[nodiscard]] bool getBool(int row, const std::string& col, bool fallback = false) const;
-};
 
 class DataTables {
 public:
@@ -49,8 +35,5 @@ private:
     };
     std::vector<Entry> entries_;
 };
-
-// Standalone CSV dialect parser (also unit-tested).
-CsvTable parseCsv(const std::string& text);
 
 } // namespace titan
