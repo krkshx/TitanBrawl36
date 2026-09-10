@@ -1,11 +1,6 @@
 #pragma once
 
-// LogicBattleEmotes — not yet reversed; encode/decode throw pending_reverse.
+// LogicBattleEmotes — reversed (see game/LogicBattleEmotes.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LogicBattleEmotes);
-
-} // namespace titan
+#include "titan/game/LogicBattleEmotes.hpp"

@@ -1,11 +1,6 @@
 #pragma once
 
-// LogicHeroUpgrades — not yet reversed; encode/decode throw pending_reverse.
+// LogicHeroUpgrades — reversed (see game/LogicHeroUpgrades.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LogicHeroUpgrades);
-
-} // namespace titan
+#include "titan/game/LogicHeroUpgrades.hpp"

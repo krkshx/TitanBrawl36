@@ -135,6 +135,8 @@ REIMPLEMENTED_EXTRA = {
     "GatchaDrop": ("6encodeE", "6decodeE"),
     "HeroEntry": ("6encodeE", "6decodeE"),
     "LogicPlayer": ("6encodeE", "6decodeE"),
+    "LogicHeroUpgrades": ("6encodeE", "6decodeE"),
+    "LogicBattleEmotes": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

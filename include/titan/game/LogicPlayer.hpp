@@ -10,10 +10,10 @@
 
 #include "titan/core/DataReference.hpp"
 #include "titan/core/LogicLong.hpp"
+#include "titan/game/LogicBattleEmotes.hpp"
+#include "titan/game/LogicHeroUpgrades.hpp"
 #include "titan/game/PlayerDisplayData.hpp"
 #include "titan/messages/Nested.hpp"
-#include "titan/messages/pending/LogicBattleEmotes.hpp"
-#include "titan/messages/pending/LogicHeroUpgrades.hpp"
 
 #include <memory>
 #include <optional>

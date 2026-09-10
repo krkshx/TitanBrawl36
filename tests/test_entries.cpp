@@ -12,8 +12,10 @@
 #include "titan/game/GatchaDrop.hpp"
 #include "titan/game/HeroEntry.hpp"
 #include "titan/game/LogicBitList.hpp"
+#include "titan/game/LogicBattleEmotes.hpp"
 #include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicCondition.hpp"
+#include "titan/game/LogicHeroUpgrades.hpp"
 #include "titan/game/LogicPlayer.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
@@ -701,6 +703,42 @@ int main() {
         CHECK(!back.ref56_ && back.ref24_.has_value());
         CHECK(!back.upgrades_ && !back.emotes_);
         CHECK(back.display_ && back.b296_);
+    }
+    // HeroUpgrades/Emotes (@0x5d26c8, @0x759184) + full player.
+    {
+        LogicHeroUpgrades back;
+        entryRoundTrip<LogicHeroUpgrades>(
+            [](LogicHeroUpgrades& e) {
+                e.v0_ = 2;
+                e.ref8_ = DataReference{16, 1};
+            },
+            back);
+        CHECK(back.v0_ == 2 && back.ref8_.has_value() && !back.ref16_);
+    }
+    {
+        LogicBattleEmotes back;
+        entryRoundTrip<LogicBattleEmotes>(
+            [](LogicBattleEmotes& e) {
+                e.emotes_.push_back(DataReference{16, 5});
+                e.emotes_.push_back(DataReference{16, 6});
+            },
+            back);
+        CHECK(back.emotes_.size() == 2 && back.emotes_[1].instanceId == 6);
+    }
+    {
+        // Player with optionals set (closes the avatar loop).
+        LogicPlayer back;
+        entryRoundTrip<LogicPlayer>(
+            [](LogicPlayer& e) {
+                e.display_ = std::make_unique<PlayerDisplayData>();
+                e.upgrades_ = std::make_unique<LogicHeroUpgrades>();
+                e.upgrades_->v0_ = 1;
+                e.emotes_ = std::make_unique<LogicBattleEmotes>();
+                e.emotes_->emotes_.push_back(DataReference{16, 0});
+            },
+            back);
+        CHECK(back.upgrades_ && back.upgrades_->v0_ == 1);
+        CHECK(back.emotes_ && back.emotes_->emotes_.size() == 1);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

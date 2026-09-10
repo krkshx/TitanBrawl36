@@ -6376,7 +6376,7 @@ extern const Entry kPart1[] = {
     {0x05D2640, Status::Pending, "_ZNK13LogicSkinData13getCostInGemsEv", "LogicSkinData13getCostInGemsEv"},
     {0x05D2650, Status::Pending, "_ZN10FriendItem11refreshIconEP9MovieClipRK6Stringb", "FriendItem11refreshIconEP9MovieClipRK6Stringb"},
     {0x05D2678, Status::ThirdPartyExternal, "_ZN9WaitUntilC2ENSt6__ndk18functionIFbvEEE", "WaitUntilC2ENSt6__ndk18functionIFbvEEE"},
-    {0x05D26C8, Status::Pending, "_ZN17LogicHeroUpgrades6encodeEP15ChecksumEncoder", "LogicHeroUpgrades6encodeEP15ChecksumEncoder"},
+    {0x05D26C8, Status::Reimplemented, "_ZN17LogicHeroUpgrades6encodeEP15ChecksumEncoder", "LogicHeroUpgrades6encodeEP15ChecksumEncoder"},
     {0x05D2710, Status::Pending, "_ZNK17LogicGameCalendar6encodeEP15ChecksumEncoder", "LogicGameCalendar6encodeEP15ChecksumEncoder"},
     {0x05D27CC, Status::Pending, "_ZN8GameMain19updateDeviceProfileEv", "GameMain19updateDeviceProfileEv"},
     {0x05D2EB4, Status::Pending, "_ZN17LogicGamePlayUtil18isBallOnPathToGoalEP20LogicCharacterServerP12LogicTileMap", "LogicGamePlayUtil18isBallOnPathToGoalEP20LogicCh"},

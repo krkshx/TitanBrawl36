@@ -449,3 +449,5 @@ VanityItemProp
 GatchaDrop
 HeroEntry
 LogicPlayer
+LogicBattleEmotes
+LogicHeroUpgrades
