@@ -152,6 +152,11 @@ wire format or logic is observable. Progress is enforced by
 `tools/generate_registry.py`: the registry lists all 37,064 functions and
 their status, and it is compiled into the binary.
 
+Field naming: the binary carries NO field names (verified — IDA holds no
+game struct layouts, only method symbols). Fields therefore cite binary
+offsets (`v144_` = `*(this+144)`) and earn semantic names once a getter
+proves them (`getDiamonds`); garbage names are never invented.
+
 ## Layout rule (strict): one class per file, one home per class
 
 - `include/titan/messages/<Class>.hpp` (+ `src/messages/<Class>.cpp`
