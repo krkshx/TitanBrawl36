@@ -52,3 +52,14 @@ Every new function cites its IDA address and lands with a test where the
 wire format or logic is observable. Progress is enforced by
 `tools/generate_registry.py`: the registry lists all 37,064 functions and
 their status, and it is compiled into the binary.
+
+## Layout rule (strict): one class per file
+
+- `include/titan/messages/<Class>.hpp` (+ `src/messages/<Class>.cpp`
+  when it has out-of-line bodies) — 335 messages.
+- `include/titan/commands/<Class>.hpp` — 59 commands.
+- `include/titan/messages/pending/<Name>.hpp` — one pending nested entry
+  per file (replaced in place by the real class when reversed).
+- Shared bases live in `messages/Common.hpp`; aggregates
+  (`AllMessages.hpp`, `AllCommands.hpp`) are generated.
+- New code must follow this: no two message/command classes share a file.
