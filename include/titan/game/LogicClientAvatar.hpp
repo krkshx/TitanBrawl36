@@ -75,6 +75,17 @@ public:
     std::vector<LogicDataSlot> slots_[8];
     i32 v144_ = 0, v148_ = 0, v136_ = 0, v140_ = 0, v152_ = 0;
     i32 v168_ = 0, v172_ = 0, v176_ = 0, v180_ = 0;
+
+    // Named currency accessors (offsets verified via IDA):
+    // diamonds +144 (get @0x6f4528, set @0x1bf950),
+    // freeDiamonds +148 (get @0x771348, set @0x615f48),
+    // cumulativePurchasedDiamonds +152 (add @0x908b84).
+    [[nodiscard]] i32 getDiamonds() const { return v144_; }
+    void setDiamonds(i32 v) { v144_ = v; }
+    [[nodiscard]] i32 getFreeDiamonds() const { return v148_; }
+    void setFreeDiamonds(i32 v) { v148_ = v; }
+    void addCumulativePurchasedDiamonds(i32 v) { v152_ += v; }
+    [[nodiscard]] i32 getCumulativePurchasedDiamonds() const { return v152_; }
 };
 
 } // namespace titan

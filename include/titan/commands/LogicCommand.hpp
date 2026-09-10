@@ -12,9 +12,15 @@
 // LogicLong(+20); decode @0x513270 mirrors. Ctor @0x49c8c4 defaults:
 // flag=0, +12=-1, +16=-1, long 0/0.
 //
+// Gameplay semantics: execute(home, a, b) runs the command against
+// LogicHomeMode (e.g. DiamondsAdded @0x44d194). The base default is a
+// no-op; each command overrides it in its own wave. GameListener UI
+// callbacks inside execute() are platform code and skipped explicitly.
+//
 // Manager-level helpers live in titan/gen/LogicCommands.hpp (generated).
 
 #include "titan/core/LogicLong.hpp"
+#include "titan/game/LogicHomeMode.hpp"
 #include "titan/messages/Nested.hpp"
 
 namespace titan {
@@ -25,6 +31,12 @@ public:
     ~LogicCommand() override = default;
 
     virtual int getCommandType() const = 0;
+    virtual int execute(LogicHomeMode* home, int a, bool b) {
+        (void)home;
+        (void)a;
+        (void)b;
+        return 0;
+    }
 
     void encode(ByteStream& s) const override {
         s.writeVInt(v16_);

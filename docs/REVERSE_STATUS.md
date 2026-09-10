@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2102 reimplemented, 9717 third-party, 25245 pending**
+Registry (compiled in): **2111 reimplemented, 9717 third-party, 25236 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2102 fns | `src/` + tests |
-| Game code pending | 25245 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2111 fns | `src/` + tests |
+| Game code pending | 25236 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -62,6 +62,13 @@ Registry (compiled in): **2102 reimplemented, 9717 third-party, 25245 pending**
   `LogicPlayerRankedSeasonData` (`@0x286950/@0x97acd8`) + `LogicPlayerRewardData`
   (`@0x243790`), `VanityItemEntry` (`@0x427c6c`) + `VanityItemProp` (`@0x8bd8d0`),
   `LogicRewardConfig` (`@0x88d288/@0x710eb4`) + `LogicCondition` (`@0x89d570`).
+- Gameplay wave (part 1): `LogicCommand::execute` virtual + minimal
+  `LogicHomeMode` (avatar holder, `getPlayerAvatar @0x5543f0`);
+  `LogicDiamondsAddedCommand::execute @0x44d194` fully (incl. the
+  free-diamonds clamp quirk); avatar currency fields named (+144/+148/+152).
+  Listener UI callbacks skipped as platform code.
+- sc engine (part 1): `Debugger::error @0x569b9c` / `warning @0x254e64`
+  (log+count, never throws — our throws stay stricter by design).
 - Session crypto resolved: `Messaging` builds two plain `PepperEncrypter`
   (`@0x1b4b64`); encrypt `@0x4491dc` / decrypt `@0x39f6b4` advance the nonce
   BEFORE use (port fixed to match); `PepperCrypto::box`/`box_open`

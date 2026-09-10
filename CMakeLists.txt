@@ -22,11 +22,12 @@ endif()
 
 # ---- Library ---------------------------------------------------------------
 # NOTE: src/gen/* is produced by tools/generate_*.py. Re-run the generators
-# after inventory updates. Per-class sources (messages/commands/game) are
+# after inventory updates. Per-class sources (messages/commands/game/sc) are
 # globbed: one file per class, see docs/REVERSE_STATUS.md.
 file(GLOB TITAN_MSG_SRC CONFIGURE_DEPENDS src/messages/*.cpp)
 file(GLOB TITAN_CMD_SRC CONFIGURE_DEPENDS src/commands/*.cpp)
 file(GLOB TITAN_GAME_SRC CONFIGURE_DEPENDS src/game/*.cpp)
+file(GLOB TITAN_SC_SRC CONFIGURE_DEPENDS src/sc/*.cpp)
 add_library(titan_core STATIC
   src/core/ChecksumEncoder.cpp
   src/core/ByteStream.cpp
@@ -35,6 +36,7 @@ add_library(titan_core STATIC
   ${TITAN_MSG_SRC}
   ${TITAN_CMD_SRC}
   ${TITAN_GAME_SRC}
+  ${TITAN_SC_SRC}
   src/crypto/Encrypter.cpp
   src/gen/MessageFactory.cpp
   src/gen/LogicCommands.cpp
@@ -123,6 +125,14 @@ if(TITAN_BUILD_TESTS)
   add_executable(titan_session_test tests/test_session.cpp)
   target_link_libraries(titan_session_test PRIVATE titan_core)
   add_test(NAME session COMMAND titan_session_test)
+
+  add_executable(titan_gameplay_test tests/test_gameplay.cpp)
+  target_link_libraries(titan_gameplay_test PRIVATE titan_core)
+  add_test(NAME gameplay COMMAND titan_gameplay_test)
+
+  add_executable(titan_sc_test tests/test_sc.cpp)
+  target_link_libraries(titan_sc_test PRIVATE titan_core)
+  add_test(NAME sc COMMAND titan_sc_test)
 endif()
 
 # ---- Viewer (Qt6, optional) --------------------------------------------------
