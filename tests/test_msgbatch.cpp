@@ -271,14 +271,17 @@ int main() {
     {
         LogicClientAvatar av;
         av.name_ = "Spike";
-        av.flag_ = true;
+        av.nameSetByUser_ = true;
+        av.v184_ = 3;
+        av.v200_ = 7;
         ByteStream s;
         av.encode(s);
         ByteStream d;
         d.setBuffer(s.data(), s.size());
         LogicClientAvatar back;
         back.decode(d);
-        CHECK(back.name_ == "Spike" && back.flag_);
+        CHECK(back.name_ == "Spike" && back.nameSetByUser_);
+        CHECK(back.v184_ == 3 && back.v188_ == 0 && back.v200_ == 7);
     }
     // OwnHomeDataMessage round-trip (the viewer decodes exactly this).
     {

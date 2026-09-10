@@ -1,5 +1,6 @@
 // Self-check for command execute() semantics (gameplay wave).
 
+#include "titan/commands/LogicChangeAvatarNameCommand.hpp"
 #include "titan/commands/LogicDiamondsAddedCommand.hpp"
 #include "titan/game/LogicClientAvatar.hpp"
 #include "titan/game/LogicHomeMode.hpp"
@@ -76,6 +77,36 @@ int main() {
         CHECK(c.execute(home.get(), 0, false) == 0);
         const auto* av = home->getPlayerAvatar();
         CHECK(av->getDiamonds() == 70 && av->getFreeDiamonds() == 50);
+    }
+
+    // ChangeAvatarName execute @0x1b40d4 + useDiamonds @0x591f4c.
+    {
+        // Empty name -> 1, no avatar -> 2.
+        LogicChangeAvatarNameCommand c;
+        CHECK(c.execute(makeHome(0, 0).get(), 0, false) == 1);
+        c.name_ = "x";
+        LogicHomeMode empty;
+        CHECK(c.execute(&empty, 0, false) == 2);
+        CHECK(c.execute(nullptr, 0, false) == 2);
+    }
+    {
+        // Rename charges name length in diamonds, sets the flag.
+        auto home = makeHome(100, 50);
+        home->getPlayerAvatar()->setName("Old");
+        LogicChangeAvatarNameCommand c;
+        c.name_ = "NewName"; // 7 chars -> 7 diamonds
+        CHECK(c.execute(home.get(), 0, false) == 0);
+        const auto* av = home->getPlayerAvatar();
+        CHECK(av->name_ == "NewName" && av->getNameSetByUser());
+        CHECK(av->getDiamonds() == 93 && av->getFreeDiamonds() == 43);
+    }
+    {
+        // useDiamonds clamps free at zero, never below.
+        LogicClientAvatar av;
+        av.setDiamonds(10);
+        av.setFreeDiamonds(3);
+        av.useDiamonds(5);
+        CHECK(av.getDiamonds() == 5 && av.getFreeDiamonds() == 0);
     }
 
     if (failures == 0) std::puts("gameplay: all ok");

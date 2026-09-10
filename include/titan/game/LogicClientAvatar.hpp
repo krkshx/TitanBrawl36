@@ -1,13 +1,17 @@
 #pragma once
 
-// LogicClientAvatar::encode/decode (field order verified against binary).
-// Wire: 3x logiclong, stringref name, bool, int, vint(8, version-checked),
-// 8x (vint count + LogicDataSlot array), 9x vint.
-// Split out of the old LogicClientAvatar.hpp; wire format unchanged.
+// LogicClientAvatar::encode @0x900668, decode @0x6e6688.
+// Wire: 3x encodeLogicLong (vint pairs, NOT LogicLong::encode ints),
+// stringref name, bool nameSetByUser @+192, int @+196, vint(8)
+// (decode errors unless == 8), 8x (vint count + LogicDataSlot array),
+// 12x vint (+144/+148/+136/+140/+152/+168/+172/+176/+180/+184/+188/+200).
+// NOTE: an earlier revision wrote ids as fixed ints and only 9 tail
+// vints — corrected against both functions above.
 
 #include "titan/core/LogicLong.hpp"
 #include "titan/game/LogicDataSlot.hpp"
 #include "titan/messages/Nested.hpp"
+#include "titan/sc/Debugger.hpp"
 
 #include <string>
 #include <vector>
@@ -19,11 +23,11 @@ public:
     static constexpr i32 kVersion = 8;
 
     void encode(ByteStream& s) const override {
-        id1_.encode(s);
-        id2_.encode(s);
-        id3_.encode(s);
+        encodeLogicLong(s, id1_);
+        encodeLogicLong(s, id2_);
+        encodeLogicLong(s, id3_);
         s.writeStringReference(name_);
-        s.writeBoolean(flag_);
+        s.writeBoolean(nameSetByUser_);
         s.writeInt(v196_);
         s.writeVInt(kVersion);
         for (const auto& arr : slots_) {
@@ -39,15 +43,18 @@ public:
         s.writeVInt(v172_);
         s.writeVInt(v176_);
         s.writeVInt(v180_);
+        s.writeVInt(v184_);
+        s.writeVInt(v188_);
+        s.writeVInt(v200_);
     }
     void decode(ByteStream& s) override {
-        id1_ = LogicLong::decode(s);
-        id2_ = LogicLong::decode(s);
-        id3_ = LogicLong::decode(s);
+        id1_ = decodeLogicLong(s);
+        id2_ = decodeLogicLong(s);
+        id3_ = decodeLogicLong(s);
         name_ = s.readStringReference();
-        flag_ = s.readBoolean();
+        nameSetByUser_ = s.readBoolean();
         v196_ = s.readInt();
-        const i32 ver = s.readVInt(); // binary checks == 8
+        const i32 ver = s.readVInt(); // binary errors unless == 8
         (void)ver;
         for (auto& arr : slots_) {
             const i32 n = s.readVInt();
@@ -67,14 +74,18 @@ public:
         v172_ = s.readVInt();
         v176_ = s.readVInt();
         v180_ = s.readVInt();
+        v184_ = s.readVInt();
+        v188_ = s.readVInt();
+        v200_ = s.readVInt();
     }
     LogicLong id1_, id2_, id3_;
     std::string name_;
-    bool flag_ = false;
+    bool nameSetByUser_ = false; // +192 (was misnamed flag_)
     i32 v196_ = 0;
     std::vector<LogicDataSlot> slots_[8];
     i32 v144_ = 0, v148_ = 0, v136_ = 0, v140_ = 0, v152_ = 0;
-    i32 v168_ = 0, v172_ = 0, v176_ = 0, v180_ = 0;
+    i32 v168_ = 0, v172_ = 0, v176_ = 0, v180_ = 0, v184_ = 0, v188_ = 0;
+    i32 v200_ = 0;
 
     // Named currency accessors (offsets verified via IDA):
     // diamonds +144 (get @0x6f4528, set @0x1bf950),
@@ -86,6 +97,20 @@ public:
     void setFreeDiamonds(i32 v) { v148_ = v; }
     void addCumulativePurchasedDiamonds(i32 v) { v152_ += v; }
     [[nodiscard]] i32 getCumulativePurchasedDiamonds() const { return v152_; }
+
+    // useDiamonds @0x591f4c: diamonds -= n, free = max(0, free - n),
+    // Debugger::error on negative input or negative result.
+    // get/setNameSetByUser @0x613d30/@0x2326a8 (+192).
+    void useDiamonds(i32 amount) {
+        if (amount < 0) sc::Debugger::error("LogicClientAvatar::useDiamonds: negative");
+        v144_ -= amount;
+        const i32 free = v148_ - amount;
+        v148_ = free & ~(free >> 31);
+        if (v144_ < 0) sc::Debugger::error("LogicClientAvatar::useDiamonds: negative result");
+    }
+    [[nodiscard]] bool getNameSetByUser() const { return nameSetByUser_; }
+    void setNameSetByUser(bool v) { nameSetByUser_ = v; }
+    void setName(const std::string& name) { name_ = name; }
 };
 
 } // namespace titan
