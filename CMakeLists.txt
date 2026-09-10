@@ -27,6 +27,10 @@ add_library(titan_core STATIC
   src/core/PiranhaMessage.cpp
   src/messages/ResetAccountMessage.cpp
   src/messages/KeepAliveMessages.cpp
+  src/messages/MsgBatch00.cpp
+  src/messages/MsgBatch01.cpp
+  src/messages/MsgBatch02.cpp
+  src/messages/MsgBatch03.cpp
   src/gen/Registry.cpp
   src/gen/RegistryPart0.cpp
   src/gen/RegistryPart1.cpp
@@ -59,6 +63,10 @@ if(TITAN_BUILD_TESTS)
   add_executable(titan_registry_test tests/test_registry.cpp)
   target_link_libraries(titan_registry_test PRIVATE titan_core)
   add_test(NAME registry COMMAND titan_registry_test)
+
+  add_executable(titan_msgbatch_test tests/test_msgbatch.cpp)
+  target_link_libraries(titan_msgbatch_test PRIVATE titan_core)
+  add_test(NAME msgbatch COMMAND titan_msgbatch_test)
 endif()
 
 # ---- Install (keeps all platforms happy) -----------------------------------
