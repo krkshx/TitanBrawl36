@@ -9,7 +9,9 @@
 #include "titan/game/AllianceTeamEntry.hpp"
 #include "titan/game/AvatarStreamEntry.hpp"
 #include "titan/game/BattleLogEntry.hpp"
+#include "titan/game/BattleLogPlayerEntry.hpp"
 #include "titan/game/BrawlPassSeasonData.hpp"
+#include "titan/game/BrawlTvChannelInfo.hpp"
 #include "titan/game/CustomEvent.hpp"
 #include "titan/game/DeliveryUnit.hpp"
 #include "titan/game/EventSlot.hpp"
@@ -17,6 +19,7 @@
 #include "titan/game/HeroDataEntry.hpp"
 #include "titan/game/HeroEntry.hpp"
 #include "titan/game/LogicBitList.hpp"
+#include "titan/game/LatencyData.hpp"
 #include "titan/game/LogicBattleEmotes.hpp"
 #include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicCondition.hpp"
@@ -53,6 +56,7 @@
 #include "titan/game/LogicGemOffer.hpp"
 #include "titan/game/LogicOfferBundle.hpp"
 #include "titan/game/LogicQuests.hpp"
+#include "titan/game/LobbyInfoEntry.hpp"
 #include "titan/game/ProLeagueSeasonData.hpp"
 #include "titan/game/QuestData.hpp"
 #include "titan/game/ReleaseEntry.hpp"
@@ -1082,6 +1086,52 @@ int main() {
             },
             back);
         CHECK(back.s0_ == "a.csv" && back.s16_ == "b.csv");
+    }
+    // Log/TV/latency/lobby wave (@0x93cea4, @0x871e14, @0x726198, @0x263348).
+    {
+        BattleLogPlayerEntry back;
+        entryRoundTrip<BattleLogPlayerEntry>(
+            [](BattleLogPlayerEntry& e) {
+                e.v0_ = 1;
+                e.id8_ = LogicLong{2, 3};
+                e.b20_ = true;
+                e.v40_ = 40;
+                e.display_ = std::make_unique<PlayerDisplayData>();
+            },
+            back);
+        CHECK(back.v0_ == 1 && back.id8_.low == 3 && back.b20_);
+        CHECK(!back.ref24_ && back.v40_ == 40 && back.display_);
+    }
+    {
+        BrawlTvChannelInfo back;
+        entryRoundTrip<BrawlTvChannelInfo>(
+            [](BrawlTvChannelInfo& e) {
+                e.v0_ = 7;
+                e.s8_ = std::string("ch");
+            },
+            back);
+        CHECK(back.v0_ == 7 && back.s8_.value() == "ch" && !back.s16_);
+    }
+    {
+        LatencyData back;
+        entryRoundTrip<LatencyData>(
+            [](LatencyData& e) {
+                e.v0_ = 1;
+                e.v12_ = 12;
+                e.b16_ = true;
+                e.ts_ = 0x0123456789ABCDEFULL;
+                e.s48_ = std::string("eu");
+            },
+            back);
+        CHECK(back.v0_ == 1 && back.v12_ == 12 && back.b16_);
+        CHECK(back.ts_ == 0x0123456789ABCDEFULL);
+        CHECK(!back.s32_ && !back.s40_ && back.s48_.value() == "eu");
+    }
+    {
+        LobbyInfoEntry back;
+        entryRoundTrip<LobbyInfoEntry>(
+            [](LobbyInfoEntry& e) { e.v_[4] = 42; }, back);
+        CHECK(back.v_[0] == 0 && back.v_[4] == 42);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

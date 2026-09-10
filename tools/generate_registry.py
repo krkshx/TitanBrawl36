@@ -164,6 +164,10 @@ REIMPLEMENTED_EXTRA = {
     "LogicRankedMatchResultDebugInfo": ("6encodeE", "6decodeE"),
     "TeamInvitationDataEntry": ("6encodeE", "6decodeE"),
     "ChronosFileEntry": ("6encodeE", "6decodeE"),
+    "BattleLogPlayerEntry": ("6encodeE", "6decodeE"),
+    "BrawlTvChannelInfo": ("6encodeE", "6decodeE"),
+    "LatencyData": ("6encodeE", "6decodeE"),
+    "LobbyInfoEntry": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

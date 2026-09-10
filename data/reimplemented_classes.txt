@@ -475,3 +475,7 @@ ChronosFileEntry
 LogicRankedMatchResultDebugInfo
 LogicRankedMatchRoundState
 TeamInvitationDataEntry
+BattleLogPlayerEntry
+BrawlTvChannelInfo
+LatencyData
+LobbyInfoEntry

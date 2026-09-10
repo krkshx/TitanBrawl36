@@ -1,12 +1,6 @@
 #pragma once
 
-// BrawlTvChannelInfo — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(BrawlTvChannelInfo) placeholder.
+// BrawlTvChannelInfo — reversed (see game/BrawlTvChannelInfo.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(BrawlTvChannelInfo);
-
-} // namespace titan
+#include "titan/game/BrawlTvChannelInfo.hpp"

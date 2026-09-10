@@ -1,12 +1,6 @@
 #pragma once
 
-// LobbyInfoEntry — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(LobbyInfoEntry) placeholder.
+// LobbyInfoEntry — reversed (see game/LobbyInfoEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LobbyInfoEntry);
-
-} // namespace titan
+#include "titan/game/LobbyInfoEntry.hpp"
