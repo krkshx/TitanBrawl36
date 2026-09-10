@@ -122,6 +122,12 @@ REIMPLEMENTED_EXTRA = {
     "LogicBitList": ("6encodeE", "6decodeE"),
     "LogicPlayerRankedSeasonData": ("6encodeE", "6decodeE"),
     "LogicPlayerRewardData": ("6encodeE", "6decodeE"),
+    "LogicConfData": ("6encodeE", "6decodeE"),
+    "QuestData": ("6encodeE", "6decodeE"),
+    "EventSlot": ("6encodeE", "6decodeE"),
+    "ReleaseEntry": ("6encodeE", "6decodeE"),
+    "TimedIntValueEntry": ("6encodeE", "6decodeE"),
+    "CustomEvent": ("6encodeE", "6decodeE"),
     "StreamEntryFactory": ("24createStreamEntryByTypeE",),
     "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }

@@ -949,7 +949,7 @@ extern const Entry kPart3[] = {
     {0x0955578, Status::Pending, "_ZN15GameSCIDManager11loginFailedERK6String", "GameSCIDManager11loginFailedERK6String"},
     {0x0955654, Status::Pending, "_ZN11Application20getTotalSystemMemoryEv", "Application20getTotalSystemMemoryEv"},
     {0x09556B0, Status::Reimplemented, "_ZN21AllianceMemberMessage6decodeEv", "AllianceMemberMessage6decodeEv"},
-    {0x0955718, Status::Pending, "_ZN11CustomEvent8destructEv", "CustomEvent8destructEv"},
+    {0x0955718, Status::Reimplemented, "_ZN11CustomEvent8destructEv", "CustomEvent8destructEv"},
     {0x09557B4, Status::ThirdPartyExternal, "_ZN6icu_5823StringCharacterIterator7setTextERKNS_13UnicodeStringE", "icu_5823StringCharacterIterator7setTextERKNS_13U"},
     {0x095581C, Status::Pending, "_ZN17GameCenterManager38sendBindAccountMessageToPendingAccountEb", "GameCenterManager38sendBindAccountMessageToPendi"},
     {0x095582C, Status::Pending, "_ZN13EffectManager16removeAllEffectsEv", "EffectManager16removeAllEffectsEv"},

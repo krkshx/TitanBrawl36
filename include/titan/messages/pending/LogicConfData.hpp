@@ -1,12 +1,6 @@
 #pragma once
 
-// LogicConfData — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(LogicConfData) placeholder.
+// LogicConfData — reversed (see game/LogicConfData.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LogicConfData);
-
-} // namespace titan
+#include "titan/game/LogicConfData.hpp"

@@ -7,7 +7,10 @@
 #include "titan/game/AvatarStreamEntry.hpp"
 #include "titan/game/BattleLogEntry.hpp"
 #include "titan/game/BrawlPassSeasonData.hpp"
+#include "titan/game/CustomEvent.hpp"
+#include "titan/game/EventSlot.hpp"
 #include "titan/game/LogicBitList.hpp"
+#include "titan/game/LogicConfData.hpp"
 #include "titan/game/LogicPlayerRankedSeasonData.hpp"
 #include "titan/game/ChatStreamEntry.hpp"
 #include "titan/game/EventData.hpp"
@@ -23,6 +26,9 @@
 #include "titan/game/LogicOfferBundle.hpp"
 #include "titan/game/LogicQuests.hpp"
 #include "titan/game/ProLeagueSeasonData.hpp"
+#include "titan/game/QuestData.hpp"
+#include "titan/game/ReleaseEntry.hpp"
+#include "titan/game/TimedIntValueEntry.hpp"
 #include "titan/game/VanityItems.hpp"
 #include "titan/game/TimedOffer.hpp"
 #include "titan/game/LogicPlayerMap.hpp"
@@ -463,6 +469,109 @@ int main() {
         CHECK(back.rewards_.size() == 1);
         CHECK(back.rewards_[0]->v16_ == 16 && back.rewards_[0]->b20_);
         CHECK(!back.rewards_[0]->config_);
+    }
+    // ConfData wave (@0x653b94/@0x6f6508 + leaves).
+    {
+        EventSlot back;
+        entryRoundTrip<EventSlot>([](EventSlot& e) { e.v0_ = 13; }, back);
+        CHECK(back.v0_ == 13);
+    }
+    {
+        ReleaseEntry back;
+        entryRoundTrip<ReleaseEntry>(
+            [](ReleaseEntry& e) {
+                e.ref_ = DataReference{16, 3};
+                e.v8_ = 8;
+                e.v12_ = 12;
+            },
+            back);
+        CHECK(back.ref_.has_value() && back.v12_ == 12);
+    }
+    {
+        TimedIntValueEntry back;
+        entryRoundTrip<TimedIntValueEntry>(
+            [](TimedIntValueEntry& e) {
+                e.v_[0] = 1;
+                e.v_[3] = 4;
+            },
+            back);
+        CHECK(back.v_[0] == 1 && back.v_[3] == 4);
+    }
+    {
+        CustomEvent back;
+        entryRoundTrip<CustomEvent>(
+            [](CustomEvent& e) {
+                e.v0_ = 2;
+                e.v1_ = 3;
+                e.t0_ = std::make_unique<ChronosTextEntry>();
+                e.t0_->text_ = std::string("a");
+                e.t1_ = std::make_unique<ChronosTextEntry>();
+                e.t2_ = std::make_unique<ChronosTextEntry>();
+                e.t2_->id_ = 9;
+            },
+            back);
+        CHECK(back.v0_ == 2 && back.t0_->text_ == "a" && back.t2_->id_ == 9);
+    }
+    {
+        // QuestData (@0x467740) incl. the trailing v44 quirk.
+        QuestData back;
+        entryRoundTrip<QuestData>(
+            [](QuestData& e) {
+                e.v_[0] = 1;
+                e.v_[9] = 9;
+                e.b40_ = true;
+                e.ref_ = DataReference{16, 4};
+                e.v56_ = 56;
+                e.v44_ = 44;
+            },
+            back);
+        CHECK(back.v_[0] == 1 && back.v_[9] == 9 && back.b40_ && !back.b41_);
+        CHECK(back.ref_.has_value() && back.v56_ == 56 && back.v44_ == 44);
+    }
+    {
+        // Quests with a real entry inside (closes the DailyData loop).
+        LogicQuests back;
+        entryRoundTrip<LogicQuests>(
+            [](LogicQuests& e) {
+                auto q = std::make_unique<QuestData>();
+                q->v_[1] = 11;
+                q->v44_ = 1;
+                e.quests_.push_back(std::move(q));
+            },
+            back);
+        CHECK(back.quests_.size() == 1 && back.quests_[0]->v_[1] == 11);
+    }
+    {
+        LogicConfData back;
+        entryRoundTrip<LogicConfData>(
+            [](LogicConfData& e) {
+                e.v0_ = 1;
+                auto sl = std::make_unique<EventSlot>();
+                sl->v0_ = 2;
+                e.slots_.push_back(std::move(sl));
+                e.ints17_ = {17};
+                e.ints21_ = {21, 22};
+                e.b104_ = true;
+                auto iv = std::make_unique<IntValueEntry>();
+                iv->b_ = 5;
+                e.intValues_.push_back(std::move(iv));
+                auto tm = std::make_unique<TimedIntValueEntry>();
+                tm->v_[2] = 7;
+                e.timed_.push_back(std::move(tm));
+                auto ce = std::make_unique<CustomEvent>();
+                ce->t0_ = std::make_unique<ChronosTextEntry>();
+                ce->t1_ = std::make_unique<ChronosTextEntry>();
+                ce->t2_ = std::make_unique<ChronosTextEntry>();
+                e.customs_.push_back(std::move(ce));
+            },
+            back);
+        CHECK(back.v0_ == 1 && back.slots_.size() == 1 && back.slots_[0]->v0_ == 2);
+        CHECK(back.events1_.empty() && back.events2_.empty());
+        CHECK(back.ints17_.size() == 1 && back.ints21_.size() == 2 && back.ints25_.empty());
+        CHECK(back.b104_ && back.releases_.empty());
+        CHECK(back.intValues_.size() == 1 && back.intValues_[0]->b_ == 5);
+        CHECK(back.timed_.size() == 1 && back.timed_[0]->v_[2] == 7);
+        CHECK(back.customs_.size() == 1);
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {

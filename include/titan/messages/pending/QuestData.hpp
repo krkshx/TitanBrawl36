@@ -1,11 +1,6 @@
 #pragma once
 
-// QuestData — not yet reversed; encode/decode throw pending_reverse.
+// QuestData — reversed (see game/QuestData.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(QuestData);
-
-} // namespace titan
+#include "titan/game/QuestData.hpp"

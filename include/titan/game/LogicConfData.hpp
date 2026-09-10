@@ -1,0 +1,50 @@
+#pragma once
+
+// LogicConfData::encode @0x653b94, decode @0x6f6508.
+// Order below follows the binary exactly (counts + arrays):
+//   vint +0,
+//   vint count + EventSlot[] (@+8, count +20),
+//   vint count + EventData[] (@+24, count +36),
+//   vint count + EventData[] (@+40, count +52),
+//   vint count + int[] (@+56, count +68),
+//   vint count + int[] (@+72, count +84),
+//   vint count + int[] (@+88, count +100),
+//   bool +104,
+//   vint count + ReleaseEntry[] (@+112, count +124),
+//   vint count + IntValueEntry[] (@+128, count +140),
+//   vint count + TimedIntValueEntry[] (@+144, count +156),
+//   vint count + CustomEvent[] (@+160, count +172).
+
+#include "titan/game/CustomEvent.hpp"
+#include "titan/game/EventData.hpp"
+#include "titan/game/EventSlot.hpp"
+#include "titan/game/IntValueEntry.hpp"
+#include "titan/game/ReleaseEntry.hpp"
+#include "titan/game/TimedIntValueEntry.hpp"
+#include "titan/messages/Nested.hpp"
+
+#include <memory>
+#include <vector>
+
+namespace titan {
+
+class LogicConfData : public NestedEntry {
+public:
+    void encode(ByteStream& s) const override;
+    void decode(ByteStream& s) override;
+
+    i32 v0_ = 0; // +0
+    std::vector<std::unique_ptr<EventSlot>> slots_;          // +8 (+20)
+    std::vector<std::unique_ptr<EventData>> events1_;        // +24 (+36)
+    std::vector<std::unique_ptr<EventData>> events2_;        // +40 (+52)
+    std::vector<i32> ints17_;                                // +56 (+68)
+    std::vector<i32> ints21_;                                // +72 (+84)
+    std::vector<i32> ints25_;                                // +88 (+100)
+    bool b104_ = false;                                      // +104
+    std::vector<std::unique_ptr<ReleaseEntry>> releases_;    // +112 (+124)
+    std::vector<std::unique_ptr<IntValueEntry>> intValues_;  // +128 (+140)
+    std::vector<std::unique_ptr<TimedIntValueEntry>> timed_; // +144 (+156)
+    std::vector<std::unique_ptr<CustomEvent>> customs_;      // +160 (+172)
+};
+
+} // namespace titan

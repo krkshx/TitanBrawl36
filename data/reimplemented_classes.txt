@@ -436,3 +436,9 @@ VanityItems
 LogicBitList
 LogicPlayerRankedSeasonData
 LogicPlayerRewardData
+CustomEvent
+EventSlot
+LogicConfData
+QuestData
+ReleaseEntry
+TimedIntValueEntry
