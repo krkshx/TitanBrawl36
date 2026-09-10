@@ -1,6 +1,7 @@
 // Self-check for reimplemented messages (encode/decode symmetry).
 
-#include "titan/messages/KeepAliveMessages.hpp"
+#include "titan/messages/KeepAliveMessage.hpp"
+#include "titan/messages/KeepAliveServerMessage.hpp"
 #include "titan/messages/ResetAccountMessage.hpp"
 
 #include <cassert>

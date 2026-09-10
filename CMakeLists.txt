@@ -20,36 +20,23 @@ if(TITAN_WARNINGS_AS_ERRORS)
 endif()
 
 # ---- Library ---------------------------------------------------------------
-# NOTE: src/gen/Registry*.cpp is produced by tools/generate_registry.py
-# from data/ida_shard_*.csv. Re-run the generator after inventory updates.
+# NOTE: src/gen/* is produced by tools/generate_*.py. Re-run the generators
+# after inventory updates. Per-class sources (messages/commands/game) are
+# globbed: one file per class, see docs/REVERSE_STATUS.md.
+file(GLOB TITAN_MSG_SRC CONFIGURE_DEPENDS src/messages/*.cpp)
+file(GLOB TITAN_CMD_SRC CONFIGURE_DEPENDS src/commands/*.cpp)
+file(GLOB TITAN_GAME_SRC CONFIGURE_DEPENDS src/game/*.cpp)
 add_library(titan_core STATIC
   src/core/ChecksumEncoder.cpp
   src/core/ByteStream.cpp
   src/core/BitStream.cpp
   src/core/PiranhaMessage.cpp
-  src/messages/ResetAccountMessage.cpp
-  src/messages/KeepAliveMessages.cpp
-  src/messages/MsgBatch00.cpp
-  src/messages/MsgBatch01.cpp
-  src/messages/MsgBatch02.cpp
-  src/messages/MsgBatch03.cpp
-  src/messages/MsgBatch04.cpp
-  src/messages/MsgBatch05.cpp
-  src/messages/MsgBatch06.cpp
-  src/messages/MsgBatch07.cpp
-  src/messages/MsgBatch08.cpp
-  src/messages/MsgBatch09.cpp
-  src/messages/MsgBatch10.cpp
-  src/messages/MsgBatch11.cpp
-  src/messages/MsgBatch12.cpp
-  src/messages/MsgBatch13.cpp
-  src/messages/MsgBatch14.cpp
-  src/game/LogicCompressedString.cpp
-  src/game/DataTables.cpp
-  src/commands/CmdBatchA.cpp
+  ${TITAN_MSG_SRC}
+  ${TITAN_CMD_SRC}
+  ${TITAN_GAME_SRC}
+  src/crypto/Encrypter.cpp
   src/gen/MessageFactory.cpp
   src/gen/LogicCommands.cpp
-  src/crypto/Encrypter.cpp
   src/gen/Registry.cpp
   src/gen/RegistryPart0.cpp
   src/gen/RegistryPart1.cpp

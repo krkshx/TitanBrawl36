@@ -1,19 +1,10 @@
 // Self-check for message batches 00-03.
 
-#include "titan/messages/MsgBatch00.hpp"
-#include "titan/messages/MsgBatch01.hpp"
-#include "titan/messages/MsgBatch02.hpp"
-#include "titan/messages/MsgBatch03.hpp"
-#include "titan/messages/MsgBatch04.hpp"
-#include "titan/messages/MsgBatch05.hpp"
-#include "titan/messages/MsgBatch06.hpp"
-#include "titan/messages/MsgBatch07.hpp"
-#include "titan/messages/MsgBatch08.hpp"
-#include "titan/messages/MsgBatch09.hpp"
-#include "titan/messages/MsgBatch10.hpp"
-#include "titan/messages/MsgBatch11.hpp"
-#include "titan/messages/MsgBatch12.hpp"
-#include "titan/messages/MsgBatch13.hpp"
+#include "titan/game/AllianceHeaderEntry.hpp"
+#include "titan/game/LogicClientAvatar.hpp"
+#include "titan/game/LogicCompressedString.hpp"
+#include "titan/messages/AllMessages.hpp"
+#include "titan/messages/pending/AddableFriendEntry.hpp"
 
 #include <cstdio>
 

@@ -96,7 +96,7 @@ std::unique_ptr<LogicCommand> decodeSingleCommand(ByteStream& s);
                  '#include "titan/gen/LogicCommands.hpp"\n')
         import glob as _glob
         for path in sorted(_glob.glob(os.path.join(
-                ROOT, "include", "titan", "commands", "Cmd*.hpp"))):
+                ROOT, "include", "titan", "commands", "Logic*Command.hpp"))):
             fh.write('#include "titan/commands/%s"\n'
                      % os.path.basename(path))
         fh.write("\nnamespace titan {\n\n"

@@ -37,14 +37,17 @@ EXTRA_IDS = {
 # Class -> header (batches own their classes; specials listed explicitly).
 HEADER_OF = {
     "ResetAccountMessage": "titan/messages/ResetAccountMessage.hpp",
-    "KeepAliveMessage": "titan/messages/KeepAliveMessages.hpp",
-    "KeepAliveServerMessage": "titan/messages/KeepAliveMessages.hpp",
+    "KeepAliveMessage": "titan/messages/KeepAliveMessage.hpp",
+    "KeepAliveServerMessage": "titan/messages/KeepAliveServerMessage.hpp",
 }
 
 
 def header_for(cls, batches):
     if cls in HEADER_OF:
         return HEADER_OF[cls]
+    per_class = os.path.join(ROOT, "include", "titan", "messages", cls + ".hpp")
+    if os.path.exists(per_class):
+        return "titan/messages/%s.hpp" % cls
     for n, members in batches.items():
         if cls in members:
             return f"titan/messages/MsgBatch{n:02d}.hpp"
