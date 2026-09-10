@@ -1,12 +1,6 @@
 #pragma once
 
-// LogicPlayerMap — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(LogicPlayerMap) placeholder.
+// LogicPlayerMap — reversed (see game/LogicPlayerMap.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(LogicPlayerMap);
-
-} // namespace titan
+#include "titan/game/LogicPlayerMap.hpp"

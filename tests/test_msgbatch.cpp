@@ -101,20 +101,32 @@ int main() {
         m.encode();
         CHECK(m.stream().size() == 4); // writeInt(-1)
     }
-    // Pending nested entries throw explicitly (AddableFriendEntry still pending).
+    // Pending nested entries throw explicitly (AllianceWarNode still pending).
     {
         bool threw = false;
-        AddableFriendsMessage m;
-        m.entries_.push_back(std::make_unique<AddableFriendEntry>());
+        AllianceWarMessage m;
+        m.nodes_.push_back(std::make_unique<AllianceWarNode>());
         try {
             m.encode();
         } catch (const pending_reverse&) {
             threw = true;
         }
         CHECK(threw);
-        AddableFriendsMessage back;
-        roundTrip<AddableFriendsMessage>([](AddableFriendsMessage&) {}, back);
-        CHECK(back.entries_.empty());
+        AllianceWarMessage back;
+        roundTrip<AllianceWarMessage>([](AllianceWarMessage&) {}, back);
+        CHECK(back.nodes_.empty() && back.factions_.empty());
+    }
+    // Newly reversed entries round-trip for real.
+    {
+        ROUNDTRIP(AddableFriendsMessage, back,
+                  auto e = std::make_unique<AddableFriendEntry>();
+                  e->v0_ = 1;
+                  e->s24_ = std::string("pal");
+                  e->s8_ = std::string("a");
+                  e->s16_ = std::string("b");
+                  m.entries_.push_back(std::move(e)));
+        CHECK(back.entries_.size() == 1);
+        CHECK(back.entries_[0]->s24_.value() == "pal");
     }
     // Newly reversed entries round-trip for real.
     {

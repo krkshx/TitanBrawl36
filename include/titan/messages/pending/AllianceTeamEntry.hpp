@@ -1,12 +1,6 @@
 #pragma once
 
-// AllianceTeamEntry — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(AllianceTeamEntry) placeholder.
+// AllianceTeamEntry — reversed (see game/AllianceTeamEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(AllianceTeamEntry);
-
-} // namespace titan
+#include "titan/game/AllianceTeamEntry.hpp"

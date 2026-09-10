@@ -106,6 +106,8 @@ REIMPLEMENTED_EXTRA = {
     "AllianceHeaderEntry": ("6encodeE", "6decodeE"),
     "AllianceFullEntry": ("6encodeE", "6decodeE"),
     "AllianceMemberEntry": ("6encodeE", "6decodeE"),
+    "StreamEntryFactory": ("24createStreamEntryByTypeE",),
+    "AvatarStreamEntryFactory": ("24createStreamEntryByTypeE",),
 }
 
 

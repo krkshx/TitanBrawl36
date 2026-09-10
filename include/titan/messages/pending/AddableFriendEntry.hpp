@@ -1,12 +1,6 @@
 #pragma once
 
-// AddableFriendEntry — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(AddableFriendEntry) placeholder.
+// AddableFriendEntry — reversed (see game/AddableFriendEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(AddableFriendEntry);
-
-} // namespace titan
+#include "titan/game/AddableFriendEntry.hpp"

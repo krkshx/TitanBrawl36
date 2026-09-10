@@ -8,9 +8,11 @@ AddFriendByAvatarNameAndCodeMessage
 AddFriendByEmailMessage
 AddFriendFailedMessage
 AddFriendMessage
+AddableFriendEntry
 AddableFriendsMessage
 AdjustPackageMessage
 AllianceDataMessage
+AllianceEventStreamEntry
 AllianceFullEntry
 AllianceHeaderEntry
 AllianceInvitationSendFailedMessage
@@ -23,6 +25,7 @@ AllianceResponseMessage
 AllianceStreamEntryMessage
 AllianceStreamEntryRemovedMessage
 AllianceStreamMessage
+AllianceTeamEntry
 AllianceTeamRemovedMessage
 AllianceTeamsMessage
 AllianceWarMessage
@@ -56,10 +59,12 @@ AvailableServerCommandMessage
 AvatarNameChangeFailedMessage
 AvatarNameCheckRequestMessage
 AvatarNameCheckResponseMessage
+AvatarStreamEntry
 AvatarStreamEntryMessage
 AvatarStreamEntryRemovedMessage
 AvatarStreamMessage
 BattleEndMessage
+BattleLogEntry
 BattleLogMessage
 BattleLogReplayAvailableMessage
 BattleLogViewReplayMessage
@@ -88,6 +93,7 @@ ChangeAvatarNameMessage
 ChangePlayerMapNameMessage
 ChangePlayerMapNameResponseMessage
 ChatAccountBanStatusMessage
+ChatStreamEntry
 ChatToAllianceStreamMessage
 ChecksumEncoder
 ChronosEventSeenMessage
@@ -114,10 +120,12 @@ DeletePlayerMapResponseMessage
 DisconnectedMessage
 EndClientTurnMessage
 EnterMapEditorMessage
+EventData
 ExtendedSetEncryptionMessage
 FacebookAccountAlreadyBoundMessage
 FacebookAccountBoundMessage
 FacebookAccountUnboundMessage
+FriendEntry
 FriendListMessage
 FriendListUpdateMessage
 FriendOnlineStatusEntryMessage
@@ -153,6 +161,7 @@ HomeLogicStoppedMessage
 JoinAllianceMessage
 JoinAllianceUsingInvitationMessage
 JoinAllianceUsingTokenMessage
+JoinRequestAllianceStreamEntry
 JoinableAllianceListMessage
 KakaoAccountAlreadyBoundMessage
 KakaoAccountBoundMessage
@@ -188,6 +197,7 @@ LogicClaimTailRewardCommand
 LogicClearESportsHubNotificationCommand
 LogicClearShopTickersCommand
 LogicClientAvatar
+LogicClientHome
 LogicCommand
 LogicCommandManager
 LogicCompressedString
@@ -219,6 +229,7 @@ LogicKeyPoolChangedCommand
 LogicLevelUpCommand
 LogicOffersChangedCommand
 LogicPlayerDataChangedCommand
+LogicPlayerMap
 LogicProLeagueSeasonChangedCommand
 LogicPurchaseBrawlPassCommand
 LogicPurchaseBrawlPassProgressCommand
@@ -270,6 +281,7 @@ PlayerJWTokenMessage
 PlayerMapGreenlightedMessage
 PlayerMapInfoUpdatedMessage
 PlayerMapsMessage
+PlayerProfile
 PlayerProfileMessage
 PlayerStatusMessage
 PublishPlayerMapMessage
@@ -336,8 +348,10 @@ StartMissionMessage
 StartSpectateMessage
 StopHomeLogicMessage
 StopSpectateMessage
+StreamEntry
 SubmitPlayerMapMessage
 SubmitPlayerMapResponseMessage
+SuggestionEntry
 SupercellIdNotificationMessage
 TeamAllianceMemberInviteMessage
 TeamBotSlotDisableMessage

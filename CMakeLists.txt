@@ -109,6 +109,10 @@ if(TITAN_BUILD_TESTS)
   add_executable(titan_datatables_test tests/test_datatables.cpp)
   target_link_libraries(titan_datatables_test PRIVATE titan_core)
   add_test(NAME datatables COMMAND titan_datatables_test)
+
+  add_executable(titan_entries_test tests/test_entries.cpp)
+  target_link_libraries(titan_entries_test PRIVATE titan_core)
+  add_test(NAME entries COMMAND titan_entries_test)
 endif()
 
 # ---- Install (keeps all platforms happy) -----------------------------------

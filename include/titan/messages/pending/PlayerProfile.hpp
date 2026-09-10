@@ -1,12 +1,6 @@
 #pragma once
 
-// PlayerProfile — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(PlayerProfile) placeholder.
+// PlayerProfile — reversed (see game/PlayerProfile.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(PlayerProfile);
-
-} // namespace titan
+#include "titan/game/PlayerProfile.hpp"

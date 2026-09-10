@@ -1,12 +1,6 @@
 #pragma once
 
-// BattleLogEntry — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(BattleLogEntry) placeholder.
+// BattleLogEntry — reversed (see game/BattleLogEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(BattleLogEntry);
-
-} // namespace titan
+#include "titan/game/BattleLogEntry.hpp"

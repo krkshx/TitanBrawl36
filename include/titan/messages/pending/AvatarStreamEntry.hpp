@@ -1,12 +1,6 @@
 #pragma once
 
-// AvatarStreamEntry — not yet reversed; encode/decode throw pending_reverse.
-// Replaces the TITAN_PENDING_ENTRY(AvatarStreamEntry) placeholder.
+// AvatarStreamEntry — reversed (see game/AvatarStreamEntry.hpp).
+// Forwarder kept so existing users don't churn.
 
-#include "titan/messages/Nested.hpp"
-
-namespace titan {
-
-TITAN_PENDING_ENTRY(AvatarStreamEntry);
-
-} // namespace titan
+#include "titan/game/AvatarStreamEntry.hpp"
