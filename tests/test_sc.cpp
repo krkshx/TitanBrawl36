@@ -3,6 +3,7 @@
 #include "titan/sc/Debugger.hpp"
 #include "titan/sc/DisplayObject.hpp"
 #include "titan/sc/MovieClip.hpp"
+#include "titan/sc/MovieClipRef.hpp"
 #include "titan/sc/Sprite.hpp"
 
 #include <cstdio>
@@ -103,6 +104,16 @@ int main() {
         CHECK(b.isVisible());
         mc.setChildVisible("BODY", false);
         CHECK(!b.isVisible());
+    }
+    // Frames + refs (getCurrentFrame @0x715800, MovieClipRef C2s).
+    {
+        titan::sc::MovieClip mc;
+        CHECK(mc.currentFrame() == 0);
+        mc.setCurrentFrame(12);
+        CHECK(mc.currentFrame() == 12);
+        titan::sc::MovieClipRef ref("background_basic.sc", "bg");
+        CHECK(ref.fileName() == "background_basic.sc");
+        CHECK(ref.exportName() == "bg");
     }
 
     if (failures == 0) std::puts("sc: all ok");

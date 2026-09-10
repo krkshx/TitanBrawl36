@@ -46,8 +46,12 @@ public:
             }
         }
     }
+    // getCurrentFrame @0x715800: u16 @+144.
+    [[nodiscard]] int currentFrame() const { return currentFrame_; }
+    void setCurrentFrame(int frame) { currentFrame_ = frame; }
 
 private:
+    int currentFrame_ = 0; // +144 (u16 in the binary)
     std::map<const DisplayObject*, std::string> names_;
 };
 

@@ -2,14 +2,14 @@
 
 Inventory: **37,064** functions (`data/ida_shard_00..14.csv`), all with
 unique addresses, see `docs/IDA_BASELINE.md`.
-Registry (compiled in): **2146 reimplemented, 9717 third-party, 25201 pending**
+Registry (compiled in): **2149 reimplemented, 9717 third-party, 25198 pending**
 (`titan_registry_test` is the source of truth — update these numbers when it moves).
 
 | Bucket | Count | Handling |
 |---|---|---|
 | Third-party (`ThirdPartyExternal`) | 9717 | system libs, see `docs/THIRDPARTY.md` |
-| Game code reimplemented | 2146 fns | `src/` + tests |
-| Game code pending | 25201 | `FunctionRegistry` status `Pending` |
+| Game code reimplemented | 2149 fns | `src/` + tests |
+| Game code pending | 25198 | `FunctionRegistry` status `Pending` |
 
 ## Done
 
@@ -60,8 +60,9 @@ Registry (compiled in): **2146 reimplemented, 9717 third-party, 25201 pending**
   `BrawlPassSeasonData` (`@0x5e8140`), `LogicQuests` (`@0x1ae36c`),
   `VanityItems` (`@0x5980fc`), `LogicBitList` (`@0x9740d8/@0x5c241c`, C2 `@0x7c7788`),
   `LogicPlayerRankedSeasonData` (`@0x286950/@0x97acd8`) + `LogicPlayerRewardData`
-  (`@0x243790`), `VanityItemEntry` (`@0x427c6c`) + `VanityItemProp` (`@0x8bd8d0`),
-  `LogicRewardConfig` (`@0x88d288/@0x710eb4`) + `LogicCondition` (`@0x89d570`).
+  `LogicRewardConfig` (`@0x88d288/@0x710eb4`) + `LogicCondition` (`@0x89d570`),
+  avatar `addFreeDiamonds @0x61f7c0` (both wallets) / `addPaidDiamonds
+  @0x73f334` (diamonds + cumulative, NOT free).
 - Gameplay wave (part 1): `LogicCommand::execute` virtual + minimal
   `LogicHomeMode` (avatar holder, `getPlayerAvatar @0x5543f0`);
   `LogicDiamondsAddedCommand::execute @0x44d194` fully (incl. the
@@ -89,7 +90,8 @@ Registry (compiled in): **2146 reimplemented, 9717 third-party, 25201 pending**
   parent @+48 / index @+56 bookkeeping) + `isChildOf @0x2d8b40`
   (takes const Sprite* like the binary; null-safe) + `MovieClip`
   (`getNameOfChild @0x266cb0`, `setChildVisible @0x24417c`; overloads
-  covered by one impl; frames pending).
+  covered by one impl; frames pending) + `getCurrentFrame @0x715800`
+  + `MovieClipRef`.
 - Gameplay wave (part 3): `LogicDeleteNotificationCommand::execute
   @0x961cc4` + `LogicClientHome::removeNotification @0x8f73e4` (match by
   base +8 int, ownership transfer).

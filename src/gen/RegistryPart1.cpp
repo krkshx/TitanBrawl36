@@ -8086,7 +8086,7 @@ extern const Entry kPart1[] = {
     {0x061F570, Status::ThirdPartyExternal, "_utext_openConstUnicodeString_58", "global"},
     {0x061F6A4, Status::Pending, "_ZN8TestCase28getAllMovieClipTimelineNamesEv", "TestCase28getAllMovieClipTimelineNamesEv"},
     {0x061F7B8, Status::ThirdPartyExternal, "_ZNK6icu_5811Normalizer217getCombiningClassEi", "icu_5811Normalizer217getCombiningClassEi"},
-    {0x061F7C0, Status::Pending, "_ZN17LogicClientAvatar15addFreeDiamondsEii", "LogicClientAvatar15addFreeDiamondsEii"},
+    {0x061F7C0, Status::Reimplemented, "_ZN17LogicClientAvatar15addFreeDiamondsEii", "LogicClientAvatar15addFreeDiamondsEii"},
     {0x061F83C, Status::Pending, "_ZN10SCTuneImpl19addAutoRefreshValueEi", "SCTuneImpl19addAutoRefreshValueEi"},
     {0x061FA14, Status::Pending, "_ZNK9CombatHUD20getMaskAlphaFromTileEfff", "CombatHUD20getMaskAlphaFromTileEfff"},
     {0x061FB68, Status::ThirdPartyExternal, "_ZNSt6__ndk110__function6__funcIZN7GLImage6createEPKhi9ImageWrap11ImageFilterE3$_4NS_9allocatorIS7_EEFvvEE18destroy_deallocateEv", "global"},
