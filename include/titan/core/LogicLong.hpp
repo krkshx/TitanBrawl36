@@ -24,4 +24,13 @@ struct LogicLong {
     bool operator==(const LogicLong& o) const { return high == o.high && low == o.low; }
 };
 
+// ByteStreamHelper::encodeLogicLong @0x3e4e78:
+// writeVInt(high); writeVInt(low). (The RankingEntry::encode decompile
+// shows a phantom third arg — disassembly confirms X2 is untouched and
+// the callee only reads stream + long.)
+inline void encodeLogicLong(ByteStream& s, const LogicLong& id) {
+    s.writeVInt(id.high);
+    s.writeVInt(id.low);
+}
+
 } // namespace titan

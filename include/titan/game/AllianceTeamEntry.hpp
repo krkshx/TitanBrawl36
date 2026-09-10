@@ -19,18 +19,13 @@ public:
         s.writeVInt(v4_);
         id8_.encode(s);
         s.writeVInt(v16_);
-        s.writeVInt(id24_.high);
-        s.writeVInt(id24_.low);
-        s.writeVInt(id32_.high);
-        s.writeVInt(id32_.low);
+        encodeLogicLong(s, id24_);
+        encodeLogicLong(s, id32_);
         s.writeBoolean(b40_);
         s.writeBoolean(b41_);
         s.writeBoolean(b42_);
         s.writeVInt(static_cast<i32>(members_.size()));
-        for (const auto& m : members_) {
-            s.writeVInt(m.high);
-            s.writeVInt(m.low);
-        }
+        for (const auto& m : members_) encodeLogicLong(s, m);
     }
     void decode(ByteStream& s) override {
         v0_ = s.readVInt();
