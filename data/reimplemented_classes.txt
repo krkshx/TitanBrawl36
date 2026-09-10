@@ -483,3 +483,4 @@ FriendOnlineStatusEntry
 LatencyTestConfiguration
 PlayAgainStatus
 StatusChangeEntry
+LogicTencentAntiAddictionInstruction

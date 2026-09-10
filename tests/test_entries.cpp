@@ -42,6 +42,7 @@
 #include "titan/game/TeamJoinRequest.hpp"
 #include "titan/game/TeamMemberEntry.hpp"
 #include "titan/game/LogicRewardConfig.hpp"
+#include "titan/game/LogicTencentAntiAddictionInstruction.hpp"
 #include "titan/game/LogicUuid.hpp"
 #include "titan/game/LogicVector2.hpp"
 #include "titan/game/PlayerEntry.hpp"
@@ -1198,6 +1199,22 @@ int main() {
             },
             back);
         CHECK(back.id8_.low == 8 && back.v0_ == 1);
+    }
+    // Tencent instruction (@0x8f84e0, embedded stringrefs).
+    {
+        LogicTencentAntiAddictionInstruction back;
+        entryRoundTrip<LogicTencentAntiAddictionInstruction>(
+            [](LogicTencentAntiAddictionInstruction& e) {
+                e.v8_ = 1;
+                e.s16_ = std::string("a");
+                e.s32_ = std::string("b");
+                e.s48_ = std::string("c");
+                e.v64_ = 64;
+                e.s72_ = std::string("d");
+            },
+            back);
+        CHECK(back.v8_ == 1 && back.s16_ == "a" && back.s48_ == "c");
+        CHECK(back.v64_ == 64 && back.s72_ == "d");
     }
     // LogicDailyData: encode is deterministic (byte-stable round-trip).
     {
