@@ -65,6 +65,7 @@
 #include "titan/game/stream/ChatStreamEntry.cpp"
 #include "titan/game/stream/MessageDataStreamEntry.cpp"
 #include "titan/game/stream/QuickChatStreamEntry.cpp"
+#include "titan/game/stream/ReplayStreamEntry.cpp"
 #include "titan/game/home/EventData.cpp"
 #include "titan/game/social/FriendEntry.cpp"
 #include "titan/game/player/CooldownEntry.cpp"
@@ -166,6 +167,31 @@ int main() {
         entryRoundTrip<QuickChatStreamEntry>(
             [](QuickChatStreamEntry& e) { e.v64_ = 5; }, back);
         CHECK(!back.text56_.has_value() && back.v64_ == 5);
+    }
+    {
+        ReplayStreamEntry back;
+        entryRoundTrip<ReplayStreamEntry>(
+            [](ReplayStreamEntry& e) {
+                e.v44_ = 1;
+                e.name48_ = std::string("replay");
+                e.b56_ = true;
+                e.v72_ = 7;
+                e.v64_ = 8;
+                e.id80_ = "custom-id";
+                e.v104_ = 9;
+            },
+            back);
+        CHECK(back.v44_ == 1 && back.name48_.value() == "replay" &&
+              back.b56_ && back.v72_ == 7 && back.v64_ == 8 &&
+              back.id80_ == "custom-id" && back.v104_ == 9);
+        CHECK(back.entryType() == 5);
+        CHECK(createAllianceStreamEntry(5) != nullptr);
+    }
+    {
+        // Fresh objects carry the binary's template replay id.
+        ReplayStreamEntry fresh;
+        CHECK(fresh.id80_ ==
+              "44838203_a45f_46c9_9ec2_b0f70bb8a77f_12000");
     }
     {
         auto e = createAllianceStreamEntry(2);
