@@ -17,6 +17,13 @@ struct DataReference {
         s.writeVInt(classId);
         s.writeVInt(instanceId);
     }
+    // Plain decode (mirrors encode; the binary's readDataReference).
+    static DataReference decode(ByteStream& s) {
+        DataReference r;
+        r.classId = s.readVInt();
+        r.instanceId = s.readVInt();
+        return r;
+    }
     // Nullable form used by message fields (null -> single VInt 0).
     static void encodeNullable(ByteStream& s, const std::optional<DataReference>& ref) {
         if (!ref.has_value()) {

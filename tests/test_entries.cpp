@@ -63,6 +63,7 @@
 #include "titan/game/player/RankingEntry.cpp"
 #include "titan/game/player/LogicPlayerRankedSeasonData.cpp"
 #include "titan/game/stream/ChatStreamEntry.cpp"
+#include "titan/game/stream/MessageDataStreamEntry.cpp"
 #include "titan/game/home/EventData.cpp"
 #include "titan/game/social/FriendEntry.cpp"
 #include "titan/game/player/CooldownEntry.cpp"
@@ -127,6 +128,20 @@ int main() {
             },
             back);
         CHECK(back.id1_.low == 2 && back.text_.value() == "yo");
+    }
+    {
+        MessageDataStreamEntry back;
+        entryRoundTrip<MessageDataStreamEntry>(
+            [](MessageDataStreamEntry& e) {
+                e.id2_ = LogicLong{3, 4};
+                e.ref48_.classId = 1;
+                e.ref48_.instanceId = 7;
+            },
+            back);
+        CHECK(back.id2_.low == 4 && back.ref48_.classId == 1 &&
+              back.ref48_.instanceId == 7);
+        CHECK(back.entryType() == 6);
+        CHECK(createAllianceStreamEntry(6) != nullptr);
     }
     {
         auto e = createAllianceStreamEntry(2);
