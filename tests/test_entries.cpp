@@ -64,6 +64,7 @@
 #include "titan/game/player/LogicPlayerRankedSeasonData.cpp"
 #include "titan/game/stream/ChatStreamEntry.cpp"
 #include "titan/game/stream/MessageDataStreamEntry.cpp"
+#include "titan/game/stream/QuickChatStreamEntry.cpp"
 #include "titan/game/home/EventData.cpp"
 #include "titan/game/social/FriendEntry.cpp"
 #include "titan/game/player/CooldownEntry.cpp"
@@ -142,6 +143,29 @@ int main() {
               back.ref48_.instanceId == 7);
         CHECK(back.entryType() == 6);
         CHECK(createAllianceStreamEntry(6) != nullptr);
+    }
+    {
+        QuickChatStreamEntry back;
+        entryRoundTrip<QuickChatStreamEntry>(
+            [](QuickChatStreamEntry& e) {
+                e.ref48_.classId = 2;
+                e.ref48_.instanceId = 9;
+                e.text56_ = std::string("gl hf");
+                e.v64_ = 11;
+                e.v72_ = 22;
+                e.v76_ = 33;
+            },
+            back);
+        CHECK(back.ref48_.instanceId == 9 && back.text56_.value() == "gl hf" &&
+              back.v64_ == 11 && back.v72_ == 22 && back.v76_ == 33);
+        CHECK(back.entryType() == 8);
+        CHECK(createAllianceStreamEntry(8) != nullptr);
+    }
+    {
+        QuickChatStreamEntry back;
+        entryRoundTrip<QuickChatStreamEntry>(
+            [](QuickChatStreamEntry& e) { e.v64_ = 5; }, back);
+        CHECK(!back.text56_.has_value() && back.v64_ == 5);
     }
     {
         auto e = createAllianceStreamEntry(2);
