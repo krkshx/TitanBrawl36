@@ -4,12 +4,13 @@
 // from libg_decrypted.so.
 // Ctor @0x2615dc (size 0x50: base + fields below).
 // encode @0x8e3dfc, decode @0x8fd7e8.
-// Wire: AvatarStreamEntry base + nullable string +48 (-1 length form),
-// vint +56, DataReference +64, bool-prefixed nullable string +72.
-// The binary caps the +56 read at 900000; the port reads a plain
-// vint like everywhere else.
+// Wire: AvatarStreamEntry base + LogicLong +48, nullable string +56
+// (-1 length form), DataReference +64, bool-prefixed nullable
+// LogicLong +72. (Encoder slot map verified: +56 writeString,
+// +152 writeLong.)
 
 #include "titan/core/DataReference.cpp"
+#include "titan/core/LogicLong.cpp"
 #include "titan/game/stream/AvatarStreamEntry.cpp"
 
 #include <optional>
@@ -22,23 +23,28 @@ public:
     int entryType() const { return 4; }
     void encode(ByteStream& s) const override {
         AvatarStreamEntry::encode(s);
-        s.writeString(name48_ ? &*name48_ : nullptr);
-        s.writeVInt(v56_);
+        long48_.encode(s);
+        s.writeString(text56_ ? &*text56_ : nullptr);
         ref64_.encode(s);
-        s.writeBoolean(text72_.has_value());
-        if (text72_) s.writeString(&*text72_);
+        s.writeBoolean(long72_.has_value());
+        if (long72_) long72_->encode(s);
     }
     void decode(ByteStream& s) override {
         AvatarStreamEntry::decode(s);
-        name48_ = s.readString();
-        v56_ = s.readVInt();
+        long48_ = LogicLong::decode(s);
+        text56_ = s.readString();
         ref64_ = DataReference::decode(s);
-        text72_ = s.readBoolean() ? s.readString() : std::nullopt;
+        if (s.readBoolean()) {
+            long72_.emplace();
+            *long72_ = LogicLong::decode(s);
+        } else {
+            long72_.reset();
+        }
     }
-    std::optional<std::string> name48_; // +48 (nullable)
-    i32 v56_ = 0; // +56
+    LogicLong long48_; // +48 (binary holds a pointer; port keeps a value)
+    std::optional<std::string> text56_; // +56 (nullable)
     DataReference ref64_; // +64
-    std::optional<std::string> text72_; // +72 (bool-prefixed)
+    std::optional<LogicLong> long72_; // +72 (bool-prefixed, binary holds a pointer)
 };
 
 } // namespace titan

@@ -158,38 +158,41 @@ int main() {
             [](QuickChatStreamEntry& e) {
                 e.ref48_.classId = 2;
                 e.ref48_.instanceId = 9;
-                e.text56_ = std::string("gl hf");
-                e.v64_ = 11;
+                e.long56_ = LogicLong{10, 11};
+                e.text64_ = std::string("gl hf");
                 e.v72_ = 22;
                 e.v76_ = 33;
             },
             back);
-        CHECK(back.ref48_.instanceId == 9 && back.text56_.value() == "gl hf" &&
-              back.v64_ == 11 && back.v72_ == 22 && back.v76_ == 33);
+        CHECK(back.ref48_.instanceId == 9 && back.long56_->low == 11 &&
+              back.text64_.value() == "gl hf" && back.v72_ == 22 &&
+              back.v76_ == 33);
         CHECK(back.entryType() == 8);
         CHECK(createAllianceStreamEntry(8) != nullptr);
     }
     {
         QuickChatStreamEntry back;
         entryRoundTrip<QuickChatStreamEntry>(
-            [](QuickChatStreamEntry& e) { e.v64_ = 5; }, back);
-        CHECK(!back.text56_.has_value() && back.v64_ == 5);
+            [](QuickChatStreamEntry& e) { e.text64_ = std::string("x"); },
+            back);
+        CHECK(!back.long56_.has_value() && back.text64_.value() == "x");
     }
     {
         ReplayStreamEntry back;
         entryRoundTrip<ReplayStreamEntry>(
             [](ReplayStreamEntry& e) {
                 e.v44_ = 1;
-                e.name48_ = std::string("replay");
+                e.long48_ = LogicLong{2, 3};
                 e.b56_ = true;
-                e.v72_ = 7;
-                e.v64_ = 8;
+                e.text72_ = std::string("t72");
+                e.text64_ = std::string("t64");
                 e.id80_ = "custom-id";
                 e.v104_ = 9;
             },
             back);
-        CHECK(back.v44_ == 1 && back.name48_.value() == "replay" &&
-              back.b56_ && back.v72_ == 7 && back.v64_ == 8 &&
+        CHECK(back.v44_ == 1 && back.long48_.low == 3 && back.b56_ &&
+              back.text72_.value() == "t72" &&
+              back.text64_.value() == "t64" &&
               back.id80_ == "custom-id" && back.v104_ == 9);
         CHECK(back.entryType() == 5);
         CHECK(createAllianceStreamEntry(5) != nullptr);
@@ -204,13 +207,13 @@ int main() {
         TeamCreatedStreamEntry back;
         entryRoundTrip<TeamCreatedStreamEntry>(
             [](TeamCreatedStreamEntry& e) {
-                e.name48_ = std::string("team-up");
+                e.long48_ = LogicLong{4, 5};
                 e.v56_ = 1;
                 e.v60_ = 2;
                 e.v64_ = 3;
             },
             back);
-        CHECK(back.name48_.value() == "team-up" && back.v56_ == 1 &&
+        CHECK(back.long48_.low == 5 && back.v56_ == 1 &&
               back.v60_ == 2 && back.v64_ == 3);
         CHECK(back.entryType() == 77);
         CHECK(createAllianceStreamEntry(77) != nullptr);
@@ -234,45 +237,51 @@ int main() {
         BattleReportStreamEntry back(2);
         entryRoundTrip<BattleReportStreamEntry>(
             [](BattleReportStreamEntry& e) {
-                e.v48_ = 4;
+                e.text48_ = std::string("rep");
                 e.b56_ = true;
                 e.v72_ = 5;
                 e.v76_ = 6;
                 e.v80_ = 7;
                 e.v60_ = 8;
-                e.text64_ = std::string("mvp");
+                e.long64_ = LogicLong{9, 10};
             },
             back);
-        CHECK(back.v48_ == 4 && back.b56_ && back.v80_ == 7 &&
-              back.v60_ == 8 && back.text64_.value() == "mvp");
+        CHECK(back.text48_.value() == "rep" && back.b56_ &&
+              back.v80_ == 7 && back.v60_ == 8 &&
+              back.long64_->low == 10);
         CHECK(back.entryType() == 2);
     }
     {
-        // Null string: v60 stays at the ctor default (-1), nothing extra
+        // Null long: v60 stays at the ctor default (-1), nothing extra
         // hits the wire.
         BattleReportStreamEntry back;
         entryRoundTrip<BattleReportStreamEntry>(
-            [](BattleReportStreamEntry& e) { e.v48_ = 3; }, back);
-        CHECK(!back.text64_.has_value() && back.v60_ == -1 &&
-              back.v48_ == 3);
+            [](BattleReportStreamEntry& e) {
+                e.text48_ = std::string("t");
+            },
+            back);
+        CHECK(!back.long64_.has_value() && back.v60_ == -1 &&
+              back.text48_.value() == "t");
         CHECK(back.entryType() == 1);
     }
     {
         JoinAllianceResponseAvatarStreamEntry back;
         entryRoundTrip<JoinAllianceResponseAvatarStreamEntry>(
             [](JoinAllianceResponseAvatarStreamEntry& e) {
-                e.name48_ = std::string("resp");
-                e.v56_ = 1;
+                e.long48_ = LogicLong{1, 2};
+                e.text56_ = std::string("resp");
                 e.ref64_.classId = 3;
                 e.ref64_.instanceId = 4;
-                e.v88_ = 2;
+                e.text88_ = std::string("aka");
                 e.b72_ = true;
-                e.text80_ = std::string("welcome");
+                e.long80_ = LogicLong{5, 6};
             },
             back);
-        CHECK(back.name48_.value() == "resp" && back.v56_ == 1 &&
-              back.ref64_.instanceId == 4 && back.v88_ == 2 && back.b72_ &&
-              back.text80_.value() == "welcome");
+        CHECK(back.long48_.low == 2 &&
+              back.text56_.value() == "resp" &&
+              back.ref64_.instanceId == 4 &&
+              back.text88_.value() == "aka" && back.b72_ &&
+              back.long80_->low == 6);
         CHECK(back.entryType() == 3);
         auto e3 = createAvatarStreamEntry(3);
         CHECK(e3 != nullptr);
@@ -283,16 +292,17 @@ int main() {
         AllianceInvitationAvatarStreamEntry back;
         entryRoundTrip<AllianceInvitationAvatarStreamEntry>(
             [](AllianceInvitationAvatarStreamEntry& e) {
-                e.name48_ = std::string("invite");
-                e.v56_ = 5;
+                e.long48_ = LogicLong{1, 2};
+                e.text56_ = std::string("invite");
                 e.ref64_.classId = 6;
                 e.ref64_.instanceId = 7;
-                e.text72_ = std::string("join us");
+                e.long72_ = LogicLong{8, 9};
             },
             back);
-        CHECK(back.name48_.value() == "invite" && back.v56_ == 5 &&
+        CHECK(back.long48_.low == 2 &&
+              back.text56_.value() == "invite" &&
               back.ref64_.classId == 6 && back.ref64_.instanceId == 7 &&
-              back.text72_.value() == "join us");
+              back.long72_->low == 9);
         CHECK(back.entryType() == 4);
         auto e4 = createAvatarStreamEntry(4);
         CHECK(e4 != nullptr);
@@ -303,17 +313,18 @@ int main() {
         AllianceKickOutStreamEntry back;
         entryRoundTrip<AllianceKickOutStreamEntry>(
             [](AllianceKickOutStreamEntry& e) {
-                e.v48_ = 9;
-                e.name56_ = std::string("kicked");
-                e.v64_ = 8;
+                e.text48_ = std::string("out");
+                e.long56_ = LogicLong{1, 2};
+                e.text64_ = std::string("kicked");
                 e.ref72_.classId = 7;
                 e.ref72_.instanceId = 6;
-                e.text80_ = std::string("bye");
+                e.long80_ = LogicLong{3, 4};
             },
             back);
-        CHECK(back.v48_ == 9 && back.name56_.value() == "kicked" &&
-              back.v64_ == 8 && back.ref72_.classId == 7 &&
-              back.ref72_.instanceId == 6 && back.text80_.value() == "bye");
+        CHECK(back.text48_.value() == "out" && back.long56_.low == 2 &&
+              back.text64_.value() == "kicked" &&
+              back.ref72_.classId == 7 && back.ref72_.instanceId == 6 &&
+              back.long80_->low == 4);
         CHECK(back.entryType() == 5);
         auto e5 = createAvatarStreamEntry(5);
         CHECK(e5 != nullptr);
@@ -324,16 +335,17 @@ int main() {
         AllianceMailAvatarStreamEntry back;
         entryRoundTrip<AllianceMailAvatarStreamEntry>(
             [](AllianceMailAvatarStreamEntry& e) {
-                e.v80_ = 4;
-                e.name48_ = std::string("mail");
-                e.text56_ = std::string("hello");
-                e.v64_ = 5;
+                e.text80_ = std::string("first");
+                e.long48_ = LogicLong{1, 2};
+                e.long56_ = LogicLong{3, 4};
+                e.text64_ = std::string("hello");
                 e.ref72_.classId = 1;
                 e.ref72_.instanceId = 2;
             },
             back);
-        CHECK(back.v80_ == 4 && back.name48_.value() == "mail" &&
-              back.text56_.value() == "hello" && back.v64_ == 5 &&
+        CHECK(back.text80_.value() == "first" &&
+              back.long48_->low == 2 && back.long56_.low == 4 &&
+              back.text64_.value() == "hello" &&
               back.ref72_.instanceId == 2);
         CHECK(back.entryType() == 6);
         auto e6 = createAvatarStreamEntry(6);
@@ -369,18 +381,18 @@ int main() {
                   ->entryType() == 9);
     }
     {
-        // Absent +48: only the false flag hits the wire, so decode
+        // Absent +48 long: only the false flag hits the wire, decode
         // keeps the previous value exactly like the binary.
         AllianceMailAvatarStreamEntry back;
-        back.name48_ = std::string("stale");
+        back.long48_ = LogicLong{7, 8};
         AllianceMailAvatarStreamEntry out;
-        out.v80_ = 1;
+        out.text80_ = std::string("t");
         ByteStream s;
         out.encode(s);
         ByteStream d;
         d.setBuffer(s.data(), s.size());
         back.decode(d);
-        CHECK(back.name48_.value() == "stale" && back.v80_ == 1);
+        CHECK(back.long48_->low == 8 && back.text80_.value() == "t");
     }
     // AllianceTeamEntry vint-pair logiclongs.
     {

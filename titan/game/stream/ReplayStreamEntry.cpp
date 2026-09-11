@@ -4,11 +4,13 @@
 // Ctor @0x8b6704 (size 0x70: base + fields below; +80 defaults to the
 // template replay id from .rodata @0xba3ff4). Factory case 5 @0x90d964.
 // encode @0x53f9b4, decode @0x7cc3ac.
-// Wire: StreamEntry base, vint +44, nullable string +48 (-1 length form),
-// bool +56, vint +72, vint +64 (in this order), string reference +80,
-// vint +96, vint +100, vint +104. The binary caps the +64/+72/+80 reads
-// (900000); the port reads plain values like everywhere else.
+// Wire: StreamEntry base, vint +44, LogicLong +48, bool +56,
+// string +72, string +64 (in this order), string reference +80,
+// vint +96, vint +100, vint +104. (Encoder slot map verified against
+// the ChecksumEncoder vtable: +56 writeString, +128 writeVInt,
+// +152 writeLong.)
 
+#include "titan/core/LogicLong.cpp"
 #include "titan/game/stream/StreamEntry.cpp"
 
 #include <optional>
@@ -22,10 +24,10 @@ public:
     void encode(ByteStream& s) const override {
         StreamEntry::encode(s);
         s.writeVInt(v44_);
-        s.writeString(name48_ ? &*name48_ : nullptr);
+        long48_.encode(s);
         s.writeBoolean(b56_);
-        s.writeVInt(v72_);
-        s.writeVInt(v64_);
+        s.writeString(text72_ ? &*text72_ : nullptr);
+        s.writeString(text64_ ? &*text64_ : nullptr);
         s.writeStringReference(id80_);
         s.writeVInt(v96_);
         s.writeVInt(v100_);
@@ -34,20 +36,20 @@ public:
     void decode(ByteStream& s) override {
         StreamEntry::decode(s);
         v44_ = s.readVInt();
-        name48_ = s.readString();
+        long48_ = LogicLong::decode(s);
         b56_ = s.readBoolean();
-        v72_ = s.readVInt();
-        v64_ = s.readVInt();
+        text72_ = s.readString();
+        text64_ = s.readString();
         id80_ = s.readStringReference();
         v96_ = s.readVInt();
         v100_ = s.readVInt();
         v104_ = s.readVInt();
     }
     i32 v44_ = 0; // +44
-    std::optional<std::string> name48_; // +48 (nullable)
+    LogicLong long48_; // +48 (binary holds a pointer; port keeps a value)
     bool b56_ = false; // +56
-    i32 v72_ = 0; // +72 (wired before +64)
-    i32 v64_ = 0; // +64
+    std::optional<std::string> text72_; // +72 (wired before +64, nullable)
+    std::optional<std::string> text64_; // +64 (nullable)
     // +80: template replay id from the ctor (String::operator= from
     // .rodata @0xba3ff4).
     std::string id80_ = "44838203_a45f_46c9_9ec2_b0f70bb8a77f_12000";

@@ -3,13 +3,14 @@
 // AllianceMailAvatarStreamEntry (avatar subtype 6) — reversed from libg_decrypted.so.
 // Ctor @0x1c5bc8 (size 0x58: base + fields below).
 // encode @0x61c398, decode @0x275804.
-// Wire: AvatarStreamEntry base + vint +80 first, then bool-prefixed
-// nullable string +48, nullable string +56 (-1 length form), vint +64,
-// DataReference +72. On decode a false presence flag leaves +48
-// untouched, exactly like the binary. The binary caps the +64/+80
-// reads at 900000; the port reads plain vints like everywhere else.
+// Wire: AvatarStreamEntry base + nullable string +80 first (-1 length
+// form), then bool-prefixed nullable LogicLong +48, LogicLong +56,
+// nullable string +64, DataReference +72. On decode a false presence
+// flag leaves +48 untouched, exactly like the binary. (Encoder slot
+// map verified: +56 writeString, +152 writeLong.)
 
 #include "titan/core/DataReference.cpp"
+#include "titan/core/LogicLong.cpp"
 #include "titan/game/stream/AvatarStreamEntry.cpp"
 
 #include <optional>
@@ -22,25 +23,28 @@ public:
     int entryType() const { return 6; }
     void encode(ByteStream& s) const override {
         AvatarStreamEntry::encode(s);
-        s.writeVInt(v80_);
-        s.writeBoolean(name48_.has_value());
-        if (name48_) s.writeString(&*name48_);
-        s.writeString(text56_ ? &*text56_ : nullptr);
-        s.writeVInt(v64_);
+        s.writeString(text80_ ? &*text80_ : nullptr);
+        s.writeBoolean(long48_.has_value());
+        if (long48_) long48_->encode(s);
+        long56_.encode(s);
+        s.writeString(text64_ ? &*text64_ : nullptr);
         ref72_.encode(s);
     }
     void decode(ByteStream& s) override {
         AvatarStreamEntry::decode(s);
-        v80_ = s.readVInt();
-        if (s.readBoolean()) name48_ = s.readString();
-        text56_ = s.readString();
-        v64_ = s.readVInt();
+        text80_ = s.readString();
+        if (s.readBoolean()) {
+            long48_.emplace();
+            *long48_ = LogicLong::decode(s);
+        }
+        long56_ = LogicLong::decode(s);
+        text64_ = s.readString();
         ref72_ = DataReference::decode(s);
     }
-    i32 v80_ = 0; // +80 (wired first)
-    std::optional<std::string> name48_; // +48 (bool-prefixed)
-    std::optional<std::string> text56_; // +56 (nullable)
-    i32 v64_ = 0; // +64
+    std::optional<std::string> text80_; // +80 (wired first, nullable)
+    std::optional<LogicLong> long48_; // +48 (bool-prefixed, sticky on false)
+    LogicLong long56_; // +56 (binary holds a pointer; port keeps a value)
+    std::optional<std::string> text64_; // +64 (nullable)
     DataReference ref72_; // +72
 };
 
