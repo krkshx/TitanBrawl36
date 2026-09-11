@@ -75,6 +75,7 @@
 #include "titan/game/player/ForcedDrops.cpp"
 #include "titan/game/player/IntValueEntry.cpp"
 #include "titan/game/alliance/JoinRequestAllianceStreamEntry.cpp"
+#include "titan/game/alliance/JoinAllianceResponseAvatarStreamEntry.cpp"
 #include "titan/game/home/Home.cpp"
 #include "titan/game/player/LogicDailyData.cpp"
 #include "titan/game/shop/LogicGemOffer.cpp"
@@ -251,6 +252,28 @@ int main() {
         CHECK(!back.text64_.has_value() && back.v60_ == -1 &&
               back.v48_ == 3);
         CHECK(back.entryType() == 1);
+    }
+    {
+        JoinAllianceResponseAvatarStreamEntry back;
+        entryRoundTrip<JoinAllianceResponseAvatarStreamEntry>(
+            [](JoinAllianceResponseAvatarStreamEntry& e) {
+                e.name48_ = std::string("resp");
+                e.v56_ = 1;
+                e.ref64_.classId = 3;
+                e.ref64_.instanceId = 4;
+                e.v88_ = 2;
+                e.b72_ = true;
+                e.text80_ = std::string("welcome");
+            },
+            back);
+        CHECK(back.name48_.value() == "resp" && back.v56_ == 1 &&
+              back.ref64_.instanceId == 4 && back.v88_ == 2 && back.b72_ &&
+              back.text80_.value() == "welcome");
+        CHECK(back.entryType() == 3);
+        auto e3 = createAvatarStreamEntry(3);
+        CHECK(e3 != nullptr);
+        CHECK(static_cast<JoinAllianceResponseAvatarStreamEntry*>(e3.get())
+                  ->entryType() == 3);
     }
     // AllianceTeamEntry vint-pair logiclongs.
     {
