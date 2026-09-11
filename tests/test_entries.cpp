@@ -353,6 +353,22 @@ int main() {
                   ->entryType() == 7);
     }
     {
+        // No own fields: base round-trips, type rides along.
+        DeviceLinkedStreamEntry back;
+        entryRoundTrip<DeviceLinkedStreamEntry>(
+            [](DeviceLinkedStreamEntry& e) {
+                e.name_ = std::string("linked");
+                e.b41_ = true;
+            },
+            back);
+        CHECK(back.name_.value() == "linked" && back.b41_);
+        CHECK(back.entryType() == 9);
+        auto e9 = createAvatarStreamEntry(9);
+        CHECK(e9 != nullptr);
+        CHECK(static_cast<DeviceLinkedStreamEntry*>(e9.get())
+                  ->entryType() == 9);
+    }
+    {
         // Absent +48: only the false flag hits the wire, so decode
         // keeps the previous value exactly like the binary.
         AllianceMailAvatarStreamEntry back;
