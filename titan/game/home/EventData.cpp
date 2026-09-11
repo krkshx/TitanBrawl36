@@ -50,12 +50,9 @@ public:
 namespace titan {
 
 template <typename T>
-static void encodeOpt(ByteStream& s, const std::unique_ptr<T>& ptr, const char* ctx) {
+static void encodeOpt(ByteStream& s, const std::unique_ptr<T>& ptr) {
     s.writeBoolean(static_cast<bool>(ptr));
-    if (ptr) {
-        if (!ptr) throw pending_reverse(ctx);
-        ptr->encode(s);
-    }
+    if (ptr) ptr->encode(s);
 }
 
 inline void EventData::encode(ByteStream& s) const {
@@ -74,19 +71,19 @@ inline void EventData::encode(ByteStream& s) const {
     if (!map_) throw pending_reverse("EventData needs BattlePlayerMap");
     map_->encode(s);
     s.writeVInt(w60_);
-    encodeOpt(s, season_, "EventData needs LogicRankedSeason");
+    encodeOpt(s, season_);
     s.writeVInt(w84_);
     s.writeVInt(w88_);
-    encodeOpt(s, chrono1_, "EventData needs ChronosTextEntry");
-    encodeOpt(s, chrono2_, "EventData needs ChronosTextEntry");
-    encodeOpt(s, offer_, "EventData needs LogicGemOffer");
+    encodeOpt(s, chrono1_);
+    encodeOpt(s, chrono2_);
+    encodeOpt(s, offer_);
     if (optLoopNull_) {
         s.writeVInt(-1);
     } else {
         s.writeVInt(static_cast<i32>(optLoop_.size()));
         for (i32 x : optLoop_) s.writeVInt(x);
     }
-    encodeOpt(s, file_, "EventData needs ChronosFileEntry");
+    encodeOpt(s, file_);
 }
 
 template <typename T>

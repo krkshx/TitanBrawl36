@@ -6,8 +6,8 @@
 // LogicClientHome's v76_/b72_). Containers mirror the binary's
 // LogicArrayList / LogicMapInt shapes (count vint + elements).
 //
-// Unresolved nested types stay as pending/* stubs (one class per file);
-// setting them non-empty throws pending_reverse until their wave lands.
+// All nested types are reversed (one class per file); required nested
+// objects are null-checked on encode (the binary would crash on null).
 
 #include "titan/core/DataReference.cpp"
 #include "titan/game/player/CooldownEntry.cpp"

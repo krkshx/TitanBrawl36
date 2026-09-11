@@ -64,6 +64,35 @@ Every message goes on the wire as header + payload
   count-vint + elements; optional object = bool + body;
   nullable list = count or `-1` for null (`writeIntList`).
 
+## Encoder vtable slot map (verified)
+
+Decompiled `encode()` bodies call helpers through the encoder vtable
+(`ChecksumEncoder`, `ZTV15ChecksumEncoder`). Offsets below are relative
+to the vptr; names resolved from the vtable itself, cross-checked with
+`ChatStreamEntry::encode @0x929d4c` (text via +56) and the checksum
+fold constants (`writeInt` folds `+9 @0x8a558c`, `writeVInt` folds
+`+33 @0x5c50e0`):
+
+| slot | helper | takes |
+| ---- | ------ | ----- |
+| +32 | `writeStringReference` | `const String&` (never null) |
+| +56 | `writeString` | `const String*` (null → `-1`) |
+| +64 | `writeBoolean` | `bool` |
+| +72 | `writeInt` | `i32` |
+| +128 | `writeVInt` | `i32` |
+| +136 | `writeVLong` | `i64` |
+| +152 | `writeLong` | `const LogicLong*` (tail-calls `LogicLong::encode @0x90c8d8`, so member-encode is byte-identical) |
+
+Read-side mirrors (on the `ByteStream` vtable): `+208 readBoolean`,
+`+216 readInt`, `+248 readVInt`, `+272 readLong`. Bounded string reads
+go through `+176` (cap 900000 = `kMaxStringBytes`, e.g.
+`ChatStreamEntry::decode @0x2a02a4`) and `+168` for references; the
+port reads plain values — identical bytes for valid data. Rule of
+thumb: qword load without a cast + capped read = string; dword load
+with an `(unsigned int)` cast = vint/int. Getting this wrong still
+round-trips but breaks binary compat — always check the slot, never
+guess from the load alone.
+
 ## Login flow (message ids)
 
 `ClientHello` 10100 → `Login` 10101 (or `LoginUsingSession` 10102) →
