@@ -1,7 +1,7 @@
 #pragma once
 
 // BattlePlayerMap — reversed as LogicBattlePlayerMap
-// (see game/LogicBattlePlayerMap.hpp). Alias kept so existing users
+// (see game/battle/LogicBattlePlayerMap.cpp). Alias kept so existing users
 // (EventData, StartLoadingMessage) don't churn.
 
 #include "titan/game/battle/LogicBattlePlayerMap.cpp"

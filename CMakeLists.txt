@@ -57,7 +57,10 @@ target_include_directories(titan_core PUBLIC
 if(MSVC)
   target_compile_options(titan_core PRIVATE /W4)
 else()
-  target_compile_options(titan_core PRIVATE -Wall -Wextra)
+  target_compile_options(titan_core PRIVATE -Wall -Wextra
+    # Every .cpp doubles as an includable unit (#pragma once); compiling
+    # one as a main TU trips this benign warning by design.
+    $<$<CXX_COMPILER_ID:GNU,Clang>:-Wno-pragma-once-outside-header>)
 endif()
 
 if(TITAN_WITH_SODIUM)
