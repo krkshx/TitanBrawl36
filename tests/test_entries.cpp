@@ -8,6 +8,7 @@
 #include "titan/game/alliance/AllianceEventStreamEntry.cpp"
 #include "titan/game/alliance/AllianceInvitationAvatarStreamEntry.cpp"
 #include "titan/game/alliance/AllianceKickOutStreamEntry.cpp"
+#include "titan/game/alliance/AllianceMailAvatarStreamEntry.cpp"
 #include "titan/game/alliance/AllianceTeamEntry.cpp"
 #include "titan/game/stream/AvatarStreamEntry.cpp"
 #include "titan/game/stream/BattleReportStreamEntry.cpp"
@@ -317,6 +318,41 @@ int main() {
         CHECK(e5 != nullptr);
         CHECK(static_cast<AllianceKickOutStreamEntry*>(e5.get())
                   ->entryType() == 5);
+    }
+    {
+        AllianceMailAvatarStreamEntry back;
+        entryRoundTrip<AllianceMailAvatarStreamEntry>(
+            [](AllianceMailAvatarStreamEntry& e) {
+                e.v80_ = 4;
+                e.name48_ = std::string("mail");
+                e.text56_ = std::string("hello");
+                e.v64_ = 5;
+                e.ref72_.classId = 1;
+                e.ref72_.instanceId = 2;
+            },
+            back);
+        CHECK(back.v80_ == 4 && back.name48_.value() == "mail" &&
+              back.text56_.value() == "hello" && back.v64_ == 5 &&
+              back.ref72_.instanceId == 2);
+        CHECK(back.entryType() == 6);
+        auto e6 = createAvatarStreamEntry(6);
+        CHECK(e6 != nullptr);
+        CHECK(static_cast<AllianceMailAvatarStreamEntry*>(e6.get())
+                  ->entryType() == 6);
+    }
+    {
+        // Absent +48: only the false flag hits the wire, so decode
+        // keeps the previous value exactly like the binary.
+        AllianceMailAvatarStreamEntry back;
+        back.name48_ = std::string("stale");
+        AllianceMailAvatarStreamEntry out;
+        out.v80_ = 1;
+        ByteStream s;
+        out.encode(s);
+        ByteStream d;
+        d.setBuffer(s.data(), s.size());
+        back.decode(d);
+        CHECK(back.name48_.value() == "stale" && back.v80_ == 1);
     }
     // AllianceTeamEntry vint-pair logiclongs.
     {
