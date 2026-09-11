@@ -8,6 +8,7 @@
 #include "titan/game/alliance/AllianceEventStreamEntry.cpp"
 #include "titan/game/alliance/AllianceTeamEntry.cpp"
 #include "titan/game/stream/AvatarStreamEntry.cpp"
+#include "titan/game/stream/BattleReportStreamEntry.cpp"
 #include "titan/game/battle/BattleLogEntry.cpp"
 #include "titan/game/battle/BattleLogPlayerEntry.cpp"
 #include "titan/game/home/BrawlPassSeasonData.cpp"
@@ -218,6 +219,38 @@ int main() {
         CHECK(createAllianceStreamEntry(999) == nullptr);
         auto a = createAvatarStreamEntry(3);
         CHECK(a != nullptr);
+        auto b1 = createAvatarStreamEntry(1);
+        auto b2 = createAvatarStreamEntry(2);
+        CHECK(b1 != nullptr && b2 != nullptr);
+        CHECK(static_cast<BattleReportStreamEntry*>(b1.get())->entryType() == 1);
+        CHECK(static_cast<BattleReportStreamEntry*>(b2.get())->entryType() == 2);
+    }
+    {
+        BattleReportStreamEntry back(2);
+        entryRoundTrip<BattleReportStreamEntry>(
+            [](BattleReportStreamEntry& e) {
+                e.v48_ = 4;
+                e.b56_ = true;
+                e.v72_ = 5;
+                e.v76_ = 6;
+                e.v80_ = 7;
+                e.v60_ = 8;
+                e.text64_ = std::string("mvp");
+            },
+            back);
+        CHECK(back.v48_ == 4 && back.b56_ && back.v80_ == 7 &&
+              back.v60_ == 8 && back.text64_.value() == "mvp");
+        CHECK(back.entryType() == 2);
+    }
+    {
+        // Null string: v60 stays at the ctor default (-1), nothing extra
+        // hits the wire.
+        BattleReportStreamEntry back;
+        entryRoundTrip<BattleReportStreamEntry>(
+            [](BattleReportStreamEntry& e) { e.v48_ = 3; }, back);
+        CHECK(!back.text64_.has_value() && back.v60_ == -1 &&
+              back.v48_ == 3);
+        CHECK(back.entryType() == 1);
     }
     // AllianceTeamEntry vint-pair logiclongs.
     {

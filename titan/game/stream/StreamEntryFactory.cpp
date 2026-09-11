@@ -65,7 +65,7 @@ std::unique_ptr<StreamEntry> createAllianceStreamEntry(int type) {
 std::unique_ptr<AvatarStreamEntry> createAvatarStreamEntry(int type) {
     switch (type) {
         case 1:
-        case 2: return std::make_unique<BattleReportStreamEntry>();
+        case 2: return std::make_unique<BattleReportStreamEntry>(type);
         case 3: return std::make_unique<JoinAllianceResponseAvatarStreamEntry>();
         case 4: return std::make_unique<AllianceInvitationAvatarStreamEntry>();
         case 5: return std::make_unique<AllianceKickOutStreamEntry>();
