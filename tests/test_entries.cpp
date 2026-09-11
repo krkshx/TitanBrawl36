@@ -66,6 +66,7 @@
 #include "titan/game/stream/MessageDataStreamEntry.cpp"
 #include "titan/game/stream/QuickChatStreamEntry.cpp"
 #include "titan/game/stream/ReplayStreamEntry.cpp"
+#include "titan/game/stream/TeamCreatedStreamEntry.cpp"
 #include "titan/game/home/EventData.cpp"
 #include "titan/game/social/FriendEntry.cpp"
 #include "titan/game/player/CooldownEntry.cpp"
@@ -192,6 +193,21 @@ int main() {
         ReplayStreamEntry fresh;
         CHECK(fresh.id80_ ==
               "44838203_a45f_46c9_9ec2_b0f70bb8a77f_12000");
+    }
+    {
+        TeamCreatedStreamEntry back;
+        entryRoundTrip<TeamCreatedStreamEntry>(
+            [](TeamCreatedStreamEntry& e) {
+                e.name48_ = std::string("team-up");
+                e.v56_ = 1;
+                e.v60_ = 2;
+                e.v64_ = 3;
+            },
+            back);
+        CHECK(back.name48_.value() == "team-up" && back.v56_ == 1 &&
+              back.v60_ == 2 && back.v64_ == 3);
+        CHECK(back.entryType() == 77);
+        CHECK(createAllianceStreamEntry(77) != nullptr);
     }
     {
         auto e = createAllianceStreamEntry(2);
