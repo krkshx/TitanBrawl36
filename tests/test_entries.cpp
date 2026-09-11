@@ -6,6 +6,7 @@
 #include "titan/game/alliance/AllianceWarNode.cpp"
 #include "titan/game/home/ChronosFileEntry.cpp"
 #include "titan/game/alliance/AllianceEventStreamEntry.cpp"
+#include "titan/game/alliance/AllianceInvitationAvatarStreamEntry.cpp"
 #include "titan/game/alliance/AllianceTeamEntry.cpp"
 #include "titan/game/stream/AvatarStreamEntry.cpp"
 #include "titan/game/stream/BattleReportStreamEntry.cpp"
@@ -274,6 +275,26 @@ int main() {
         CHECK(e3 != nullptr);
         CHECK(static_cast<JoinAllianceResponseAvatarStreamEntry*>(e3.get())
                   ->entryType() == 3);
+    }
+    {
+        AllianceInvitationAvatarStreamEntry back;
+        entryRoundTrip<AllianceInvitationAvatarStreamEntry>(
+            [](AllianceInvitationAvatarStreamEntry& e) {
+                e.name48_ = std::string("invite");
+                e.v56_ = 5;
+                e.ref64_.classId = 6;
+                e.ref64_.instanceId = 7;
+                e.text72_ = std::string("join us");
+            },
+            back);
+        CHECK(back.name48_.value() == "invite" && back.v56_ == 5 &&
+              back.ref64_.classId == 6 && back.ref64_.instanceId == 7 &&
+              back.text72_.value() == "join us");
+        CHECK(back.entryType() == 4);
+        auto e4 = createAvatarStreamEntry(4);
+        CHECK(e4 != nullptr);
+        CHECK(static_cast<AllianceInvitationAvatarStreamEntry*>(e4.get())
+                  ->entryType() == 4);
     }
     // AllianceTeamEntry vint-pair logiclongs.
     {
