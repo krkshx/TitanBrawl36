@@ -1,6 +1,53 @@
-// HomeViewer bodies.
+#pragma once
 
-#include "HomeViewer.hpp"
+// HomeViewer bodies (CPP-only: class + inline definitions in one TU).
+
+// Home data viewer: decodes OwnHomeData frames (demo-built or loaded from
+// a .bin capture) and shows the fields. Qt only; core stays clean.
+
+#include "HeroCards.cpp"
+#include "titan/core/PiranhaMessage.cpp"
+#include "titan/game/data/DataTables.cpp"
+
+#include <QMainWindow>
+#include <QTabWidget>
+#include <QTreeWidget>
+#include <QTextEdit>
+#include <QStatusBar>
+#include <QPushButton>
+
+#include <cstdint>
+#include <memory>
+#include <vector>
+
+namespace titan {
+class PiranhaMessage;
+}
+
+class HomeViewer : public QMainWindow {
+    Q_OBJECT
+public:
+    explicit HomeViewer(QWidget* parent = nullptr);
+
+private slots:
+    void onDemo();
+    void onLoad();
+
+private:
+    void showFrame(const std::vector<std::uint8_t>& frame);
+    void showError(const QString& what);
+
+    QTreeWidget* tree_;
+    QTextEdit* hex_;
+    HeroCards* cards_;
+    QTreeWidget* notifs_;
+    QTreeWidget* shop_;
+    QPushButton* demoBtn_;
+    QPushButton* loadBtn_;
+    std::unique_ptr<titan::PiranhaMessage> last_;
+    titan::DataTables tables_;
+    bool tablesOk_ = false;
+};
 
 #include "titan/game/home/ChronosTextEntry.cpp"
 #include "titan/game/avatar/LogicClientAvatar.cpp"
@@ -124,7 +171,7 @@ void showHome(QTreeWidget* tree, const titan::OwnHomeDataMessage& m,
 
 } // namespace
 
-HomeViewer::HomeViewer(QWidget* parent) : QMainWindow(parent) {
+inline HomeViewer::HomeViewer(QWidget* parent) : QMainWindow(parent) {
     setWindowTitle("TitanBrawl36 — home viewer");
     resize(900, 600);
 
@@ -181,7 +228,7 @@ HomeViewer::HomeViewer(QWidget* parent) : QMainWindow(parent) {
     statusBar()->showMessage("ready");
 }
 
-void HomeViewer::showFrame(const std::vector<u8>& frame) {
+inline void HomeViewer::showFrame(const std::vector<u8>& frame) {
     QString reason;
     auto m = decodeFrame(frame, reason);
     if (!m) {
@@ -254,7 +301,7 @@ void HomeViewer::showFrame(const std::vector<u8>& frame) {
     last_ = std::move(m);
 }
 
-void HomeViewer::showError(const QString& what) {
+inline void HomeViewer::showError(const QString& what) {
     tree_->clear();
     notifs_->clear();
     shop_->clear();
@@ -262,7 +309,7 @@ void HomeViewer::showError(const QString& what) {
     statusBar()->showMessage("error: " + what);
 }
 
-void HomeViewer::onDemo() {
+inline void HomeViewer::onDemo() {
     titan::OwnHomeDataMessage m;
     m.home_ = std::make_unique<titan::LogicClientHome>();
     m.home_->daily_ = std::make_unique<titan::LogicDailyData>();
@@ -295,7 +342,7 @@ void HomeViewer::onDemo() {
     showFrame(titan::net::encodeFrame(m));
 }
 
-void HomeViewer::onLoad() {
+inline void HomeViewer::onLoad() {
     const QString path = QFileDialog::getOpenFileName(
         this, "Open framed message capture", "", "Captures (*.bin);;All (*)");
     if (path.isEmpty()) return;

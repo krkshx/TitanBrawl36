@@ -1,6 +1,6 @@
 // titan_viewer entry point.
 
-#include "HomeViewer.hpp"
+#include "HomeViewer.cpp"
 
 #include <QApplication>
 
