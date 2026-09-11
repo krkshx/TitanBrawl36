@@ -7,6 +7,7 @@
 #include "titan/game/home/ChronosFileEntry.cpp"
 #include "titan/game/alliance/AllianceEventStreamEntry.cpp"
 #include "titan/game/alliance/AllianceInvitationAvatarStreamEntry.cpp"
+#include "titan/game/alliance/AllianceKickOutStreamEntry.cpp"
 #include "titan/game/alliance/AllianceTeamEntry.cpp"
 #include "titan/game/stream/AvatarStreamEntry.cpp"
 #include "titan/game/stream/BattleReportStreamEntry.cpp"
@@ -295,6 +296,27 @@ int main() {
         CHECK(e4 != nullptr);
         CHECK(static_cast<AllianceInvitationAvatarStreamEntry*>(e4.get())
                   ->entryType() == 4);
+    }
+    {
+        AllianceKickOutStreamEntry back;
+        entryRoundTrip<AllianceKickOutStreamEntry>(
+            [](AllianceKickOutStreamEntry& e) {
+                e.v48_ = 9;
+                e.name56_ = std::string("kicked");
+                e.v64_ = 8;
+                e.ref72_.classId = 7;
+                e.ref72_.instanceId = 6;
+                e.text80_ = std::string("bye");
+            },
+            back);
+        CHECK(back.v48_ == 9 && back.name56_.value() == "kicked" &&
+              back.v64_ == 8 && back.ref72_.classId == 7 &&
+              back.ref72_.instanceId == 6 && back.text80_.value() == "bye");
+        CHECK(back.entryType() == 5);
+        auto e5 = createAvatarStreamEntry(5);
+        CHECK(e5 != nullptr);
+        CHECK(static_cast<AllianceKickOutStreamEntry*>(e5.get())
+                  ->entryType() == 5);
     }
     // AllianceTeamEntry vint-pair logiclongs.
     {
