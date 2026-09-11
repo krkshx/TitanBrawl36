@@ -67,6 +67,7 @@
 #include "titan/game/player/RankingEntry.cpp"
 #include "titan/game/player/LogicPlayerRankedSeasonData.cpp"
 #include "titan/game/stream/ChatStreamEntry.cpp"
+#include "titan/game/stream/DonationReceivedStreamEntry.cpp"
 #include "titan/game/stream/MessageDataStreamEntry.cpp"
 #include "titan/game/stream/QuickChatStreamEntry.cpp"
 #include "titan/game/stream/ReplayStreamEntry.cpp"
@@ -339,6 +340,17 @@ int main() {
         CHECK(e6 != nullptr);
         CHECK(static_cast<AllianceMailAvatarStreamEntry*>(e6.get())
                   ->entryType() == 6);
+    }
+    {
+        DonationReceivedStreamEntry back;
+        entryRoundTrip<DonationReceivedStreamEntry>(
+            [](DonationReceivedStreamEntry& e) { e.v44_ = 12; }, back);
+        CHECK(back.v44_ == 12);
+        CHECK(back.entryType() == 7);
+        auto e7 = createAvatarStreamEntry(7);
+        CHECK(e7 != nullptr);
+        CHECK(static_cast<DonationReceivedStreamEntry*>(e7.get())
+                  ->entryType() == 7);
     }
     {
         // Absent +48: only the false flag hits the wire, so decode
