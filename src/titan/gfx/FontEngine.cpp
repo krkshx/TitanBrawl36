@@ -29,9 +29,10 @@ public:
         return load(paths);
     }
     bool loadBundled(const std::string &assetsDir) {
+        // Первым — Pusia-Bold: именно им рисуется игровой текст (статус загрузки и т.д.).
         std::vector<std::string> paths;
-        paths.push_back(assetsDir + "/font/LilitaOne-Regular.ttf");
         paths.push_back(assetsDir + "/font/Pusia-Bold.otf");
+        paths.push_back(assetsDir + "/font/LilitaOne-Regular.ttf");
         paths.push_back(assetsDir + "/titan/fonts/droid_sans_fallback.ttf");
         std::vector<std::string> system = NativeFont::systemFallbacks();
         for (std::size_t i = 0; i < system.size(); i++) {
