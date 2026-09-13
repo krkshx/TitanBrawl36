@@ -1,16 +1,15 @@
 #pragma once
 #include "../core/PiranhaMessage.cpp"
-#include <cstdint>
 
 class ResetAccountMessage : public PiranhaMessage {
 public:
-    std::int32_t id() const override { return 10116; }
+    std::int32_t getMessageType() const override { return 10116; }
+    std::int32_t getServiceNodeType() const override { return 9; }
     void encode() override {
-        PiranhaMessage::encode();
-        stream().writeInt(preset_);
+        getByteStream()->writeInt(preset_);
     }
     void decode() override {
-        preset_ = stream().readInt();
+        preset_ = getByteStream()->readInt();
     }
     void setPreset(std::int32_t v) { preset_ = v; }
     std::int32_t preset() const { return preset_; }

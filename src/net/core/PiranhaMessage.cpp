@@ -1,18 +1,22 @@
 #pragma once
 #include "../../titan/core/ByteStream.cpp"
-#include <cstdint>
 
 class PiranhaMessage {
 public:
-    PiranhaMessage() = default;
+    explicit PiranhaMessage(std::int32_t version = 0) : version_(version) {}
     virtual ~PiranhaMessage() = default;
-    virtual std::int32_t id() const { return 0; }
     virtual void encode() {}
     virtual void decode() {}
-    ByteStream &stream() { return stream_; }
-    const ByteStream &stream() const { return stream_; }
-    std::int32_t version() const { return version_; }
-    void setVersion(std::int32_t v) { version_ = v; }
+    virtual std::int32_t getServiceNodeType() const = 0;
+    virtual std::int32_t getMessageType() const = 0;
+    virtual const char *getMessageTypeName() const { return "PiranhaMessage"; }
+    virtual void destruct() {}
+    void setMessageVersion(std::int32_t v) { version_ = v; }
+    std::int32_t getMessageVersion() const { return version_; }
+    ByteStream *getByteStream() { return &stream_; }
+    const ByteStream *getByteStream() const { return &stream_; }
+    std::int32_t getEncodingLength() const { return stream_.getOffset(); }
+    const char *getMessageBytes() const { return stream_.getByteArray(); }
 private:
     ByteStream stream_;
     std::int32_t version_ = 0;

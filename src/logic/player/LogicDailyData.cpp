@@ -1,5 +1,5 @@
 #pragma once
-#include "../../titan/core/ByteStream.cpp"
+#include "../../titan/core/ByteStreamHelper.cpp"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -19,15 +19,15 @@ public:
         s.writeVInt(a4_);
         s.writeVInt(a5_);
         s.writeVInt(a6_);
-        writeRef(s, r0_);
-        writeRef(s, r1_);
+        ByteStreamHelper::writeDataReference(&s, r0_.type, r0_.id);
+        ByteStreamHelper::writeDataReference(&s, r1_.type, r1_.id);
         s.writeVInt(static_cast<std::int32_t>(ids_.size()));
         for (std::int32_t v : ids_) {
             s.writeVInt(v);
         }
         s.writeVInt(static_cast<std::int32_t>(refs_.size()));
         for (const DataRef &r : refs_) {
-            writeRef(s, r);
+            ByteStreamHelper::writeDataReference(&s, r.type, r.id);
         }
         s.writeVInt(cooldownSeconds_);
         s.writeVInt(brawlPassPoints_);
@@ -47,8 +47,8 @@ public:
         a4_ = s.readVInt();
         a5_ = s.readVInt();
         a6_ = s.readVInt();
-        r0_ = readRef(s);
-        r1_ = readRef(s);
+        ByteStreamHelper::readDataReference(&s, &r0_.type, &r0_.id);
+        ByteStreamHelper::readDataReference(&s, &r1_.type, &r1_.id);
         std::int32_t n = s.readVInt();
         ids_.resize(static_cast<std::size_t>(n));
         for (std::int32_t i = 0; i < n; i++) {
@@ -57,7 +57,7 @@ public:
         std::int32_t m = s.readVInt();
         refs_.resize(static_cast<std::size_t>(m));
         for (std::int32_t i = 0; i < m; i++) {
-            refs_[static_cast<std::size_t>(i)] = readRef(s);
+            ByteStreamHelper::readDataReference(&s, &refs_[static_cast<std::size_t>(i)].type, &refs_[static_cast<std::size_t>(i)].id);
         }
         cooldownSeconds_ = s.readVInt();
         brawlPassPoints_ = s.readVInt();
@@ -89,15 +89,4 @@ public:
     std::int32_t gems_ = 0;
     std::int32_t starpowerPoints_ = 0;
     std::int32_t tickets_ = 0;
-private:
-    static void writeRef(ByteStream &s, const DataRef &r) {
-        s.writeVInt(r.type);
-        s.writeVInt(r.id);
-    }
-    static DataRef readRef(ByteStream &s) {
-        DataRef r;
-        r.type = s.readVInt();
-        r.id = s.readVInt();
-        return r;
-    }
 };
