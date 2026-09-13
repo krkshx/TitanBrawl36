@@ -44,9 +44,18 @@ static bool drainEntryClicks(pc::Window &window, UiButton *button, LoadingScreen
 }
 
 int main(int argc, char **argv) {
+    // Кнопка входа выключена по умолчанию, включается флагом --entry-button.
     std::string root = ".";
-    if (argc > 1) {
-        root = argv[1];
+    bool entryButtonOn = false;
+    bool rootSet = false;
+    for (int i = 1; i < argc; i++) {
+        std::string a = argv[i];
+        if (a == "--entry-button") {
+            entryButtonOn = true;
+        } else if (!rootSet && !a.empty() && a[0] != '-') {
+            root = a;
+            rootSet = true;
+        }
     }
     pc::Window window;
     if (!window.open(848, 480, "Laser")) {
@@ -127,7 +136,10 @@ int main(int argc, char **argv) {
             present(screen, &entryButton, window);
         });
         // Кнопка входа: первый экспорт ui.sc с "button" в имени, текстуры уже на месте.
-        buttonOk = entryButton.bind(&ui, "button");
+        // Без флага --entry-button не биндится: не рисуется и клики не ловит.
+        if (entryButtonOn) {
+            buttonOk = entryButton.bind(&ui, "button");
+        }
         screen.setProgress(0.35f);
         present(screen, &entryButton, window);
         std::string csvPath = FileSystem::join(assetsDir, FileSystem::join("csv_logic", "characters.csv"));
