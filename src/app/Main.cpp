@@ -6,6 +6,8 @@
 #include "../net/account/ResetAccountMessage.cpp"
 #include "../platform/audio/Music.cpp"
 #include "../platform/audio/MusicLibrary.cpp"
+#include "../platform/audio/LoadingSound.cpp"
+#include "../platform/audio/Sfx.cpp"
 #include "../platform/audio/SfxLibrary.cpp"
 #include "../platform/fs/FileSystem.cpp"
 #include "../platform/native/LoginError.cpp"
@@ -20,18 +22,6 @@ static void present(LoadingScreen &screen, pc::Window &window) {
     screen.draw(window.frame(), window.width(), window.height());
     window.present();
 }
-static void glide(LoadingScreen &screen, pc::Window &window, float target, std::int32_t stepMs) {
-    while (window.poll() && screen.progress() < target) {
-        float p = screen.progress() + 0.01f;
-        if (p > target) {
-            p = target;
-        }
-        screen.setProgress(p);
-        present(screen, window);
-        Clock::sleepMs(stepMs);
-    }
-}
-
 int main(int argc, char **argv) {
     std::string root = ".";
     if (argc > 1) {
@@ -49,33 +39,45 @@ int main(int argc, char **argv) {
     present(screen, window);
     std::string scPath = FileSystem::join(assetsDir, FileSystem::join("sc", "loading.sc"));
     bool clipOk = screen.loadClip(scPath);
+    // --- ЛОГО Supercell: крутим таймлайн sc_intro (100 кадров @60fps) + джингл one-shot. ---
     screen.showLogo();
     screen.setProgress(0.0f);
-    present(screen, window);
-    std::int64_t logoUntil = Clock::nowMs() + 1500;
-    while (window.poll() && Clock::nowMs() < logoUntil) {
-        screen.draw(window.frame(), window.width(), window.height());
-        window.present();
-        Clock::sleepMs(16);
+    Sfx::play(LoadingSound::logoJingle(assetsDir));
+    {
+        int frames = screen.logoFrames();
+        if (frames < 1) {
+            frames = 100;
+        }
+        std::int64_t tick = 0;
+        while (window.poll()) {
+            int fi = static_cast<int>(tick * 60 / 1000);
+            if (fi >= frames) {
+                break;
+            }
+            screen.setLogoFrame(fi);
+            present(screen, window);
+            Clock::sleepMs(16);
+            tick += 16;
+        }
     }
+    // --- ЗАГРУЗКА: музыка загрузочного фона (sting, loop), бар — только от реальной работы. ---
     screen.showLoading();
     screen.setProgress(0.0f);
     present(screen, window);
     Music music;
-    // Музыка загрузки строго по либе: themes.csv Default.ThemeMusic -> music.csv FileName.
-    // Для v36 Default = Action_Western_Menu -> music/action_western_stars_01.ogg.
-    std::string menuMusic = MusicLibrary::defaultMenuMusic(assetsDir);
-    if (!menuMusic.empty()) {
-        music.start(menuMusic, true);
+    std::string loadMusic = LoadingSound::loadingMusic(assetsDir);
+    if (!loadMusic.empty()) {
+        music.start(loadMusic, true);
     }
-    glide(screen, window, 0.1f, 16);
     SupercellSWF ui;
     std::string uiPath = FileSystem::join(assetsDir, FileSystem::join("sc", "ui.sc"));
     bool uiOk = ui.load(uiPath);
-    glide(screen, window, 0.25f, 16);
+    screen.setProgress(0.2f);
+    present(screen, window);
     std::string uiTexPath = FileSystem::join(assetsDir, FileSystem::join("sc", "ui_tex.sc"));
     bool uiTexOk = ui.loadTexture(uiTexPath);
-    glide(screen, window, 0.4f, 16);
+    screen.setProgress(0.35f);
+    present(screen, window);
     std::string csvPath = FileSystem::join(assetsDir, FileSystem::join("csv_logic", "characters.csv"));
     CsvTable table;
     bool csvOk = table.load(csvPath);
@@ -87,10 +89,19 @@ int main(int argc, char **argv) {
     daily.a0_ = 10;
     daily.coins_ = 100;
     daily.encode(out);
-    glide(screen, window, 0.5f, 16);
+    screen.setProgress(0.5f);
+    present(screen, window);
+    // --- КОННЕКТ: бар ЗАМИРАЕТ (никаких glide до 100%), текст — TID_CONNECTING_TO_SERVER. ---
+    // (заглушка до net/login: висим на фризе короткую паузу, потом локальный фейл).
     screen.setConnecting();
     present(screen, window);
-    glide(screen, window, 1.0f, 60);
+    {
+        std::int64_t until = Clock::nowMs() + 2000;
+        while (window.poll() && Clock::nowMs() < until) {
+            present(screen, window);
+            Clock::sleepMs(50);
+        }
+    }
     window.save(FileSystem::join(root, "frame.ppm"));
     // Сервер выключен — локальный коннект-фейл, поэтому CONNECTION_FAILED, а не LOGIN_FAILED.
     // Маппинг всех серверных кодов — в LoginError::showServerCode (задействуем когда заведём net/login).
