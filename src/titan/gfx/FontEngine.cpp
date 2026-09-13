@@ -211,11 +211,13 @@ public:
                 wide[k] = best;
             }
         }
+        // Мягкая тень — от заливки глифов (mask), со сдвигом вправо-вниз:
+        // от расширенного контура (wide) она расползалась серым ореолом.
         std::vector<unsigned char> soft(static_cast<std::size_t>(mw) * static_cast<std::size_t>(mh), 0);
         for (int yy = 0; yy < mh; yy++) {
             for (int xx = 0; xx < mw; xx++) {
-                int sx = xx;
-                int sy = yy - r;
+                int sx = xx - 1;
+                int sy = yy - (r + 1);
                 if (sx < 0 || sx >= mw || sy < 0 || sy >= mh) {
                     continue;
                 }
@@ -227,7 +229,7 @@ public:
                         if (nx < 0 || nx >= mw || ny < 0 || ny >= mh) {
                             continue;
                         }
-                        acc += wide[static_cast<std::size_t>(ny) * static_cast<std::size_t>(mw) + static_cast<std::size_t>(nx)];
+                        acc += mask[static_cast<std::size_t>(ny) * static_cast<std::size_t>(mw) + static_cast<std::size_t>(nx)];
                     }
                 }
                 soft[static_cast<std::size_t>(yy) * static_cast<std::size_t>(mw) + static_cast<std::size_t>(xx)] = static_cast<unsigned char>(acc / 9);
