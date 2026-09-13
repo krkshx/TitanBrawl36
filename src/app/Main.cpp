@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
     std::string scPath = FileSystem::join(assetsDir, FileSystem::join("sc", "loading.sc"));
     bool clipOk = screen.loadClip(scPath);
     // --- ЛОГО Supercell: крутим таймлайн sc_intro (100 кадров @60fps) + джингл one-shot. ---
+    // Кадр — строго по wall-clock (софт-рендер ~30мс/кадр, фиксированный тик дрейфовал и лагал).
     screen.showLogo();
     screen.setProgress(0.0f);
     Sfx::play(LoadingSound::logoJingle(assetsDir));
@@ -48,16 +49,17 @@ int main(int argc, char **argv) {
         if (frames < 1) {
             frames = 100;
         }
-        std::int64_t tick = 0;
-        while (window.poll()) {
-            int fi = static_cast<int>(tick * 60 / 1000);
+        std::int64_t t0 = Clock::nowMs();
+        for (;;) {
+            if (!window.poll()) {
+                break;
+            }
+            int fi = static_cast<int>((Clock::nowMs() - t0) * 60 / 1000);
             if (fi >= frames) {
                 break;
             }
             screen.setLogoFrame(fi);
             present(screen, window);
-            Clock::sleepMs(16);
-            tick += 16;
         }
     }
     // --- ЗАГРУЗКА: музыка загрузочного фона (sting, loop), бар — только от реальной работы. ---
@@ -65,9 +67,10 @@ int main(int argc, char **argv) {
     screen.setProgress(0.0f);
     present(screen, window);
     Music music;
+    // Стинг загрузочного фона — one-shot БЕЗ цикла (в ориге не лупится).
     std::string loadMusic = LoadingSound::loadingMusic(assetsDir);
     if (!loadMusic.empty()) {
-        music.start(loadMusic, true);
+        music.start(loadMusic, false);
     }
     SupercellSWF ui;
     std::string uiPath = FileSystem::join(assetsDir, FileSystem::join("sc", "ui.sc"));
@@ -92,13 +95,14 @@ int main(int argc, char **argv) {
     screen.setProgress(0.5f);
     present(screen, window);
     // --- КОННЕКТ: бар ЗАМИРАЕТ (никаких glide до 100%), текст — TID_CONNECTING_TO_SERVER. ---
+    // Кадр статичный: рендерим ОДИН раз, дальше только blit (перерендер каждый тик и лагал).
     // (заглушка до net/login: висим на фризе короткую паузу, потом локальный фейл).
     screen.setConnecting();
     present(screen, window);
     {
         std::int64_t until = Clock::nowMs() + 2000;
         while (window.poll() && Clock::nowMs() < until) {
-            present(screen, window);
+            window.present();
             Clock::sleepMs(50);
         }
     }
@@ -106,18 +110,10 @@ int main(int argc, char **argv) {
     // Сервер выключен — локальный коннект-фейл, поэтому CONNECTION_FAILED, а не LOGIN_FAILED.
     // Маппинг всех серверных кодов — в LoginError::showServerCode (задействуем когда заведём net/login).
     LoginError::showConnectionFailed(screen.localization());
-    std::int64_t prev = Clock::nowMs();
+    present(screen, window);
     while (window.poll()) {
-        std::int64_t now = Clock::nowMs();
-        float dt = static_cast<float>(now - prev) / 1000.0f;
-        prev = now;
-        if (dt > 0.1f) {
-            dt = 0.1f;
-        }
-        screen.update(dt);
-        screen.draw(window.frame(), window.width(), window.height());
         window.present();
-        Clock::sleepMs(16);
+        Clock::sleepMs(50);
     }
     window.save(FileSystem::join(root, "frame.ppm"));
     std::cout << "clip=" << clipOk << " texts=" << textsOk << " csv=" << csvOk << " rows=" << table.rows() << " msg=" << msg.id() << " ui=" << uiOk << uiTexOk << " clips=" << ui.clips.size() << " text=" << screen.statusText() << " stage=loading" << "\n";
