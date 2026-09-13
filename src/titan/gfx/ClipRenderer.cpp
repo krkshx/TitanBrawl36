@@ -53,7 +53,7 @@ public:
         (void)assetsDir;
 #endif
     }
-    void renderLogo(std::vector<std::uint32_t> &frame, int w, int h, int rootId) {
+    void renderLogo(std::vector<std::uint32_t> &frame, int w, int h, int rootId, int frameIndex) {
         if (!setupStage(frame, w, h)) {
             return;
         }
@@ -61,10 +61,24 @@ public:
         if (!mc || mc->frames.empty()) {
             return;
         }
-        int fi = static_cast<int>(mc->frames.size()) / 2;
+        // Ориг крутит таймлайн sc_intro от 0 до 99, а не статичный средний кадр.
+        int fi = frameIndex;
+        if (fi < 0) {
+            fi = 0;
+        }
+        if (fi >= static_cast<int>(mc->frames.size())) {
+            fi = static_cast<int>(mc->frames.size()) - 1;
+        }
         Matrix2x3 base;
         base.setIdentity();
         drawLogoFrame(*mc, fi, base, frame, w, h);
+    }
+    int logoFrames(int rootId) const {
+        const MovieClipOriginal *mc = findClip(rootId);
+        if (!mc) {
+            return 0;
+        }
+        return static_cast<int>(mc->frames.size());
     }
     void render(std::vector<std::uint32_t> &frame, int w, int h, int rootId) {
         if (!setupStage(frame, w, h)) {
@@ -239,6 +253,9 @@ private:
             Matrix2x3 world = elementMatrix(el.matrix);
             world.multiply(parent);
             if (findField(ch.id)) {
+                // Единственный текст загрузки — оригинальное поле 'text' (id 24):
+                // до 50% показывает N%, после — TID_CONNECTING_TO_SERVER.
+                // Своего второго текста поверх бара не рисуем (как в ориге).
                 if (ch.name == statusName_) {
                     drawField(*findField(ch.id), world, frame, w, h);
                 }
@@ -249,6 +266,7 @@ private:
             }
         }
     }
+
     Matrix2x3 elementMatrix(int el) const {
         Matrix2x3 local;
         local.setIdentity();

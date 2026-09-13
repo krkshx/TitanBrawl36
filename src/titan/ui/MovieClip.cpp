@@ -61,11 +61,17 @@ public:
     }
     bool loaded() const { return loaded_; }
     bool hasLogo() const { return logo_ >= 0; }
-    void blitLogo(std::vector<std::uint32_t> &frame, int w, int h) const {
+    int logoFrames() const {
+        if (logo_ < 0) {
+            return 0;
+        }
+        return renderer_.logoFrames(logo_);
+    }
+    void blitLogo(std::vector<std::uint32_t> &frame, int w, int h, int frameIndex) const {
         if (logo_ < 0 || frame.empty()) {
             return;
         }
-        renderer_.renderLogo(frame, w, h, logo_);
+        renderer_.renderLogo(frame, w, h, logo_, frameIndex);
     }
     float progress() const { return progress_; }
     const std::string &statusText() const { return statusText_; }
