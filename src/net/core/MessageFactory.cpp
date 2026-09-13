@@ -3,6 +3,8 @@
 #include "../security/ServerHelloMessage.cpp"
 #include "../account/LoginMessage.cpp"
 #include "../account/LoginFailedMessage.cpp"
+#include "../account/LoginOkMessage.cpp"
+#include "../account/CreateAccountOkMessage.cpp"
 #include "../account/ClientCapabilitiesMessage.cpp"
 #include "../account/KeepAliveMessage.cpp"
 #include "../account/KeepAliveServerMessage.cpp"
@@ -21,8 +23,10 @@ public:
             case 10110: return new AnalyticEventMessage();
             case 20100: return new ServerHelloMessage();
             case 20103: return new LoginFailedMessage();
+            case 20104: return new LoginOkMessage();
             case 20108: return new KeepAliveServerMessage();
             case 24101: return new OwnHomeDataMessage();
+            case 26007: return new CreateAccountOkMessage();
             case 25892: return new TitanDisconnectedMessage();
             default: return nullptr;
         }
