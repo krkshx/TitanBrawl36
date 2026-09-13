@@ -15,7 +15,16 @@ public:
         swf_ = swf;
     }
     void setBarFrame(int frame) {
-        barFrame_ = frame;
+        (void)frame;
+    }
+    void setProgress(float p) {
+        if (p < 0) {
+            p = 0;
+        }
+        if (p > 1) {
+            p = 1;
+        }
+        progress_ = p;
     }
     void setStatusText(const std::string &text) {
         statusText_ = text;
@@ -111,11 +120,11 @@ private:
                 ct = &swf_->colors[static_cast<std::size_t>(el.color)];
             }
             if (findClip(ch.id)) {
-                int sub = 0;
-                if (ch.name == "loading_bar" || ch.name == "progress_bar") {
-                    sub = barFrame_;
+                if (ch.name == "loading_bar") {
+                    drawLoadingBar(*findClip(ch.id), world, frame, w, h);
+                } else {
+                    drawClip(*findClip(ch.id), 0, world, frame, w, h);
                 }
-                drawClip(*findClip(ch.id), sub, world, frame, w, h);
             } else if (findShape(ch.id)) {
                 drawShape(*findShape(ch.id), world, ct, frame, w, h);
             } else if (findField(ch.id)) {
@@ -124,6 +133,158 @@ private:
                 }
             }
         }
+    }
+    void drawLoadingBar(const MovieClipOriginal &bar, const Matrix2x3 &parent, std::vector<std::uint32_t> &frame, int w, int h) {
+        if (bar.frames.empty()) {
+            return;
+        }
+        const MovieClipOriginal::Frame &fr = bar.frames[0];
+        for (auto &el : fr.elements) {
+            if (el.child < 0 || el.child >= static_cast<int>(bar.children.size())) {
+                continue;
+            }
+            const MovieClipOriginal::Child &ch = bar.children[static_cast<std::size_t>(el.child)];
+            Matrix2x3 world = elementMatrix(el.matrix);
+            world.multiply(parent);
+            if (findField(ch.id)) {
+                if (ch.name == statusName_) {
+                    drawField(*findField(ch.id), world, frame, w, h);
+                }
+            } else if (findClip(ch.id) && ch.name == "progress_bar") {
+                drawBarAssembly(*findClip(ch.id), world, frame, w, h);
+            }
+        }
+    }
+    void drawBarAssembly(const MovieClipOriginal &as, const Matrix2x3 &parent, std::vector<std::uint32_t> &frame, int w, int h) {
+        if (as.frames.empty()) {
+            return;
+        }
+        const MovieClipOriginal::Frame &fr = as.frames[0];
+        int bgId = -1;
+        const ShapeOriginal *bg = nullptr;
+        Matrix2x3 worldBg;
+        worldBg.setIdentity();
+        for (auto &el : fr.elements) {
+            if (el.child < 0 || el.child >= static_cast<int>(as.children.size())) {
+                continue;
+            }
+            const MovieClipOriginal::Child &ch = as.children[static_cast<std::size_t>(el.child)];
+            if (!findClip(ch.id)) {
+                continue;
+            }
+            const ShapeOriginal *s = firstShape(ch.id, 0);
+            if (!s) {
+                continue;
+            }
+            bgId = ch.id;
+            bg = s;
+            worldBg = elementMatrix(el.matrix);
+            worldBg.multiply(parent);
+            drawClip(*findClip(ch.id), 0, worldBg, frame, w, h);
+            break;
+        }
+        if (!bg) {
+            return;
+        }
+        float bx0, bx1, by0, by1;
+        if (!shapeBounds(*bg, bx0, bx1, by0, by1)) {
+            return;
+        }
+        const ShapeOriginal *fill = nullptr;
+        for (auto &ch : as.children) {
+            if (!findClip(ch.id) || ch.id == bgId) {
+                continue;
+            }
+            const ShapeOriginal *cand = firstShape(ch.id, 0);
+            if (!cand) {
+                continue;
+            }
+            float cx0, cx1, cy0, cy1;
+            if (!shapeBounds(*cand, cx0, cx1, cy0, cy1)) {
+                continue;
+            }
+            if (cx0 == bx0 && cx1 == bx1 && cy0 == by0 && cy1 == by1) {
+                fill = cand;
+                break;
+            }
+        }
+        if (!fill || progress_ <= 0.001f) {
+            return;
+        }
+        float fw = bx1 - bx0;
+        float wdt = fw * progress_;
+        float cx = bx0 + wdt * 0.5f;
+        float cy = (by0 + by1) * 0.5f;
+        float fx0, fx1, fy0, fy1;
+        shapeBounds(*fill, fx0, fx1, fy0, fy1);
+        if (fx1 == fx0 || fy1 == fy0) {
+            return;
+        }
+        Matrix2x3 fl;
+        fl.setIdentity();
+        fl.a = wdt / (fx1 - fx0);
+        fl.x = cx - (fx0 + fx1) * 0.5f * fl.a;
+        fl.d = (by1 - by0) / (fy1 - fy0);
+        fl.y = cy - (fy0 + fy1) * 0.5f * fl.d;
+        Matrix2x3 worldFill = fl;
+        worldFill.multiply(worldBg);
+        drawShape(*fill, worldFill, nullptr, frame, w, h);
+    }
+    Matrix2x3 elementMatrix(int el) const {
+        Matrix2x3 local;
+        local.setIdentity();
+        if (el != 65535 && el >= 0 && el < static_cast<int>(swf_->matrices.size())) {
+            local = swf_->matrices[static_cast<std::size_t>(el)];
+        }
+        return local;
+    }
+    const ShapeOriginal *firstShape(int clipId, int depth) const {
+        if (depth > 8) {
+            return nullptr;
+        }
+        const MovieClipOriginal *mc = findClip(clipId);
+        if (!mc || mc->frames.empty()) {
+            return nullptr;
+        }
+        const MovieClipOriginal::Frame &fr = mc->frames[0];
+        for (auto &el : fr.elements) {
+            if (el.child < 0 || el.child >= static_cast<int>(mc->children.size())) {
+                continue;
+            }
+            if (findShape(mc->children[static_cast<std::size_t>(el.child)].id)) {
+                return findShape(mc->children[static_cast<std::size_t>(el.child)].id);
+            }
+        }
+        for (auto &el : fr.elements) {
+            if (el.child < 0 || el.child >= static_cast<int>(mc->children.size())) {
+                continue;
+            }
+            if (findClip(mc->children[static_cast<std::size_t>(el.child)].id)) {
+                const ShapeOriginal *s = firstShape(mc->children[static_cast<std::size_t>(el.child)].id, depth + 1);
+                if (s) {
+                    return s;
+                }
+            }
+        }
+        return nullptr;
+    }
+    static bool shapeBounds(const ShapeOriginal &s, float &x0, float &x1, float &y0, float &y1) {
+        bool any = false;
+        for (auto &c : s.commands) {
+            for (std::size_t i = 0; i < c.x.size(); i++) {
+                if (!any) {
+                    x0 = x1 = c.x[i];
+                    y0 = y1 = c.y[i];
+                    any = true;
+                } else {
+                    if (c.x[i] < x0) x0 = c.x[i];
+                    if (c.x[i] > x1) x1 = c.x[i];
+                    if (c.y[i] < y0) y0 = c.y[i];
+                    if (c.y[i] > y1) y1 = c.y[i];
+                }
+            }
+        }
+        return any;
     }
     void drawShape(const ShapeOriginal &shape, const Matrix2x3 &m, const ColorTransform *ct, std::vector<std::uint32_t> &frame, int w, int h) {
         for (auto &c : shape.commands) {
@@ -192,7 +353,7 @@ private:
                 }
                 float u = l0 * au + l1 * bu + l2 * cu;
                 float v = l0 * av + l1 * bv + l2 * cv;
-                std::uint32_t src = tex.sample(u, v);
+                std::uint32_t src = tex.sampleBilinear(u, v);
                 if (ct) {
                     src = ct->apply(src);
                 }
@@ -225,8 +386,8 @@ private:
         }
         float x0 = toX(m.applyX(static_cast<float>(f.left), static_cast<float>(f.top)));
         float x1 = toX(m.applyX(static_cast<float>(f.right), static_cast<float>(f.bottom)));
-        float y0 = toY(m.applyX(static_cast<float>(f.left), static_cast<float>(f.top)));
-        float y1 = toY(m.applyX(static_cast<float>(f.right), static_cast<float>(f.bottom)));
+        float y0 = toY(m.applyY(static_cast<float>(f.left), static_cast<float>(f.top)));
+        float y1 = toY(m.applyY(static_cast<float>(f.right), static_cast<float>(f.bottom)));
         if (x1 < x0) {
             float t = x0;
             x0 = x1;
@@ -275,7 +436,7 @@ private:
         return oy_ + dy * scale_;
     }
     SupercellSWF *swf_ = nullptr;
-    int barFrame_ = 0;
+    float progress_ = 0;
 #ifdef TITAN_HAS_FREETYPE
     FontEngine fonts_;
 #endif

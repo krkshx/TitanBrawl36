@@ -165,21 +165,6 @@ public:
         std::uint32_t c11 = at(x0 + 1, y0 + 1);
         return mix(mix(c00, c10, tx), mix(c01, c11, tx), ty);
     }
-    std::uint32_t sample(float u, float v) const {
-        if (x < 0) {
-            x = 0;
-        }
-        if (y < 0) {
-            y = 0;
-        }
-        if (x >= width) {
-            x = width - 1;
-        }
-        if (y >= height) {
-            y = height - 1;
-        }
-        return pixels[static_cast<std::size_t>(y) * static_cast<std::size_t>(width) + static_cast<std::size_t>(x)];
-    }
     static std::uint32_t mix(std::uint32_t a, std::uint32_t b, float t) {
         float ar = static_cast<float>((a >> 16) & 0xFF);
         float ag = static_cast<float>((a >> 8) & 0xFF);
@@ -201,6 +186,22 @@ public:
         }
         int x = static_cast<int>(u * width);
         int y = static_cast<int>(v * height);
+        if (x < 0) {
+            x = 0;
+        }
+        if (y < 0) {
+            y = 0;
+        }
+        if (x >= width) {
+            x = width - 1;
+        }
+        if (y >= height) {
+            y = height - 1;
+        }
+        return pixels[static_cast<std::size_t>(y) * static_cast<std::size_t>(width) + static_cast<std::size_t>(x)];
+    }
+private:
+    std::uint32_t at(int x, int y) const {
         if (x < 0) {
             x = 0;
         }

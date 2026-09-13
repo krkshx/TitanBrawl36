@@ -40,7 +40,7 @@ public:
             p = 1;
         }
         progress_ = p;
-        renderer_.setBarFrame(static_cast<int>(p * 100.0f));
+        renderer_.setProgress(p);
     }
     void setStatusText(const std::string &text) {
         statusText_ = text;

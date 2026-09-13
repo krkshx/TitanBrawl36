@@ -31,14 +31,21 @@ int main(int argc, char **argv) {
     std::string assetsDir = FileSystem::join(root, "assets");
     presentStage(screen, window, 0.02f);
     bool textsOk = screen.loadTexts(assetsDir);
-    presentStage(screen, window, 0.12f);
+    presentStage(screen, window, 0.08f);
     std::string scPath = FileSystem::join(assetsDir, FileSystem::join("sc", "loading.sc"));
     bool clipOk = screen.loadClip(scPath);
+    presentStage(screen, window, 0.25f);
+    SupercellSWF ui;
+    std::string uiPath = FileSystem::join(assetsDir, FileSystem::join("sc", "ui.sc"));
+    bool uiOk = ui.load(uiPath);
     presentStage(screen, window, 0.55f);
+    std::string uiTexPath = FileSystem::join(assetsDir, FileSystem::join("sc", "ui_tex.sc"));
+    bool uiTexOk = ui.loadTexture(uiTexPath);
+    presentStage(screen, window, 0.8f);
     std::string csvPath = FileSystem::join(assetsDir, FileSystem::join("csv_logic", "characters.csv"));
     CsvTable table;
     bool csvOk = table.load(csvPath);
-    presentStage(screen, window, 0.8f);
+    presentStage(screen, window, 0.9f);
     ResetAccountMessage msg;
     msg.setPreset(1);
     msg.encode();
@@ -63,6 +70,6 @@ int main(int argc, char **argv) {
         Clock::sleepMs(16);
     }
     window.save(FileSystem::join(root, "frame.ppm"));
-    std::cout << "clip=" << clipOk << " texts=" << textsOk << " csv=" << csvOk << " rows=" << table.rows() << " msg=" << msg.id() << " text=" << screen.statusText() << " stage=loading" << "\n";
+    std::cout << "clip=" << clipOk << " texts=" << textsOk << " csv=" << csvOk << " rows=" << table.rows() << " msg=" << msg.id() << " ui=" << uiOk << uiTexOk << " clips=" << ui.clips.size() << " text=" << screen.statusText() << " stage=loading" << "\n";
     return 0;
 }
