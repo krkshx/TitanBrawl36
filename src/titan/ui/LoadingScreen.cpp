@@ -1,6 +1,6 @@
 #pragma once
 #include "MovieClip.cpp"
-#include "../../logic/data/Localization.cpp"
+#include "../data/Localization.cpp"
 #include <cstdint>
 #include <cstdio>
 #include <string>
@@ -69,6 +69,8 @@ public:
     }
     void showLoading() {
         stage_ = Stage::Loading;
+        connecting_ = false;
+        clip_.setStatusText(statusText());
     }
     void update(float dt) {
         time_ += dt;

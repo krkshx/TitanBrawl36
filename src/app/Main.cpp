@@ -2,17 +2,17 @@
 #include "../titan/core/ByteStream.cpp"
 #include "../titan/ui/LoadingScreen.cpp"
 #include "../logic/player/LogicDailyData.cpp"
-#include "../logic/data/CsvTable.cpp"
+#include "../titan/data/CsvTable.cpp"
 #include "../net/account/ResetAccountMessage.cpp"
-#include "../platform/audio/Music.cpp"
-#include "../platform/audio/MusicLibrary.cpp"
-#include "../platform/audio/LoadingSound.cpp"
-#include "../platform/audio/Sfx.cpp"
-#include "../platform/audio/SfxLibrary.cpp"
-#include "../platform/fs/FileSystem.cpp"
+#include "../fmod/Music.cpp"
+#include "../fmod/MusicLibrary.cpp"
+#include "../fmod/LoadingSound.cpp"
+#include "../fmod/Sfx.cpp"
+#include "../fmod/SfxLibrary.cpp"
+#include "../helpers/FileSystem.cpp"
 #include "../platform/native/LoginError.cpp"
 #include "../platform/native/NativeDialog.cpp"
-#include "../platform/time/Clock.cpp"
+#include "../helpers/Clock.cpp"
 #include "../platform/window/Window.cpp"
 #include <cstdint>
 #include <iostream>
@@ -39,6 +39,17 @@ int main(int argc, char **argv) {
     present(screen, window);
     std::string scPath = FileSystem::join(assetsDir, FileSystem::join("sc", "loading.sc"));
     bool clipOk = screen.loadClip(scPath);
+    // === ПОЛНЫЙ БУТ (цикл): ЛОГО → ЗАГРУЗКА → КОННЕКТ → диалог.
+    // "Попробовать снова" крутит всё с самого начала: сначала лого, потом лоадинг, как в ориге.
+    SupercellSWF ui;
+    CsvTable table;
+    ResetAccountMessage msg;
+    ByteStream out;
+    LogicDailyData daily;
+    bool uiOk = false;
+    bool uiTexOk = false;
+    bool csvOk = false;
+    while (window.poll()) {
     // --- ЛОГО Supercell: крутим таймлайн sc_intro (100 кадров @60fps) + джингл one-shot. ---
     // Кадр — строго по wall-clock (софт-рендер ~30мс/кадр, фиксированный тик дрейфовал и лагал).
     screen.showLogo();
@@ -62,7 +73,10 @@ int main(int argc, char **argv) {
             present(screen, window);
         }
     }
-    // --- ЗАГРУЗКА: музыка загрузочного фона (sting, loop), бар — только от реальной работы. ---
+    if (!window.poll()) {
+        break;
+    }
+    // --- ЗАГРУЗКА: музыка загрузочного фона (sting, one-shot), бар — только от реальной работы. ---
     screen.showLoading();
     screen.setProgress(0.0f);
     present(screen, window);
@@ -72,49 +86,62 @@ int main(int argc, char **argv) {
     if (!loadMusic.empty()) {
         music.start(loadMusic, false);
     }
-    SupercellSWF ui;
+    // Прямой бар по реальным майлстоунам (как было): 0 → 0.2 → 0.35 → 0.5, дальше фриз.
+    ui = SupercellSWF();
     std::string uiPath = FileSystem::join(assetsDir, FileSystem::join("sc", "ui.sc"));
-    bool uiOk = ui.load(uiPath);
+    uiOk = ui.load(uiPath);
     screen.setProgress(0.2f);
     present(screen, window);
     std::string uiTexPath = FileSystem::join(assetsDir, FileSystem::join("sc", "ui_tex.sc"));
-    bool uiTexOk = ui.loadTexture(uiTexPath);
+    uiTexOk = ui.loadTexture(uiTexPath, [&](int done, int total) {
+        // Реальные готовые текстуры: 20% + доля отрезка 20→35. Никаких чужих значений.
+        float f = total > 0 ? static_cast<float>(done) / static_cast<float>(total) : 1.0f;
+        screen.setProgress(0.2f + f * 0.15f);
+        present(screen, window);
+    });
     screen.setProgress(0.35f);
     present(screen, window);
     std::string csvPath = FileSystem::join(assetsDir, FileSystem::join("csv_logic", "characters.csv"));
-    CsvTable table;
-    bool csvOk = table.load(csvPath);
-    ResetAccountMessage msg;
+    table = CsvTable();
+    csvOk = table.load(csvPath);
+    msg = ResetAccountMessage();
     msg.setPreset(1);
     msg.encode();
-    ByteStream out;
-    LogicDailyData daily;
+    out = ByteStream();
+    daily = LogicDailyData();
     daily.a0_ = 10;
     daily.coins_ = 100;
     daily.encode(out);
     screen.setProgress(0.5f);
     present(screen, window);
-    // --- КОННЕКТ: бар ЗАМИРАЕТ (никаких glide до 100%), текст — TID_CONNECTING_TO_SERVER. ---
-    // Кадр статичный: рендерим ОДИН раз, дальше только blit (перерендер каждый тик и лагал).
-    // (заглушка до net/login: висим на фризе короткую паузу, потом локальный фейл).
+    // --- КОННЕКТ: бар ЗАМИРАЕТ, текст — TID_CONNECTING_TO_SERVER. ---
+    // Кадр статичный: рендерим при ресайзе, иначе только blit.
+    // (заглушка до net/login: вместо сети — сразу локальный фейл).
     screen.setConnecting();
     present(screen, window);
     {
         std::int64_t until = Clock::nowMs() + 2000;
         while (window.poll() && Clock::nowMs() < until) {
-            window.present();
+            if (window.takeResized()) {
+                present(screen, window);
+            } else {
+                window.present();
+            }
             Clock::sleepMs(50);
         }
     }
+    if (!window.poll()) {
+        break;
+    }
     window.save(FileSystem::join(root, "frame.ppm"));
     // Сервер выключен — локальный коннект-фейл, поэтому CONNECTION_FAILED, а не LOGIN_FAILED.
-    // Маппинг всех серверных кодов — в LoginError::showServerCode (задействуем когда заведём net/login).
-    LoginError::showConnectionFailed(screen.localization());
-    present(screen, window);
-    while (window.poll()) {
-        window.present();
-        Clock::sleepMs(50);
+    // Маппинг всех серверных кодов — в LoginError::askServerCode (задействуем когда заведём net/login).
+    // false (Esc/крестик) — выходим, true (кнопка/Enter) — весь бут с самого лого.
+    bool retry = LoginError::askConnectionFailed(screen.localization());
+    if (!retry) {
+        break;
     }
+    } // while(window.poll()) — рестарт с лого
     window.save(FileSystem::join(root, "frame.ppm"));
     std::cout << "clip=" << clipOk << " texts=" << textsOk << " csv=" << csvOk << " rows=" << table.rows() << " msg=" << msg.id() << " ui=" << uiOk << uiTexOk << " clips=" << ui.clips.size() << " text=" << screen.statusText() << " stage=loading" << "\n";
     return 0;

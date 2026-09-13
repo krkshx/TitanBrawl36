@@ -1,6 +1,6 @@
 #pragma once
-#include "../../logic/data/CsvTable.cpp"
-#include "../fs/FileSystem.cpp"
+#include "../titan/data/CsvTable.cpp"
+#include "../helpers/FileSystem.cpp"
 #include <cstdio>
 #include <string>
 

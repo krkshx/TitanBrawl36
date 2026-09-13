@@ -9,7 +9,9 @@
 #include "TextFieldOriginal.cpp"
 #include <cstdint>
 #include <cstdio>
+#include <functional>
 #include <string>
+#include <thread>
 #include <vector>
 
 class SupercellSWF {
@@ -85,6 +87,10 @@ public:
         return loadTags(s, false);
     }
     bool loadTexture(const std::string &path) {
+        return loadTexture(path, nullptr);
+    }
+    // progress(done, total) дёргается из вызывающего потока после каждой готовой текстуры.
+    bool loadTexture(const std::string &path, const std::function<void(int, int)> &progress) {
         std::vector<std::uint8_t> file = readFile(path);
         if (file.size() < 26) {
             return false;
@@ -104,7 +110,65 @@ public:
             return false;
         }
         ScReader s(raw);
-        return loadTags(s, true);
+        if (!loadTextureHeads(s)) {
+            return false;
+        }
+        return decodeTextureRaws(progress);
+    }
+    // Фаза 1: быстрый проход по тегам, сырые байты текстур — в сторону (без тяжёлого декода).
+    bool loadTextureHeads(ScReader &s) {
+        texRaws_.clear();
+        texRaws_.reserve(textures.size());
+        std::size_t loadedTextures = 0;
+        while (true) {
+            int tag = s.readU8();
+            std::int32_t length = s.readI32();
+            if (length < 0) {
+                return false;
+            }
+            std::size_t end = s.position() + static_cast<std::size_t>(length);
+            if (tag == 0) {
+                return loadedTextures == textures.size() && texRaws_.size() == textures.size();
+            }
+            if (isTextureTag(tag)) {
+                if (loadedTextures >= textures.size()) {
+                    return false;
+                }
+                std::vector<std::uint8_t> rawBlob;
+                textures[loadedTextures].loadHead(s, tag, rawBlob);
+                texRaws_.push_back(std::move(rawBlob));
+                loadedTextures++;
+            }
+            while (s.position() < end) {
+                s.readU8();
+            }
+        }
+    }
+    // Фаза 2: тяжёлый декод пикселей впараллель (по потоку на текстуру), прогресс — по готовности.
+    bool decodeTextureRaws(const std::function<void(int, int)> &progress) {
+        int total = static_cast<int>(textures.size());
+        if (total < 1 || static_cast<int>(texRaws_.size()) != total) {
+            return false;
+        }
+        if (progress) {
+            progress(0, total);
+        }
+        std::vector<std::thread> workers;
+        workers.reserve(static_cast<std::size_t>(total));
+        for (int i = 0; i < total; i++) {
+            workers.emplace_back([this, i]() {
+                textures[static_cast<std::size_t>(i)].decodeRaw(texRaws_[static_cast<std::size_t>(i)]);
+            });
+        }
+        for (int i = 0; i < total; i++) {
+            workers[static_cast<std::size_t>(i)].join();
+            if (progress) {
+                progress(i + 1, total);
+            }
+        }
+        texRaws_.clear();
+        texRaws_.shrink_to_fit();
+        return true;
     }
     int createMovieClip(const std::string &name) const {
         for (std::size_t i = 0; i < exports.size(); i++) {
@@ -239,6 +303,7 @@ private:
         }
     }
     std::string filename;
+    std::vector<std::vector<std::uint8_t>> texRaws_;
     int expectedMatrices = 0;
     int expectedColors = 0;
     int expectedClips = 0;

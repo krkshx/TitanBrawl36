@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 #if defined(_WIN32)
@@ -14,16 +15,21 @@
 
 class NativeDialog {
 public:
-    static void show(const std::string &title, const std::string &message, const std::string &button) {
+    // true — жмякнули retry (кнопка/Enter/пробел), false — закрыли (Esc/крестик).
+    // В headless (TITAN_NO_DIALOG) всегда false.
+    static bool ask(const std::string &title, const std::string &message, const std::string &button) {
         const char *skip = std::getenv("TITAN_NO_DIALOG");
         if (skip && skip[0] != '\0' && !(skip[0] == '0' && skip[1] == '\0')) {
-            return;
+            return false;
         }
 #if defined(_WIN32)
-        showWindows(title, message, button);
+        return showWindows(title, message, button);
 #else
-        showX11(title, message, button);
+        return showX11(title, message, button);
 #endif
+    }
+    static void show(const std::string &title, const std::string &message, const std::string &button) {
+        (void)ask(title, message, button);
     }
 private:
 #if defined(_WIN32)
@@ -42,11 +48,12 @@ private:
         }
         return out;
     }
-    static void showWindows(const std::string &title, const std::string &message, const std::string &button) {
+    static bool showWindows(const std::string &title, const std::string &message, const std::string &button) {
         (void)button;
         std::wstring t = utf8(title);
         std::wstring m = utf8(message);
         MessageBoxW(nullptr, m.c_str(), t.c_str(), MB_OK | MB_ICONERROR);
+        return true;
     }
 #else
     struct Line {
@@ -90,10 +97,22 @@ private:
     static int lineHeight(XftFont *font) {
         return font->ascent + font->descent + 4;
     }
-    static void showX11(const std::string &title, const std::string &message, const std::string &button) {
+    static void setWindowTitle(Display *display, Window win, const char *text) {
+        XStoreName(display, win, text);
+        // Явно дублируем UTF-8 свойствами — современные WM берут _NET_WM_NAME.
+        Atom utf8 = XInternAtom(display, "UTF8_STRING", False);
+        Atom netName = XInternAtom(display, "_NET_WM_NAME", False);
+        Atom netIcon = XInternAtom(display, "_NET_WM_ICON_NAME", False);
+        int len = static_cast<int>(std::strlen(text));
+        XChangeProperty(display, win, netName, utf8, 8, PropModeReplace,
+                        reinterpret_cast<const unsigned char *>(text), len);
+        XChangeProperty(display, win, netIcon, utf8, 8, PropModeReplace,
+                        reinterpret_cast<const unsigned char *>(text), len);
+    }
+    static bool showX11(const std::string &title, const std::string &message, const std::string &button) {
         Display *display = XOpenDisplay(nullptr);
         if (!display) {
-            return;
+            return false;
         }
         int screen = DefaultScreen(display);
         int scrW = DisplayWidth(display, screen);
@@ -108,7 +127,7 @@ private:
                 XftFontClose(display, titleFont);
             }
             XCloseDisplay(display);
-            return;
+            return false;
         }
         if (!titleFont) {
             titleFont = bodyFont;
@@ -141,7 +160,9 @@ private:
             winY = 0;
         }
         Window win = XCreateSimpleWindow(display, RootWindow(display, screen), winX, winY, static_cast<unsigned>(winW), static_cast<unsigned>(winH), 1, BlackPixel(display, screen), WhitePixel(display, screen));
-        XStoreName(display, win, title.c_str());
+        // В шапке окна — имя приложения (ASCII), а не TID-строка:
+        // кириллица через XStoreName у части WM превращается в кракозябры (см. скрин).
+        setWindowTitle(display, win, "Laser");
         Atom wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", False);
         XSetWMProtocols(display, win, &wmDelete, 1);
         XSelectInput(display, win, ExposureMask | ButtonPressMask | KeyPressMask | StructureNotifyMask);
@@ -158,6 +179,7 @@ private:
         int btnX = (winW - btnW) / 2;
         int btnY = winH - btnH - 20;
         bool done = false;
+        bool retry = false;
         bool mapped = false;
         while (!done) {
             XEvent e;
@@ -191,21 +213,29 @@ private:
                 int x = e.xbutton.x;
                 int y = e.xbutton.y;
                 if (x >= btnX && x < btnX + btnW && y >= btnY && y < btnY + btnH) {
+                    retry = true;
                     done = true;
                 }
             }
             if (e.type == KeyPress) {
                 KeySym sym = XLookupKeysym(&e.xkey, 0);
-                if (sym == XK_Return || sym == XK_KP_Enter || sym == XK_Escape || sym == XK_space) {
+                if (sym == XK_Return || sym == XK_KP_Enter || sym == XK_space) {
+                    retry = true;
+                    done = true;
+                }
+                if (sym == XK_Escape) {
+                    retry = false;
                     done = true;
                 }
             }
             if (e.type == ClientMessage) {
                 if (static_cast<Atom>(e.xclient.data.l[0]) == wmDelete) {
+                    retry = false;
                     done = true;
                 }
             }
             if (e.type == DestroyNotify) {
+                retry = false;
                 done = true;
             }
         }
@@ -219,6 +249,7 @@ private:
         XftFontClose(display, bodyFont);
         XDestroyWindow(display, win);
         XCloseDisplay(display);
+        return retry;
     }
 #endif
 };

@@ -4,6 +4,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+#ifdef TITAN_HAS_LZMA
+#include <lzma.h>
+#endif
 typedef unsigned char Byte;
 typedef short Int16;
 typedef int Int32;
@@ -1647,6 +1650,13 @@ static void LzmaFree(ISzAllocPtr p, void *address) {
 class Lzma {
 public:
   static bool decompress(const std::uint8_t *src, std::size_t srcLen, std::vector<std::uint8_t> &out, std::size_t outLen, int lc, int lp, int pb, std::uint32_t dictSize) {
+#ifdef TITAN_HAS_LZMA
+    // Системный liblzma (Alone): те же байты, в разы быстрее портированного декодера.
+    // Заголовок .sc: props(1) + dict(4) + size(4) — достраиваем до 13-байтного Alone.
+    if (decompressSystem(src, srcLen, out, outLen, lc, lp, pb, dictSize)) {
+      return true;
+    }
+#endif
     Byte props[5];
     props[0] = static_cast<Byte>((pb * 5 + lp) * 9 + lc);
     props[1] = static_cast<Byte>(dictSize & 0xFF);
@@ -1674,6 +1684,55 @@ public:
     out.resize(destLen);
     return destLen == outLen;
   }
+#ifdef TITAN_HAS_LZMA
+private:
+  static bool decompressSystem(const std::uint8_t *src, std::size_t srcLen, std::vector<std::uint8_t> &out, std::size_t outLen, int lc, int lp, int pb, std::uint32_t dictSize) {
+    // .sc хранит raw LZMA-поток (свой 9-байтный заголовок, без Alone-футера):
+    // заводим raw-декодер с теми же lc/lp/pb/dict. LZMA_RUN — поток может не иметь end-маркера.
+    lzma_options_lzma opt;
+    if (lzma_lzma_preset(&opt, LZMA_PRESET_DEFAULT)) {
+      return false;
+    }
+    opt.dict_size = dictSize;
+    opt.lc = static_cast<std::uint32_t>(lc);
+    opt.lp = static_cast<std::uint32_t>(lp);
+    opt.pb = static_cast<std::uint32_t>(pb);
+    lzma_filter filters[2];
+    filters[0].id = LZMA_FILTER_LZMA1;
+    filters[0].options = &opt;
+    filters[1].id = LZMA_VLI_UNKNOWN;
+    filters[1].options = nullptr;
+    lzma_stream strm = LZMA_STREAM_INIT;
+    if (lzma_raw_decoder(&strm, filters) != LZMA_OK) {
+      return false;
+    }
+    out.assign(outLen, 0);
+    strm.next_in = src;
+    strm.avail_in = srcLen;
+    strm.next_out = out.data();
+    strm.avail_out = outLen;
+    bool ok = false;
+    for (;;) {
+      lzma_ret r = lzma_code(&strm, LZMA_RUN);
+      if (strm.total_out == outLen) {
+        ok = true;
+        break;
+      }
+      if (r == LZMA_STREAM_END) {
+        ok = (strm.total_out == outLen);
+        break;
+      }
+      if (r != LZMA_OK) {
+        break;
+      }
+      if (strm.avail_in == 0 || strm.avail_out == 0) {
+        break;
+      }
+    }
+    lzma_end(&strm);
+    return ok;
+  }
+#endif
 };
 
 

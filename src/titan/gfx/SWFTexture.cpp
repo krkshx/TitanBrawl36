@@ -22,8 +22,21 @@ public:
         }
         int n = width * height * pixelBytes(type);
         std::vector<std::uint8_t> raw = s.readBytes(n);
+        decodeRaw(raw);
+    }
+    // Двухфазная загрузка для _tex.sc: парс (быстрый, один поток) + тяжёлый декод (параллельно).
+    void loadHead(ScReader &s, int t, std::vector<std::uint8_t> &rawOut) {
+        tag = t;
+        type = s.readU8();
+        width = s.readU16();
+        height = s.readU16();
+        hasTexture = true;
+        int n = width * height * pixelBytes(type);
+        rawOut = s.readBytes(n);
+    }
+    void decodeRaw(const std::vector<std::uint8_t> &raw) {
         decode(raw);
-        if (t == 27 || t == 28 || t == 29) {
+        if (tag == 27 || tag == 28 || tag == 29) {
             detile();
         }
     }
@@ -40,78 +53,92 @@ public:
         return 4;
     }
     void decode(const std::vector<std::uint8_t> &raw) {
-        pixels.resize(static_cast<std::size_t>(width) * static_cast<std::size_t>(height));
+        // Тот же результат попиксельно; границы считаются один раз чтобы цикл векторизовался.
+        std::size_t count = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
+        pixels.resize(count);
+        if (count == 0 || raw.empty()) {
+            return;
+        }
+        std::uint32_t *dst = pixels.data();
+        const std::uint8_t *in = raw.data();
+        std::size_t inSize = raw.size();
         if (type == 10) {
-            for (std::size_t i = 0; i < pixels.size() && i < raw.size(); i++) {
-                std::uint32_t l = raw[i];
-                pixels[i] = 0xFF000000u | (l << 16) | (l << 8) | l;
+            std::size_t n = count < inSize ? count : inSize;
+            for (std::size_t i = 0; i < n; i++) {
+                std::uint32_t l = in[i];
+                dst[i] = 0xFF000000u | (l << 16) | (l << 8) | l;
             }
             return;
         }
         if (type == 6) {
-            for (std::size_t i = 0; i < pixels.size() && 2 * i + 1 < raw.size(); i++) {
-                std::uint32_t l = raw[2 * i];
-                std::uint32_t a = raw[2 * i + 1];
-                pixels[i] = (a << 24) | (l << 16) | (l << 8) | l;
+            std::size_t n = count < inSize / 2 ? count : inSize / 2;
+            for (std::size_t i = 0; i < n; i++) {
+                std::uint32_t l = in[2 * i];
+                std::uint32_t a = in[2 * i + 1];
+                dst[i] = (a << 24) | (l << 16) | (l << 8) | l;
             }
             return;
         }
         if (type == 2 || type == 8) {
-            for (std::size_t i = 0; i < pixels.size() && 2 * i + 1 < raw.size(); i++) {
-                std::uint32_t v = raw[2 * i] | (static_cast<std::uint32_t>(raw[2 * i + 1]) << 8);
+            std::size_t n = count < inSize / 2 ? count : inSize / 2;
+            for (std::size_t i = 0; i < n; i++) {
+                std::uint32_t v = in[2 * i] | (static_cast<std::uint32_t>(in[2 * i + 1]) << 8);
                 std::uint32_t r = ((v >> 12) & 0xF) * 17;
                 std::uint32_t g = ((v >> 8) & 0xF) * 17;
                 std::uint32_t b = ((v >> 4) & 0xF) * 17;
                 std::uint32_t a = (v & 0xF) * 17;
-                pixels[i] = (a << 24) | (r << 16) | (g << 8) | b;
+                dst[i] = (a << 24) | (r << 16) | (g << 8) | b;
             }
             return;
         }
         if (type == 3) {
-            for (std::size_t i = 0; i < pixels.size() && 2 * i + 1 < raw.size(); i++) {
-                std::uint32_t v = raw[2 * i] | (static_cast<std::uint32_t>(raw[2 * i + 1]) << 8);
+            std::size_t n = count < inSize / 2 ? count : inSize / 2;
+            for (std::size_t i = 0; i < n; i++) {
+                std::uint32_t v = in[2 * i] | (static_cast<std::uint32_t>(in[2 * i + 1]) << 8);
                 std::uint32_t r = ((v >> 11) & 0x1F) * 8;
-                std::uint32_t g = ((v >> 6) & 0x1F) * 8;
-                std::uint32_t b = ((v >> 1) & 0x1F) * 8;
-                std::uint32_t a = (v & 1) ? 255 : 0;
                 if (r > 255) {
                     r = 255;
                 }
+                std::uint32_t g = ((v >> 6) & 0x1F) * 8;
                 if (g > 255) {
                     g = 255;
                 }
+                std::uint32_t b = ((v >> 1) & 0x1F) * 8;
                 if (b > 255) {
                     b = 255;
                 }
-                pixels[i] = (a << 24) | (r << 16) | (g << 8) | b;
+                std::uint32_t a = (v & 1) ? 255 : 0;
+                dst[i] = (a << 24) | (r << 16) | (g << 8) | b;
             }
             return;
         }
         if (type == 4) {
-            for (std::size_t i = 0; i < pixels.size() && 2 * i + 1 < raw.size(); i++) {
-                std::uint32_t v = raw[2 * i] | (static_cast<std::uint32_t>(raw[2 * i + 1]) << 8);
+            std::size_t n = count < inSize / 2 ? count : inSize / 2;
+            for (std::size_t i = 0; i < n; i++) {
+                std::uint32_t v = in[2 * i] | (static_cast<std::uint32_t>(in[2 * i + 1]) << 8);
                 std::uint32_t r = ((v >> 11) & 0x1F) * 8;
-                std::uint32_t g = ((v >> 5) & 0x3F) * 4;
-                std::uint32_t b = (v & 0x1F) * 8;
                 if (r > 255) {
                     r = 255;
                 }
+                std::uint32_t g = ((v >> 5) & 0x3F) * 4;
                 if (g > 255) {
                     g = 255;
                 }
+                std::uint32_t b = (v & 0x1F) * 8;
                 if (b > 255) {
                     b = 255;
                 }
-                pixels[i] = 0xFF000000u | (r << 16) | (g << 8) | b;
+                dst[i] = 0xFF000000u | (r << 16) | (g << 8) | b;
             }
             return;
         }
-        for (std::size_t i = 0; i < pixels.size() && 4 * i + 3 < raw.size(); i++) {
-            std::uint32_t r = raw[4 * i];
-            std::uint32_t g = raw[4 * i + 1];
-            std::uint32_t b = raw[4 * i + 2];
-            std::uint32_t a = raw[4 * i + 3];
-            pixels[i] = (a << 24) | (r << 16) | (g << 8) | b;
+        std::size_t n = count < inSize / 4 ? count : inSize / 4;
+        for (std::size_t i = 0; i < n; i++) {
+            std::uint32_t r = in[4 * i];
+            std::uint32_t g = in[4 * i + 1];
+            std::uint32_t b = in[4 * i + 2];
+            std::uint32_t a = in[4 * i + 3];
+            dst[i] = (a << 24) | (r << 16) | (g << 8) | b;
         }
     }
     void detile() {

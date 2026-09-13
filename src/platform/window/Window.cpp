@@ -37,6 +37,12 @@ public:
         int screen = DefaultScreen(display_);
         win_ = XCreateSimpleWindow(display_, RootWindow(display_, screen), 0, 0, static_cast<unsigned>(w), static_cast<unsigned>(h), 1, BlackPixel(display_, screen), WhitePixel(display_, screen));
         XStoreName(display_, win_, title.c_str());
+        {
+            Atom utf8 = XInternAtom(display_, "UTF8_STRING", False);
+            Atom netName = XInternAtom(display_, "_NET_WM_NAME", False);
+            XChangeProperty(display_, win_, netName, utf8, 8, PropModeReplace,
+                            reinterpret_cast<const unsigned char *>(title.c_str()), static_cast<int>(title.size()));
+        }
         wmDelete_ = XInternAtom(display_, "WM_DELETE_WINDOW", False);
         XSetWMProtocols(display_, win_, &wmDelete_, 1);
         XSelectInput(display_, win_, ExposureMask | KeyPressMask | StructureNotifyMask);
@@ -56,6 +62,12 @@ public:
     int width() const { return w_; }
     int height() const { return h_; }
     bool opened() const { return opened_; }
+    // true один раз после ConfigureNotify с новым размером — надо перерисовать кадр.
+    bool takeResized() {
+        bool r = resized_;
+        resized_ = false;
+        return r;
+    }
     bool poll() {
 #if defined(_WIN32)
         MSG msg;
@@ -85,10 +97,42 @@ public:
                 opened_ = false;
                 return false;
             }
+            if (e.type == ConfigureNotify) {
+                int nw = e.xconfigure.width;
+                int nh = e.xconfigure.height;
+                if (nw > 0 && nh > 0 && (nw != w_ || nh != h_)) {
+                    resize(nw, nh);
+                }
+            }
         }
         return opened_;
 #endif
     }
+#if !defined(_WIN32)
+    // Ресайз без битых текстур: новый framebuffer + новый XImage под него.
+    void resize(int nw, int nh) {
+        if (nw < 320) {
+            nw = 320;
+        }
+        if (nh < 180) {
+            nh = 180;
+        }
+        if (nw == w_ && nh == h_) {
+            return;
+        }
+        w_ = nw;
+        h_ = nh;
+        frame_.assign(static_cast<std::size_t>(w_) * static_cast<std::size_t>(h_), 0xFF000000u);
+        if (img_ != nullptr) {
+            img_->data = nullptr;
+            XDestroyImage(img_);
+            img_ = nullptr;
+        }
+        int screen = DefaultScreen(display_);
+        img_ = XCreateImage(display_, DefaultVisual(display_, screen), 24, ZPixmap, 0, reinterpret_cast<char *>(frame_.data()), static_cast<unsigned>(w_), static_cast<unsigned>(h_), 32, static_cast<int>(w_ * 4));
+        resized_ = true;
+    }
+#endif
     void present() {
 #if defined(_WIN32)
         if (hwnd_ != nullptr) {
@@ -146,6 +190,7 @@ private:
     std::string title_;
     std::vector<std::uint32_t> frame_;
     bool opened_ = false;
+    bool resized_ = false;
 #if defined(_WIN32)
     void *hwnd_ = nullptr;
 #else

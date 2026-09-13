@@ -49,3 +49,6 @@ assets/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Run output
+frame.ppm
