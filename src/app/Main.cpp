@@ -4,6 +4,7 @@
 #include "../logic/player/LogicDailyData.cpp"
 #include "../titan/data/CsvTable.cpp"
 #include "../net/account/ResetAccountMessage.cpp"
+#include "../net/core/Messaging.cpp"
 #include "../fmod/Music.cpp"
 #include "../fmod/MusicLibrary.cpp"
 #include "../fmod/LoadingSound.cpp"
@@ -17,6 +18,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <vector>
 
 static void present(LoadingScreen &screen, pc::Window &window) {
     screen.draw(window.frame(), window.width(), window.height());
@@ -121,7 +123,57 @@ int main(int argc, char **argv) {
         screen.setConnecting();
         present(screen, window);
         {
-            std::int64_t until = Clock::nowMs() + 2000;
+            ClientMessaging net;
+            bool netOk = false;
+            std::string netInfo = "offline";
+            if (net.connect(5000)) {
+                std::uint8_t seedBuf[4];
+                randomBytesTrue(seedBuf, 4);
+                std::int32_t seed = static_cast<std::int32_t>(seedBuf[0] | (seedBuf[1] << 8) | (seedBuf[2] << 16) | (seedBuf[3] << 24));
+                std::vector<std::uint8_t> token;
+                if (net.sendClientHello(seed) && net.receiveServerHello(token)) {
+                    LoginMessage login;
+                    login.setAccountId(0);
+                    login.setPassToken("");
+                    login.setVersion(36, 218);
+                    login.setRndKey(randomIntTrue());
+                    if (net.sendPepperLogin(login, token)) {
+                        PiranhaMessage *first = net.receivePepperResponse(true);
+                        if (first != nullptr) {
+                            netInfo = std::string("first=") + std::to_string(first->getMessageType());
+                            if (first->getMessageType() == 26007) {
+                                PiranhaMessage *second = net.receiveNext(8000);
+                                if (second != nullptr) {
+                                    netInfo += std::string(" second=") + std::to_string(second->getMessageType());
+                                    if (second->getMessageType() == 24101) {
+                                        auto *home = static_cast<OwnHomeDataMessage *>(second);
+                                        netInfo += std::string(" homeBytes=") + std::to_string(home->raw().size());
+                                    }
+                                    if (second->getMessageType() == 20104) {
+                                        netOk = true;
+                                    }
+                                    delete second;
+                                } else {
+                                    netInfo += " second=timeout";
+                                }
+                            } else if (first->getMessageType() == 20104) {
+                                netOk = true;
+                            }
+                            delete first;
+                        } else {
+                            netInfo = std::string("pepper-response-fail: ") + net.lastError();
+                        }
+                    } else {
+                        netInfo = std::string("pepper-login-fail: ") + net.lastError();
+                    }
+                } else {
+                    netInfo = std::string("hello-fail: ") + net.lastError();
+                }
+            } else {
+                netInfo = std::string("connect-fail: ") + net.lastError();
+            }
+            std::cout << "net=" << (netOk ? 1 : 0) << " " << netInfo << " account=" << 0 << "\n";
+            std::int64_t until = Clock::nowMs() + 1500;
             while (window.poll() && Clock::nowMs() < until) {
                 if (window.takeResized()) {
                     present(screen, window);
