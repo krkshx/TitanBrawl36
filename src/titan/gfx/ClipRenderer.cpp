@@ -1,4 +1,5 @@
 #pragma once
+#include "NativeFont.cpp"
 #ifdef TITAN_HAS_FREETYPE
 #include "FontEngine.cpp"
 #else
@@ -29,29 +30,46 @@ public:
     void setStatusText(const std::string &text) {
         statusText_ = text;
     }
-    void setFonts(const std::string &primary, const std::string &fallback) {
+    void setFonts(const std::vector<std::string> &paths) {
 #ifdef TITAN_HAS_FREETYPE
-        fonts_.load(primary, fallback);
+        fonts_.load(paths);
 #else
-        (void)primary;
-        (void)fallback;
+        (void)paths;
 #endif
     }
-    void render(std::vector<std::uint32_t> &frame, int w, int h, int rootId) {
-        if (!swf_ || frame.empty()) {
+    void setSystemFonts(const std::vector<std::string> &paths) {
+#ifdef TITAN_HAS_FREETYPE
+        nativeFonts_.load(paths);
+#else
+        (void)paths;
+#endif
+    }
+    void setAssetDir(const std::string &assetsDir) {
+        assetsDir_ = assetsDir;
+#ifdef TITAN_HAS_FREETYPE
+        fonts_.loadBundled(assetsDir);
+        nativeFonts_.loadSystem(assetsDir, "Times New Roman", false);
+#else
+        (void)assetsDir;
+#endif
+    }
+    void renderLogo(std::vector<std::uint32_t> &frame, int w, int h, int rootId) {
+        if (!setupStage(frame, w, h)) {
             return;
         }
-        for (auto &p : frame) {
-            p = 0xFF000000u;
+        const MovieClipOriginal *mc = findClip(rootId);
+        if (!mc || mc->frames.empty()) {
+            return;
         }
-        float s = w / 1288.0f;
-        float s2 = h / 768.0f;
-        if (s2 > s) {
-            s = s2;
+        int fi = static_cast<int>(mc->frames.size()) / 2;
+        Matrix2x3 base;
+        base.setIdentity();
+        drawLogoFrame(*mc, fi, base, frame, w, h);
+    }
+    void render(std::vector<std::uint32_t> &frame, int w, int h, int rootId) {
+        if (!setupStage(frame, w, h)) {
+            return;
         }
-        scale_ = s;
-        ox_ = w * 0.5f;
-        oy_ = h * 0.5f;
         const MovieClipOriginal *root = findClip(rootId);
         if (!root) {
             return;
@@ -61,32 +79,101 @@ public:
         drawClip(*root, 0, base, frame, w, h);
     }
 private:
+    bool setupStage(std::vector<std::uint32_t> &frame, int w, int h) {
+        if (!swf_ || frame.empty()) {
+            return false;
+        }
+        for (std::size_t i = 0; i < frame.size(); i++) {
+            frame[i] = 0xFF000000u;
+        }
+        scale_ = w / 1288.0f;
+        float s2 = h / 768.0f;
+        if (s2 > scale_) {
+            scale_ = s2;
+        }
+        ox_ = w * 0.5f;
+        oy_ = h * 0.5f;
+        return true;
+    }
     static bool skipClip(const std::string &name) {
         return name == "supercell_id" || name == "buttons_tencent" || name == "buttons_yoozoo" || name == "icon_prc_age" || name == "logo_KR" || name == "logo_JP" || name == "logo_CNT" || name == "logo_CNS";
     }
     const MovieClipOriginal *findClip(int id) const {
-        for (auto &c : swf_->clips) {
-            if (c.id == id) {
-                return &c;
+        for (std::size_t i = 0; i < swf_->clips.size(); i++) {
+            if (swf_->clips[i].id == id) {
+                return &swf_->clips[i];
             }
         }
         return nullptr;
     }
     const ShapeOriginal *findShape(int id) const {
-        for (auto &s : swf_->shapes) {
-            if (s.id == id) {
-                return &s;
+        for (std::size_t i = 0; i < swf_->shapes.size(); i++) {
+            if (swf_->shapes[i].id == id) {
+                return &swf_->shapes[i];
             }
         }
         return nullptr;
     }
     const TextFieldOriginal *findField(int id) const {
-        for (auto &f : swf_->fields) {
-            if (f.id == id) {
-                return &f;
+        for (std::size_t i = 0; i < swf_->fields.size(); i++) {
+            if (swf_->fields[i].id == id) {
+                return &swf_->fields[i];
             }
         }
         return nullptr;
+    }
+    int progressFrame(const MovieClipOriginal &mc) const {
+        if (mc.frames.empty()) {
+            return 0;
+        }
+        int n = static_cast<int>(mc.frames.size());
+        int fi = static_cast<int>(progress_ * static_cast<float>(n - 1) + 0.5f);
+        if (fi < 0) {
+            fi = 0;
+        }
+        if (fi >= n) {
+            fi = n - 1;
+        }
+        return fi;
+    }
+    void drawLogoFrame(const MovieClipOriginal &clip, int frameIndex, const Matrix2x3 &parent, std::vector<std::uint32_t> &frame, int w, int h) {
+        if (clip.frames.empty()) {
+            return;
+        }
+        int fi = frameIndex;
+        if (fi < 0) {
+            fi = 0;
+        }
+        if (fi >= static_cast<int>(clip.frames.size())) {
+            fi = static_cast<int>(clip.frames.size()) - 1;
+        }
+        const MovieClipOriginal::Frame &fr = clip.frames[static_cast<std::size_t>(fi)];
+        for (std::size_t k = 0; k < fr.elements.size(); k++) {
+            const MovieClipOriginal::Element &el = fr.elements[k];
+            if (el.child < 0 || el.child >= static_cast<int>(clip.children.size())) {
+                continue;
+            }
+            const MovieClipOriginal::Child &ch = clip.children[static_cast<std::size_t>(el.child)];
+            if (!ch.name.empty() && skipClip(ch.name)) {
+                continue;
+            }
+            Matrix2x3 local;
+            local.setIdentity();
+            if (el.matrix != 65535 && el.matrix >= 0 && el.matrix < static_cast<int>(swf_->matrices.size())) {
+                local = swf_->matrices[static_cast<std::size_t>(el.matrix)];
+            }
+            Matrix2x3 world = local;
+            world.multiply(parent);
+            const ColorTransform *ct = nullptr;
+            if (el.color != 65535 && el.color >= 0 && el.color < static_cast<int>(swf_->colors.size())) {
+                ct = &swf_->colors[static_cast<std::size_t>(el.color)];
+            }
+            if (findClip(ch.id)) {
+                drawLogoFrame(*findClip(ch.id), 0, world, frame, w, h);
+            } else if (findShape(ch.id)) {
+                drawShape(*findShape(ch.id), world, ct, frame, w, h);
+            }
+        }
     }
     void drawClip(const MovieClipOriginal &clip, int frameIndex, const Matrix2x3 &parent, std::vector<std::uint32_t> &frame, int w, int h) {
         if (clip.frames.empty()) {
@@ -100,7 +187,8 @@ private:
             fi = static_cast<int>(clip.frames.size()) - 1;
         }
         const MovieClipOriginal::Frame &fr = clip.frames[static_cast<std::size_t>(fi)];
-        for (auto &el : fr.elements) {
+        for (std::size_t k = 0; k < fr.elements.size(); k++) {
+            const MovieClipOriginal::Element &el = fr.elements[k];
             if (el.child < 0 || el.child >= static_cast<int>(clip.children.size())) {
                 continue;
             }
@@ -122,6 +210,8 @@ private:
             if (findClip(ch.id)) {
                 if (ch.name == "loading_bar") {
                     drawLoadingBar(*findClip(ch.id), world, frame, w, h);
+                } else if (ch.name == "progress_bar") {
+                    drawClip(*findClip(ch.id), progressFrame(*findClip(ch.id)), world, frame, w, h);
                 } else {
                     drawClip(*findClip(ch.id), 0, world, frame, w, h);
                 }
@@ -138,8 +228,10 @@ private:
         if (bar.frames.empty()) {
             return;
         }
-        const MovieClipOriginal::Frame &fr = bar.frames[0];
-        for (auto &el : fr.elements) {
+        int fi = progressFrame(bar);
+        const MovieClipOriginal::Frame &fr = bar.frames[static_cast<std::size_t>(fi)];
+        for (std::size_t k = 0; k < fr.elements.size(); k++) {
+            const MovieClipOriginal::Element &el = fr.elements[k];
             if (el.child < 0 || el.child >= static_cast<int>(bar.children.size())) {
                 continue;
             }
@@ -151,84 +243,11 @@ private:
                     drawField(*findField(ch.id), world, frame, w, h);
                 }
             } else if (findClip(ch.id) && ch.name == "progress_bar") {
-                drawBarAssembly(*findClip(ch.id), world, frame, w, h);
+                drawClip(*findClip(ch.id), progressFrame(*findClip(ch.id)), world, frame, w, h);
+            } else if (findClip(ch.id)) {
+                drawClip(*findClip(ch.id), 0, world, frame, w, h);
             }
         }
-    }
-    void drawBarAssembly(const MovieClipOriginal &as, const Matrix2x3 &parent, std::vector<std::uint32_t> &frame, int w, int h) {
-        if (as.frames.empty()) {
-            return;
-        }
-        const MovieClipOriginal::Frame &fr = as.frames[0];
-        int bgId = -1;
-        const ShapeOriginal *bg = nullptr;
-        Matrix2x3 worldBg;
-        worldBg.setIdentity();
-        for (auto &el : fr.elements) {
-            if (el.child < 0 || el.child >= static_cast<int>(as.children.size())) {
-                continue;
-            }
-            const MovieClipOriginal::Child &ch = as.children[static_cast<std::size_t>(el.child)];
-            if (!findClip(ch.id)) {
-                continue;
-            }
-            const ShapeOriginal *s = firstShape(ch.id, 0);
-            if (!s) {
-                continue;
-            }
-            bgId = ch.id;
-            bg = s;
-            worldBg = elementMatrix(el.matrix);
-            worldBg.multiply(parent);
-            drawClip(*findClip(ch.id), 0, worldBg, frame, w, h);
-            break;
-        }
-        if (!bg) {
-            return;
-        }
-        float bx0, bx1, by0, by1;
-        if (!shapeBounds(*bg, bx0, bx1, by0, by1)) {
-            return;
-        }
-        const ShapeOriginal *fill = nullptr;
-        for (auto &ch : as.children) {
-            if (!findClip(ch.id) || ch.id == bgId) {
-                continue;
-            }
-            const ShapeOriginal *cand = firstShape(ch.id, 0);
-            if (!cand) {
-                continue;
-            }
-            float cx0, cx1, cy0, cy1;
-            if (!shapeBounds(*cand, cx0, cx1, cy0, cy1)) {
-                continue;
-            }
-            if (cx0 == bx0 && cx1 == bx1 && cy0 == by0 && cy1 == by1) {
-                fill = cand;
-                break;
-            }
-        }
-        if (!fill || progress_ <= 0.001f) {
-            return;
-        }
-        float fw = bx1 - bx0;
-        float wdt = fw * progress_;
-        float cx = bx0 + wdt * 0.5f;
-        float cy = (by0 + by1) * 0.5f;
-        float fx0, fx1, fy0, fy1;
-        shapeBounds(*fill, fx0, fx1, fy0, fy1);
-        if (fx1 == fx0 || fy1 == fy0) {
-            return;
-        }
-        Matrix2x3 fl;
-        fl.setIdentity();
-        fl.a = wdt / (fx1 - fx0);
-        fl.x = cx - (fx0 + fx1) * 0.5f * fl.a;
-        fl.d = (by1 - by0) / (fy1 - fy0);
-        fl.y = cy - (fy0 + fy1) * 0.5f * fl.d;
-        Matrix2x3 worldFill = fl;
-        worldFill.multiply(worldBg);
-        drawShape(*fill, worldFill, nullptr, frame, w, h);
     }
     Matrix2x3 elementMatrix(int el) const {
         Matrix2x3 local;
@@ -238,56 +257,25 @@ private:
         }
         return local;
     }
-    const ShapeOriginal *firstShape(int clipId, int depth) const {
-        if (depth > 8) {
-            return nullptr;
+    static bool useNativeFont(const TextFieldOriginal &f) {
+        if (f.deviceFont) {
+            return true;
         }
-        const MovieClipOriginal *mc = findClip(clipId);
-        if (!mc || mc->frames.empty()) {
-            return nullptr;
-        }
-        const MovieClipOriginal::Frame &fr = mc->frames[0];
-        for (auto &el : fr.elements) {
-            if (el.child < 0 || el.child >= static_cast<int>(mc->children.size())) {
-                continue;
-            }
-            if (findShape(mc->children[static_cast<std::size_t>(el.child)].id)) {
-                return findShape(mc->children[static_cast<std::size_t>(el.child)].id);
-            }
-        }
-        for (auto &el : fr.elements) {
-            if (el.child < 0 || el.child >= static_cast<int>(mc->children.size())) {
-                continue;
-            }
-            if (findClip(mc->children[static_cast<std::size_t>(el.child)].id)) {
-                const ShapeOriginal *s = firstShape(mc->children[static_cast<std::size_t>(el.child)].id, depth + 1);
-                if (s) {
-                    return s;
-                }
-            }
-        }
-        return nullptr;
+        return NativeFont::isSystemFamily(f.font);
     }
-    static bool shapeBounds(const ShapeOriginal &s, float &x0, float &x1, float &y0, float &y1) {
-        bool any = false;
-        for (auto &c : s.commands) {
-            for (std::size_t i = 0; i < c.x.size(); i++) {
-                if (!any) {
-                    x0 = x1 = c.x[i];
-                    y0 = y1 = c.y[i];
-                    any = true;
-                } else {
-                    if (c.x[i] < x0) x0 = c.x[i];
-                    if (c.x[i] > x1) x1 = c.x[i];
-                    if (c.y[i] < y0) y0 = c.y[i];
-                    if (c.y[i] > y1) y1 = c.y[i];
-                }
-            }
+    static std::uint32_t outlineColorFor(const TextFieldOriginal &f) {
+        if (!f.outline) {
+            return 0xFF000000u;
         }
-        return any;
+        std::uint32_t c = static_cast<std::uint32_t>(f.outlineColor);
+        if (((c >> 24) & 0xFF) == 0 && (c & 0x00FFFFFFu) == 0) {
+            return 0xFF000000u;
+        }
+        return c;
     }
     void drawShape(const ShapeOriginal &shape, const Matrix2x3 &m, const ColorTransform *ct, std::vector<std::uint32_t> &frame, int w, int h) {
-        for (auto &c : shape.commands) {
+        for (std::size_t ci = 0; ci < shape.commands.size(); ci++) {
+            const ShapeOriginal::Command &c = shape.commands[ci];
             if (c.texture < 0 || c.texture >= static_cast<int>(swf_->textures.size())) {
                 continue;
             }
@@ -361,11 +349,11 @@ private:
                 if (sa == 0) {
                     continue;
                 }
-                std::size_t k = static_cast<std::size_t>(y) * static_cast<std::size_t>(w) + static_cast<std::size_t>(x);
+                std::size_t kk = static_cast<std::size_t>(y) * static_cast<std::size_t>(w) + static_cast<std::size_t>(x);
                 if (sa == 255) {
-                    frame[k] = 0xFF000000u | (src & 0x00FFFFFFu);
+                    frame[kk] = 0xFF000000u | (src & 0x00FFFFFFu);
                 } else {
-                    std::uint32_t dst = frame[k];
+                    std::uint32_t dst = frame[kk];
                     unsigned sr = (src >> 16) & 0xFF;
                     unsigned sg = (src >> 8) & 0xFF;
                     unsigned sb = src & 0xFF;
@@ -375,7 +363,7 @@ private:
                     unsigned r = (sr * sa + dr * (255 - sa)) / 255;
                     unsigned g = (sg * sa + dg * (255 - sa)) / 255;
                     unsigned b = (sb * sa + db * (255 - sa)) / 255;
-                    frame[k] = 0xFF000000u | (r << 16) | (g << 8) | b;
+                    frame[kk] = 0xFF000000u | (r << 16) | (g << 8) | b;
                 }
             }
         }
@@ -408,25 +396,39 @@ private:
         if (px < 1) {
             px = 1;
         }
-        fonts_.drawCentered(frame, w, h, statusText_, x0, y0, boxW, boxH, px, static_cast<std::uint32_t>(f.color));
+        std::uint32_t col = static_cast<std::uint32_t>(f.color);
+        std::uint32_t ocol = outlineColorFor(f);
+        if (useNativeFont(f)) {
+            nativeFonts_.drawCentered(frame, w, h, statusText_, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+        } else {
+            fonts_.drawCentered(frame, w, h, statusText_, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+        }
 #else
         int tw = BitmapFont::measure(statusText_);
         if (tw <= 0) {
             return;
         }
-        int scale = static_cast<int>(boxW / tw);
-        int scaleH = static_cast<int>(boxH / 7);
-        if (scaleH < scale) {
-            scale = scaleH;
+        int sc = static_cast<int>(boxW / tw);
+        int scH = static_cast<int>(boxH / 7);
+        if (scH < sc) {
+            sc = scH;
         }
-        if (scale < 1) {
-            scale = 1;
+        if (sc < 1) {
+            sc = 1;
         }
-        int sw = tw * scale;
-        int sh = 7 * scale;
+        int sw = tw * sc;
+        int sh = 7 * sc;
         int dx = static_cast<int>(x0 + (boxW - sw) * 0.5f);
         int dy = static_cast<int>(y0 + (boxH - sh) * 0.5f);
-        BitmapFont::drawText(frame, w, h, statusText_, dx, dy, scale, static_cast<std::uint32_t>(f.color));
+        std::uint32_t col = static_cast<std::uint32_t>(f.color);
+        if (f.outline) {
+            std::uint32_t ocol = outlineColorFor(f);
+            BitmapFont::drawText(frame, w, h, statusText_, dx - sc, dy, sc, ocol);
+            BitmapFont::drawText(frame, w, h, statusText_, dx + sc, dy, sc, ocol);
+            BitmapFont::drawText(frame, w, h, statusText_, dx, dy - sc, sc, ocol);
+            BitmapFont::drawText(frame, w, h, statusText_, dx, dy + sc, sc, ocol);
+        }
+        BitmapFont::drawText(frame, w, h, statusText_, dx, dy, sc, col);
 #endif
     }
     float toX(float dx) const {
@@ -439,7 +441,9 @@ private:
     float progress_ = 0;
 #ifdef TITAN_HAS_FREETYPE
     FontEngine fonts_;
+    FontEngine nativeFonts_;
 #endif
+    std::string assetsDir_;
     std::string statusName_ = "text";
     std::string statusText_;
     float scale_ = 1;

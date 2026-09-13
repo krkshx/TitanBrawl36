@@ -19,9 +19,13 @@ public:
             clip_.loadTexture(texPath);
         }
         root_ = -1;
-        for (auto &e : clip_.exports) {
-            if (e.name == rootName_) {
-                root_ = e.id;
+        logo_ = -1;
+        for (std::size_t i = 0; i < clip_.exports.size(); i++) {
+            if (clip_.exports[i].name == rootName_) {
+                root_ = clip_.exports[i].id;
+            }
+            if (clip_.exports[i].name == logoName_) {
+                logo_ = clip_.exports[i].id;
             }
         }
         renderer_.bind(&clip_);
@@ -46,10 +50,23 @@ public:
         statusText_ = text;
         renderer_.setStatusText(text);
     }
-    void setFonts(const std::string &primary, const std::string &fallback) {
-        renderer_.setFonts(primary, fallback);
+    void setFonts(const std::vector<std::string> &paths) {
+        renderer_.setFonts(paths);
+    }
+    void setSystemFonts(const std::vector<std::string> &paths) {
+        renderer_.setSystemFonts(paths);
+    }
+    void setAssetDir(const std::string &assetsDir) {
+        renderer_.setAssetDir(assetsDir);
     }
     bool loaded() const { return loaded_; }
+    bool hasLogo() const { return logo_ >= 0; }
+    void blitLogo(std::vector<std::uint32_t> &frame, int w, int h) const {
+        if (logo_ < 0 || frame.empty()) {
+            return;
+        }
+        renderer_.renderLogo(frame, w, h, logo_);
+    }
     float progress() const { return progress_; }
     const std::string &statusText() const { return statusText_; }
     void blit(std::vector<std::uint32_t> &frame, int w, int h) const {
@@ -62,8 +79,10 @@ private:
     SupercellSWF clip_;
     mutable ClipRenderer renderer_;
     std::string rootName_ = "loading_screen";
+    std::string logoName_ = "sc_intro";
     std::string statusText_;
     int root_ = -1;
+    int logo_ = -1;
     float progress_ = 0;
     bool loaded_ = false;
 };
