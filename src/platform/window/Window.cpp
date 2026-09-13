@@ -192,7 +192,7 @@ private:
     bool opened_ = false;
     bool resized_ = false;
 #if defined(_WIN32)
-    void *hwnd_ = nullptr;
+    HWND hwnd_ = nullptr;
 #else
     Display *display_ = nullptr;
     ::Window win_ = 0;
