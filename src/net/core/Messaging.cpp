@@ -123,8 +123,10 @@ public:
             std::memcpy(sNonce_, open.data(), 24);
             std::uint8_t streamKey[32];
             std::memcpy(streamKey, open.data() + 24, 32);
-            tx_.setup(streamKey, sNonce_);
-            rx_.setup(streamKey, rNonce_);
+            // Сервер шифрует сервер->клиент под sNonce, читает клиент->сервер
+            // под rNonce — зеркально у нас: пишем rNonce, читаем sNonce.
+            tx_.setup(streamKey, rNonce_);
+            rx_.setup(streamKey, sNonce_);
             streamOn_ = true;
             std::vector<std::uint8_t> inner(open.begin() + 56, open.end());
             PiranhaMessage *msg = expectCreate ? static_cast<PiranhaMessage *>(new CreateAccountOkMessage()) : static_cast<PiranhaMessage *>(new LoginOkMessage());

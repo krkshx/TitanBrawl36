@@ -11,6 +11,8 @@
 #include "../account/AnalyticEventMessage.cpp"
 #include "../account/TitanDisconnectedMessage.cpp"
 #include "../home/OwnHomeDataMessage.cpp"
+#include "../home/AvailableServerCommandMessage.cpp"
+#include "GenericMessage.cpp"
 
 class MessageFactory {
 public:
@@ -26,9 +28,10 @@ public:
             case 20104: return new LoginOkMessage();
             case 20108: return new KeepAliveServerMessage();
             case 24101: return new OwnHomeDataMessage();
+            case 24111: return new AvailableServerCommandMessage();
             case 26007: return new CreateAccountOkMessage();
             case 25892: return new TitanDisconnectedMessage();
-            default: return nullptr;
+            default: return new GenericMessage(type);
         }
     }
 };

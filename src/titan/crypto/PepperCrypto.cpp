@@ -1,5 +1,6 @@
 #pragma once
 #include "Random.cpp"
+#include "TweetNaCl19.cpp"
 #include <sodium.h>
 #include <cstdint>
 #include <cstring>
@@ -62,20 +63,24 @@ public:
         return crypto_generichash_final(&st, out, 24) == 0;
     }
 
+    // Боксы — 19-раундовый TweetNaCl с либы (см. TweetNaCl19.cpp),
+    // НЕ libsodium (у него 20 раундов — сервер такой бокс не открывает).
     static bool boxSeal(const std::uint8_t *msg, int msgLen, std::uint8_t *out, const std::uint8_t nonce[24], const std::uint8_t pk[32], const std::uint8_t sk[32]) {
-        return crypto_box_easy(out, msg, static_cast<unsigned long long>(msgLen), nonce, pk, sk) == 0;
+        tweet19::BoxSeal(msg, out, msgLen, nonce, pk, sk);
+        return true;
     }
 
     static bool boxOpen(const std::uint8_t *box, int boxLen, std::uint8_t *out, const std::uint8_t nonce[24], const std::uint8_t pk[32], const std::uint8_t sk[32]) {
-        return crypto_box_open_easy(out, box, static_cast<unsigned long long>(boxLen), nonce, pk, sk) == 0;
+        return tweet19::BoxOpen(box, out, boxLen, nonce, pk, sk);
     }
 
     static bool secretSeal(const std::uint8_t *msg, int msgLen, std::uint8_t *out, const std::uint8_t nonce[24], const std::uint8_t key[32]) {
-        return crypto_secretbox_easy(out, msg, static_cast<unsigned long long>(msgLen), nonce, key) == 0;
+        tweet19::SecretboxSeal(msg, out, msgLen, nonce, key);
+        return true;
     }
 
     static bool secretOpen(const std::uint8_t *box, int boxLen, std::uint8_t *out, const std::uint8_t nonce[24], const std::uint8_t key[32]) {
-        return crypto_secretbox_open_easy(out, box, static_cast<unsigned long long>(boxLen), nonce, key) == 0;
+        return tweet19::SecretboxOpen(box, out, boxLen, nonce, key);
     }
 };
 
