@@ -40,6 +40,17 @@ int main(int argc, char **argv) {
     present(screen, window);
     std::string scPath = FileSystem::join(assetsDir, FileSystem::join("sc", "loading.sc"));
     bool clipOk = screen.loadClip(scPath);
+
+
+    if (!clipOk) {
+        // Без loading.sc экран остаётся чёрным на всех стадиях — сказать прямо, а не молчать.
+        NativeDialog::show("Missing assets",
+            "Could not load " + scPath + ".\nCopy the decompiled assets/ folder (sc/, csv_logic/, sfx/) next to the game and run again.",
+            "OK");
+    }
+    // === ПОЛНЫЙ БУТ (цикл): ЛОГО → ЗАГРУЗКА → КОННЕКТ → диалог.
+    // "Попробовать снова" крутит всё с самого начала: сначала лого, потом лоадинг, как в ориге.
+
     SupercellSWF ui;
     CsvTable table;
     ResetAccountMessage msg;
