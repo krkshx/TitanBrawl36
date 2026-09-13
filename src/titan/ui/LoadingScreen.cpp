@@ -57,6 +57,7 @@ public:
     void showLogo() {
         stage_ = Stage::Logo;
         logoFrame_ = 0;
+        clearStatusOverride();
     }
     void setLogoFrame(int fi) {
         logoFrame_ = fi;
@@ -70,12 +71,29 @@ public:
     void showLoading() {
         stage_ = Stage::Loading;
         connecting_ = false;
+        clearStatusOverride();
         clip_.setStatusText(statusText());
+    }
+    void setStatusOverride(const std::string &text) {
+        override_ = text;
+        hasOverride_ = true;
+        clip_.setStatusText(statusText());
+    }
+    void clearStatusOverride() {
+        hasOverride_ = false;
+        override_.clear();
+        clip_.setStatusText(statusText());
+    }
+    bool hasStatusOverride() const {
+        return hasOverride_;
     }
     void update(float dt) {
         time_ += dt;
     }
     std::string statusText() const {
+        if (hasOverride_) {
+            return override_;
+        }
         if (connecting_) {
             return texts_.text("TID_CONNECTING_TO_SERVER", "Connecting to server...");
         }
@@ -100,6 +118,8 @@ private:
     MovieClip clip_;
     int logoFrame_ = 0;
     bool connecting_ = false;
+    bool hasOverride_ = false;
+    std::string override_;
     Localization texts_;
     std::string assetsDir_;
     bool textsOk_ = false;

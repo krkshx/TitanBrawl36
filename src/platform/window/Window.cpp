@@ -45,7 +45,7 @@ public:
         }
         wmDelete_ = XInternAtom(display_, "WM_DELETE_WINDOW", False);
         XSetWMProtocols(display_, win_, &wmDelete_, 1);
-        XSelectInput(display_, win_, ExposureMask | KeyPressMask | StructureNotifyMask);
+        XSelectInput(display_, win_, ExposureMask | ButtonPressMask | KeyPressMask | StructureNotifyMask);
         XMapWindow(display_, win_);
         gc_ = XCreateGC(display_, win_, 0, nullptr);
         img_ = XCreateImage(display_, DefaultVisual(display_, screen), 24, ZPixmap, 0, reinterpret_cast<char *>(frame_.data()), static_cast<unsigned>(w), static_cast<unsigned>(h), 32, static_cast<int>(w * 4));
@@ -62,6 +62,16 @@ public:
     int width() const { return w_; }
     int height() const { return h_; }
     bool opened() const { return opened_; }
+    // Очередь кликов в пикселях фреймбуфера. true — забрали один клик.
+    bool takeClick(int &x, int &y) {
+        if (clicks_.empty()) {
+            return false;
+        }
+        x = clicks_.front().x;
+        y = clicks_.front().y;
+        clicks_.erase(clicks_.begin());
+        return true;
+    }
     // true один раз после ConfigureNotify с новым размером — надо перерисовать кадр.
     bool takeResized() {
         bool r = resized_;
@@ -96,6 +106,10 @@ public:
             if (e.type == DestroyNotify) {
                 opened_ = false;
                 return false;
+            }
+            if (e.type == ButtonPress) {
+                // Окно X11 всегда размером с фреймбуфер (resize держит их вровень).
+                pushClick(e.xbutton.x, e.xbutton.y);
             }
             if (e.type == ConfigureNotify) {
                 int nw = e.xconfigure.width;
@@ -181,14 +195,47 @@ public:
             CREATESTRUCTA *cs = reinterpret_cast<CREATESTRUCTA *>(lp);
             SetWindowLongPtrA(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(cs->lpCreateParams));
         }
+        if (msg == WM_LBUTTONDOWN) {
+            Window *self = reinterpret_cast<Window *>(GetWindowLongPtrA(hwnd, GWLP_USERDATA));
+            if (self) {
+                self->pushClientClick(hwnd, static_cast<int>(static_cast<short>(LOWORD(lp))), static_cast<int>(static_cast<short>(HIWORD(lp))));
+            }
+        }
         return DefWindowProcA(hwnd, msg, wp, lp);
+    }
+    // Клик в клиентских пикселях -> во фреймбуфер (клиент меньше окна из-за рамки).
+    void pushClientClick(HWND hwnd, int cx, int cy) {
+        RECT rc;
+        if (!GetClientRect(hwnd, &rc)) {
+            return;
+        }
+        int cw = rc.right - rc.left;
+        int ch = rc.bottom - rc.top;
+        if (cw <= 0 || ch <= 0) {
+            return;
+        }
+        pushClick(cx * w_ / cw, cy * h_ / ch);
     }
 #endif
 private:
+    struct Click {
+        int x = 0;
+        int y = 0;
+    };
+    void pushClick(int fx, int fy) {
+        if (fx < 0 || fy < 0 || fx >= w_ || fy >= h_) {
+            return;
+        }
+        Click c;
+        c.x = fx;
+        c.y = fy;
+        clicks_.push_back(c);
+    }
     int w_ = 0;
     int h_ = 0;
     std::string title_;
     std::vector<std::uint32_t> frame_;
+    std::vector<Click> clicks_;
     bool opened_ = false;
     bool resized_ = false;
 #if defined(_WIN32)

@@ -6,4 +6,4 @@ cd /d "%~dp0"
 call "%~dp0build.bat" %*
 if %ERRORLEVEL% neq 0 exit /b 1
 
-build\titan_pc.exe .
+build\titan_pc.exe . %*

@@ -1,6 +1,7 @@
 #pragma once
 #include "../titan/core/ByteStream.cpp"
 #include "../titan/ui/LoadingScreen.cpp"
+#include "../titan/ui/UiButton.cpp"
 #include "../logic/player/LogicDailyData.cpp"
 #include "../titan/data/CsvTable.cpp"
 #include "../net/account/ResetAccountMessage.cpp"
@@ -20,15 +21,43 @@
 #include <string>
 #include <vector>
 
-static void present(LoadingScreen &screen, pc::Window &window) {
+static void present(LoadingScreen &screen, UiButton *button, pc::Window &window) {
     screen.draw(window.frame(), window.width(), window.height());
+    if (button) {
+        button->draw(window.frame(), window.width(), window.height());
+    }
     window.present();
+}
+// Клики по кнопке входа: статус-текст становится заданным. true — попали по кнопке.
+static bool drainEntryClicks(pc::Window &window, UiButton *button, LoadingScreen &screen) {
+    if (!button || !button->bound()) {
+        return false;
+    }
+    bool hit = false;
+    int cx = 0;
+    int cy = 0;
+    while (window.takeClick(cx, cy)) {
+        if (button->hit(cx, cy, window.width(), window.height())) {
+            screen.setStatusOverride("pmdrk loh...");
+            hit = true;
+        }
+    }
+    return hit;
 }
 
 int main(int argc, char **argv) {
+    // Кнопка входа выключена по умолчанию, включается флагом --entry-button.
     std::string root = ".";
-    if (argc > 1) {
-        root = argv[1];
+    bool entryButtonOn = false;
+    bool rootSet = false;
+    for (int i = 1; i < argc; i++) {
+        std::string a = argv[i];
+        if (a == "--entry-button") {
+            entryButtonOn = true;
+        } else if (!rootSet && !a.empty() && a[0] != '-') {
+            root = a;
+            rootSet = true;
+        }
     }
     pc::Window window;
     if (!window.open(848, 480, "Laser")) {
@@ -36,10 +65,12 @@ int main(int argc, char **argv) {
         return 4;
     }
     LoadingScreen screen;
+    UiButton entryButton;
+    bool buttonOk = false;
     std::string assetsDir = FileSystem::join(root, "assets");
-    present(screen, window);
+    present(screen, &entryButton, window);
     bool textsOk = screen.loadTexts(assetsDir);
-    present(screen, window);
+    present(screen, &entryButton, window);
     std::string scPath = FileSystem::join(assetsDir, FileSystem::join("sc", "loading.sc"));
     bool clipOk = screen.loadClip(scPath);
 
@@ -75,12 +106,13 @@ int main(int argc, char **argv) {
                 if (!window.poll()) {
                     break;
                 }
+                drainEntryClicks(window, &entryButton, screen);
                 int fi = static_cast<int>((Clock::nowMs() - t0) * 60 / 1000);
                 if (fi >= frames) {
                     break;
                 }
                 screen.setLogoFrame(fi);
-                present(screen, window);
+                present(screen, &entryButton, window);
             }
         }
         if (!window.poll()) {
@@ -88,7 +120,7 @@ int main(int argc, char **argv) {
         }
         screen.showLoading();
         screen.setProgress(0.0f);
-        present(screen, window);
+        present(screen, &entryButton, window);
         Music music;
         std::string loadMusic = LoadingSound::loadingMusic(assetsDir);
         if (!loadMusic.empty()) {
@@ -98,15 +130,20 @@ int main(int argc, char **argv) {
         std::string uiPath = FileSystem::join(assetsDir, FileSystem::join("sc", "ui.sc"));
         uiOk = ui.load(uiPath);
         screen.setProgress(0.2f);
-        present(screen, window);
+        present(screen, &entryButton, window);
         std::string uiTexPath = FileSystem::join(assetsDir, FileSystem::join("sc", "ui_tex.sc"));
         uiTexOk = ui.loadTexture(uiTexPath, [&](int done, int total) {
             float f = total > 0 ? static_cast<float>(done) / static_cast<float>(total) : 1.0f;
             screen.setProgress(0.2f + f * 0.15f);
-            present(screen, window);
+            present(screen, &entryButton, window);
         });
+        // Кнопка входа: первый экспорт ui.sc с "button" в имени, текстуры уже на месте.
+        // Без флага --entry-button не биндится: не рисуется и клики не ловит.
+        if (entryButtonOn) {
+            buttonOk = entryButton.bind(&ui, "button");
+        }
         screen.setProgress(0.35f);
-        present(screen, window);
+        present(screen, &entryButton, window);
         std::string csvPath = FileSystem::join(assetsDir, FileSystem::join("csv_logic", "characters.csv"));
         table = CsvTable();
         csvOk = table.load(csvPath);
@@ -119,9 +156,9 @@ int main(int argc, char **argv) {
         daily.coins_ = 100;
         daily.encode(out);
         screen.setProgress(0.5f);
-        present(screen, window);
+        present(screen, &entryButton, window);
         screen.setConnecting();
-        present(screen, window);
+        present(screen, &entryButton, window);
         {
             ClientMessaging net;
             bool netOk = false;
@@ -175,8 +212,9 @@ int main(int argc, char **argv) {
             std::cout << "net=" << (netOk ? 1 : 0) << " " << netInfo << " account=" << 0 << "\n";
             std::int64_t until = Clock::nowMs() + 1500;
             while (window.poll() && Clock::nowMs() < until) {
-                if (window.takeResized()) {
-                    present(screen, window);
+                // Текст мог смениться кликом — тогда кадр перерисовать, а не blit.
+                if (drainEntryClicks(window, &entryButton, screen) || window.takeResized()) {
+                    present(screen, &entryButton, window);
                 } else {
                     window.present();
                 }
@@ -193,6 +231,6 @@ int main(int argc, char **argv) {
         }
     }
     window.save(FileSystem::join(root, "frame.ppm"));
-    std::cout << "clip=" << clipOk << " texts=" << textsOk << " csv=" << csvOk << " rows=" << table.rows() << " msg=" << msg.getMessageType() << " ui=" << uiOk << uiTexOk << " clips=" << ui.clips.size() << " text=" << screen.statusText() << " stage=loading" << "\n";
+    std::cout << "clip=" << clipOk << " texts=" << textsOk << " csv=" << csvOk << " rows=" << table.rows() << " msg=" << msg.getMessageType() << " ui=" << uiOk << uiTexOk << " clips=" << ui.clips.size() << " button=" << (buttonOk ? entryButton.assetName() : "-") << " text=" << screen.statusText() << " stage=loading" << "\n";
     return 0;
 }
