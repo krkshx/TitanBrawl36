@@ -2,6 +2,7 @@
 
 #include "titan/commands/AllCommands.cpp"
 #include "titan/core/BitStream.cpp"
+#include "titan/game/notif/DonateNotification.cpp"
 #include "titan/gen/LogicCommands.cpp"
 
 #include <cstdio>
@@ -157,6 +158,37 @@ int main() {
         LogicSelectEmoteCommand back;
         back.decode(d);
         CHECK(back.ref_->classId == 29 && back.v_ == 2);
+    }
+    {
+        // 206 nests a real notification; the LogicCommand base goes
+        // last on the wire (encode @0x701c6c, decode @0x5ce794).
+        LogicAddNotificationCommand c;
+        auto n = std::make_unique<DonateNotification>();
+        n->s48_ = std::string("ty");
+        c.object_ = std::move(n);
+        ByteStream s;
+        c.encode(s);
+        ByteStream d;
+        d.setBuffer(s.data(), s.size());
+        CHECK(d.readBoolean());
+        CHECK(d.readVInt() == 2);
+        DonateNotification back_n;
+        back_n.decode(d);
+        CHECK(back_n.s48_.value() == "ty");
+        CHECK(d.readVInt() == -1 && d.readVInt() == -1);
+        const LogicLong back_id = LogicLong::decode(d);
+        CHECK(back_id.high == 0 && back_id.low == 0);
+    }
+    {
+        // 206 with no object: just the false flag + base.
+        LogicAddNotificationCommand c;
+        ByteStream s;
+        c.encode(s);
+        ByteStream d;
+        d.setBuffer(s.data(), s.size());
+        LogicAddNotificationCommand back;
+        back.decode(d);
+        CHECK(back.object_ == nullptr);
     }
 
     if (failures == 0) std::puts("bitstream: all ok");

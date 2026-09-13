@@ -17,7 +17,7 @@
 // no-op; each command overrides it in its own wave. GameListener UI
 // callbacks inside execute() are platform code and skipped explicitly.
 //
-// Manager-level helpers live in titan/gen/LogicCommands.hpp (generated).
+// Manager-level helpers live in titan/gen/LogicCommands.cpp (generated).
 
 #include "titan/core/LogicLong.cpp"
 #include "titan/game/home/Home.cpp"
