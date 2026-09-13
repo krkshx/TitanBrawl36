@@ -16,6 +16,9 @@ public:
         std::vector<int> v;
     };
     std::vector<Command> commands;
+    bool nineSlice = false;
+    std::vector<float> gridX;
+    std::vector<float> gridY;
     void load(ScReader &s, int t) {
         tag = t;
         id = s.readU16();
@@ -52,5 +55,70 @@ public:
                 s.readU8();
             }
         }
+        if (t == 18) {
+            detectGrid();
+        }
+    }
+    int gridIndexX(float v) const {
+        for (std::size_t i = 0; i < gridX.size(); i++) {
+            if (gridX[i] == v) {
+                return static_cast<int>(i);
+            }
+        }
+        return -1;
+    }
+    int gridIndexY(float v) const {
+        for (std::size_t i = 0; i < gridY.size(); i++) {
+            if (gridY[i] == v) {
+                return static_cast<int>(i);
+            }
+        }
+        return -1;
+    }
+private:
+    static void insertDistinct(std::vector<float> &out, float v) {
+        for (std::size_t i = 0; i < out.size(); i++) {
+            if (out[i] == v) {
+                return;
+            }
+        }
+        out.push_back(v);
+    }
+    static void sortAsc(std::vector<float> &out) {
+        for (std::size_t i = 0; i < out.size(); i++) {
+            for (std::size_t k = i + 1; k < out.size(); k++) {
+                if (out[k] < out[i]) {
+                    float t = out[i];
+                    out[i] = out[k];
+                    out[k] = t;
+                }
+            }
+        }
+    }
+    void detectGrid() {
+        gridX.clear();
+        gridY.clear();
+        nineSlice = false;
+        if (commands.size() < 2) {
+            return;
+        }
+        for (std::size_t i = 0; i < commands.size(); i++) {
+            const Command &c = commands[i];
+            if (c.x.size() != 4) {
+                return;
+            }
+            for (std::size_t k = 0; k < 4; k++) {
+                insertDistinct(gridX, c.x[k]);
+                insertDistinct(gridY, c.y[k]);
+            }
+        }
+        if (gridX.size() < 2 || gridY.size() < 2) {
+            gridX.clear();
+            gridY.clear();
+            return;
+        }
+        sortAsc(gridX);
+        sortAsc(gridY);
+        nineSlice = true;
     }
 };

@@ -171,7 +171,7 @@ private:
             if (findClip(ch.id)) {
                 drawLogoFrame(*findClip(ch.id), 0, world, frame, w, h);
             } else if (findShape(ch.id)) {
-                drawShape(*findShape(ch.id), world, ct, frame, w, h);
+                drawShape(*findShape(ch.id), local, parent, ct, frame, w, h);
             }
         }
     }
@@ -216,7 +216,7 @@ private:
                     drawClip(*findClip(ch.id), 0, world, frame, w, h);
                 }
             } else if (findShape(ch.id)) {
-                drawShape(*findShape(ch.id), world, ct, frame, w, h);
+                drawShape(*findShape(ch.id), local, parent, ct, frame, w, h);
             } else if (findField(ch.id)) {
                 if (ch.name == statusName_) {
                     drawField(*findField(ch.id), world, frame, w, h);
@@ -273,7 +273,73 @@ private:
         }
         return c;
     }
-    void drawShape(const ShapeOriginal &shape, const Matrix2x3 &m, const ColorTransform *ct, std::vector<std::uint32_t> &frame, int w, int h) {
+    static bool mapSlice(const std::vector<float> &grid, float scale, float trans, std::vector<float> &mapped) {
+        std::size_t n = grid.size();
+        if (n < 2) {
+            return false;
+        }
+        mapped.clear();
+        mapped.resize(n);
+        mapped[0] = grid[0] * scale + trans;
+        mapped[n - 1] = grid[n - 1] * scale + trans;
+        for (std::size_t i = 1; i + 1 < n; i++) {
+            if (i * 2 < n) {
+                mapped[i] = mapped[0] + (grid[i] - grid[0]);
+            } else {
+                mapped[i] = mapped[n - 1] - (grid[n - 1] - grid[i]);
+            }
+        }
+        for (std::size_t i = 0; i + 1 < n; i++) {
+            if (mapped[i + 1] < mapped[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    void drawShape(const ShapeOriginal &shape, const Matrix2x3 &local, const Matrix2x3 &parent, const ColorTransform *ct, std::vector<std::uint32_t> &frame, int w, int h) {
+        Matrix2x3 world = local;
+        world.multiply(parent);
+        if (shape.nineSlice && world.b == 0.0f && world.c == 0.0f && world.a > 0.0f && world.d > 0.0f) {
+            std::vector<float> mapX;
+            std::vector<float> mapY;
+            if (mapSlice(shape.gridX, world.a, world.x, mapX) && mapSlice(shape.gridY, world.d, world.y, mapY)) {
+                for (std::size_t ci = 0; ci < shape.commands.size(); ci++) {
+                    const ShapeOriginal::Command &c = shape.commands[ci];
+                    if (c.texture < 0 || c.texture >= static_cast<int>(swf_->textures.size())) {
+                        continue;
+                    }
+                    const SWFTexture &tex = swf_->textures[static_cast<std::size_t>(c.texture)];
+                    if (tex.pixels.empty()) {
+                        continue;
+                    }
+                    std::size_t n = c.x.size();
+                    if (n < 3) {
+                        continue;
+                    }
+                    ShapeOriginal::Command mc = c;
+                    bool ok = true;
+                    for (std::size_t vi = 0; vi < n; vi++) {
+                        int ix = shape.gridIndexX(c.x[vi]);
+                        int iy = shape.gridIndexY(c.y[vi]);
+                        if (ix < 0 || iy < 0) {
+                            ok = false;
+                            break;
+                        }
+                        mc.x[vi] = mapX[static_cast<std::size_t>(ix)];
+                        mc.y[vi] = mapY[static_cast<std::size_t>(iy)];
+                    }
+                    if (!ok) {
+                        continue;
+                    }
+                    Matrix2x3 ident;
+                    ident.setIdentity();
+                    for (std::size_t i = 1; i + 1 < n; i++) {
+                        drawTri(tex, mc, 0, i, i + 1, ident, ct, frame, w, h);
+                    }
+                }
+                return;
+            }
+        }
         for (std::size_t ci = 0; ci < shape.commands.size(); ci++) {
             const ShapeOriginal::Command &c = shape.commands[ci];
             if (c.texture < 0 || c.texture >= static_cast<int>(swf_->textures.size())) {
@@ -288,7 +354,7 @@ private:
                 continue;
             }
             for (std::size_t i = 1; i + 1 < n; i++) {
-                drawTri(tex, c, 0, i, i + 1, m, ct, frame, w, h);
+                drawTri(tex, c, 0, i, i + 1, world, ct, frame, w, h);
             }
         }
     }
