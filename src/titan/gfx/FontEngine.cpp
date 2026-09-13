@@ -157,7 +157,7 @@ public:
         if (glyphs.empty()) {
             return;
         }
-        int pad = r + 3;
+        int pad = 2 * r + 4;
         x0 -= pad;
         y0 -= pad;
         x1 += pad;
@@ -213,26 +213,35 @@ public:
         }
         // Мягкая тень — от заливки глифов (mask), со сдвигом вправо-вниз:
         // от расширенного контура (wide) она расползалась серым ореолом.
+        // Вылет и блюр растут с радиусом обводки: тень заметно лежит под текстом.
+        int shR = r;
+        if (shR < 1) {
+            shR = 1;
+        }
+        int shDx = 1;
+        int shDy = r + 2;
         std::vector<unsigned char> soft(static_cast<std::size_t>(mw) * static_cast<std::size_t>(mh), 0);
         for (int yy = 0; yy < mh; yy++) {
             for (int xx = 0; xx < mw; xx++) {
-                int sx = xx - 1;
-                int sy = yy - (r + 1);
+                int sx = xx - shDx;
+                int sy = yy - shDy;
                 if (sx < 0 || sx >= mw || sy < 0 || sy >= mh) {
                     continue;
                 }
                 unsigned acc = 0;
-                for (int ky = -1; ky <= 1; ky++) {
-                    for (int kx = -1; kx <= 1; kx++) {
+                unsigned cnt = 0;
+                for (int ky = -shR; ky <= shR; ky++) {
+                    for (int kx = -shR; kx <= shR; kx++) {
                         int nx = sx + kx;
                         int ny = sy + ky;
                         if (nx < 0 || nx >= mw || ny < 0 || ny >= mh) {
                             continue;
                         }
                         acc += mask[static_cast<std::size_t>(ny) * static_cast<std::size_t>(mw) + static_cast<std::size_t>(nx)];
+                        cnt++;
                     }
                 }
-                soft[static_cast<std::size_t>(yy) * static_cast<std::size_t>(mw) + static_cast<std::size_t>(xx)] = static_cast<unsigned char>(acc / 9);
+                soft[static_cast<std::size_t>(yy) * static_cast<std::size_t>(mw) + static_cast<std::size_t>(xx)] = static_cast<unsigned char>(acc / (cnt > 0 ? cnt : 1));
             }
         }
         unsigned orr = (outlineColor >> 16) & 0xFF;
@@ -254,7 +263,7 @@ public:
                 std::size_t kk = static_cast<std::size_t>(dy) * static_cast<std::size_t>(w) + static_cast<std::size_t>(dx);
                 unsigned sh = soft[k];
                 if (sh > 0 && oa > 0) {
-                    unsigned a = (sh * oa * 140) / 65025;
+                    unsigned a = (sh * oa * 160) / 65025;
                     if (a > 0) {
                         frame[kk] = blendOver(frame[kk], orr, ogg, obb, a);
                     }
