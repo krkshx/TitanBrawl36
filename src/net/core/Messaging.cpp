@@ -2,83 +2,49 @@
 #include "PiranhaMessage.cpp"
 #include "MessageFactory.cpp"
 #include "ServerConfig.cpp"
+#include "TspSocket.cpp"
 #include "../../titan/crypto/PepperCrypto.cpp"
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <cerrno>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
+
+#define NETLOG(fmt, ...) std::fprintf(stderr, "[net] " fmt "\n", ##__VA_ARGS__)
 
 class ClientMessaging {
 public:
     ClientMessaging() = default;
     ~ClientMessaging() { close(); }
 
-    void close() {
-        if (sock_ >= 0) {
-            ::close(sock_);
-            sock_ = -1;
-        }
-    }
+    void close() { socket_.close(); }
+    bool isOpen() const { return socket_.isOpen(); }
+    int pathMtu() const { return socket_.pathMtu(); }
+    const std::string &lastError() const { return error_.empty() ? socket_.lastError() : error_; }
 
     bool connect(int timeoutMs = 5000) {
         close();
+        error_.clear();
         if (!PepperCrypto::init()) {
             error_ = "sodium_init failed";
             return false;
         }
-        sock_ = ::socket(AF_INET, SOCK_STREAM, 0);
-        if (sock_ < 0) {
-            error_ = "socket failed";
-            return false;
-        }
-        sockaddr_in addr{};
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(static_cast<std::uint16_t>(ServerConfig::port()));
-        if (inet_pton(AF_INET, ServerConfig::host(), &addr.sin_addr) != 1) {
-            error_ = "bad host";
-            return false;
-        }
-        if (!waitWritable(timeoutMs)) {
-            error_ = "connect timeout";
-            return false;
-        }
-        int rc = ::connect(sock_, reinterpret_cast<sockaddr *>(&addr), sizeof(addr));
-        if (rc < 0 && errno != EINPROGRESS) {
-            error_ = std::string("connect: ") + std::strerror(errno);
-            return false;
-        }
-        if (!waitWritable(timeoutMs)) {
-            error_ = "connect timeout";
-            return false;
-        }
-        int soErr = 0;
-        socklen_t soLen = sizeof(soErr);
-        getsockopt(sock_, SOL_SOCKET, SO_ERROR, &soErr, &soLen);
-        if (soErr != 0) {
-            error_ = std::string("connect: ") + std::strerror(soErr);
-            return false;
-        }
-        return true;
+        // TSP-коннект к серверу из ServerConfig (93.123.84.82:9339).
+        return socket_.connect(ServerConfig::host(), ServerConfig::port(), timeoutMs);
     }
 
-    bool sendClientHello(std::int32_t seed) {
+    bool sendClientHello() {
         ClientHelloMessage hello;
-        hello.setClientSeed(seed);
         hello.encode();
-        return sendFrame(hello.getMessageType(), hello.getMessageVersion(), hello.getByteStream()->getByteArray(), hello.getByteStream()->getLength());
+        NETLOG("send 10100 hello proto=2 keyVer=24 v=36.0.218 len=%d", hello.getByteStream()->getLength());
+        return socket_.sendFrame(hello.getMessageType(), hello.getMessageVersion(), hello.getByteStream()->getByteArray(), hello.getByteStream()->getLength());
     }
 
     bool receiveServerHello(std::vector<std::uint8_t> &token, int timeoutMs = 8000) {
         std::int32_t type = 0;
         std::vector<std::uint8_t> payload;
-        if (!recvFrame(type, payload, timeoutMs)) {
+        std::int32_t frameVersion = 0;
+        if (!socket_.recvFrame(type, frameVersion, payload, timeoutMs)) {
             return false;
         }
         if (type != 20100) {
@@ -89,6 +55,7 @@ public:
         hello.getByteStream()->setByteArray(reinterpret_cast<const char *>(payload.data()), static_cast<std::int32_t>(payload.size()));
         hello.decode();
         token = hello.token();
+        NETLOG("recv 20100 serverHello tokenLen=%zu", token.size());
         if (token.size() != 24) {
             error_ = "bad session token len " + std::to_string(token.size());
             return false;
@@ -132,15 +99,20 @@ public:
         packet.insert(packet.end(), clientPk_, clientPk_ + 32);
         packet.insert(packet.end(), box.begin(), box.end());
         sentAccountId_ = 0;
-        return sendFrame(10101, 0, reinterpret_cast<const char *>(packet.data()), static_cast<std::int32_t>(packet.size()));
+        NETLOG("send 10101 pepperLogin bodyLen=%d packetLen=%zu", bodyLen, packet.size());
+        // Версия фрейма = версия сообщения (у LoginMessage это 10 из TitanLoginMessage).
+        return socket_.sendFrame(10101, login.getMessageVersion(), reinterpret_cast<const char *>(packet.data()), static_cast<std::int32_t>(packet.size()));
     }
 
     PiranhaMessage *receivePepperResponse(bool expectCreate, int timeoutMs = 8000) {
         std::int32_t type = 0;
         std::vector<std::uint8_t> payload;
-        if (!recvFrame(type, payload, timeoutMs)) {
+        std::int32_t frameVersion = 0;
+        if (!socket_.recvFrame(type, frameVersion, payload, timeoutMs)) {
+            NETLOG("pepperResponse recv FAIL %s", error_.c_str());
             return nullptr;
         }
+        NETLOG("recv frame type=%d len=%zu", type, payload.size());
         std::uint8_t nonce[24];
         std::uint8_t sk[32];
         PepperCrypto::clientSecret(sk);
@@ -182,7 +154,8 @@ public:
     PiranhaMessage *receiveNext(int timeoutMs = 5000) {
         std::int32_t type = 0;
         std::vector<std::uint8_t> payload;
-        if (!recvFrame(type, payload, timeoutMs)) {
+        std::int32_t frameVersion = 0;
+        if (!socket_.recvFrame(type, frameVersion, payload, timeoutMs)) {
             return nullptr;
         }
         if (streamOn_) {
@@ -218,105 +191,17 @@ public:
                 error_ = "stream encrypt failed";
                 return false;
             }
-            return sendFrame(msg.getMessageType(), msg.getMessageVersion(), reinterpret_cast<const char *>(box.data()), static_cast<std::int32_t>(box.size()));
+            return socket_.sendFrame(msg.getMessageType(), msg.getMessageVersion(), reinterpret_cast<const char *>(box.data()), static_cast<std::int32_t>(box.size()));
         }
-        return sendFrame(msg.getMessageType(), msg.getMessageVersion(), reinterpret_cast<const char *>(plain.data()), static_cast<std::int32_t>(plain.size()));
+        return socket_.sendFrame(msg.getMessageType(), msg.getMessageVersion(), reinterpret_cast<const char *>(plain.data()), static_cast<std::int32_t>(plain.size()));
     }
 
     bool streamOn() const { return streamOn_; }
     std::int64_t accountId() const { return accountId_; }
     const std::string &passToken() const { return passToken_; }
-    const std::string &lastError() const { return error_; }
 
 private:
-    bool waitWritable(int timeoutMs) {
-        fd_set wfds;
-        FD_ZERO(&wfds);
-        FD_SET(sock_, &wfds);
-        timeval tv{};
-        tv.tv_sec = timeoutMs / 1000;
-        tv.tv_usec = (timeoutMs % 1000) * 1000;
-        int flags = fcntl(sock_, F_GETFL, 0);
-        fcntl(sock_, F_SETFL, flags | O_NONBLOCK);
-        int rc = select(sock_ + 1, nullptr, &wfds, nullptr, &tv);
-        fcntl(sock_, F_SETFL, flags);
-        return rc > 0;
-    }
-
-    bool recvAll(std::uint8_t *buf, int n, int timeoutMs) {
-        int got = 0;
-        while (got < n) {
-            fd_set rfds;
-            FD_ZERO(&rfds);
-            FD_SET(sock_, &rfds);
-            timeval tv{};
-            tv.tv_sec = timeoutMs / 1000;
-            tv.tv_usec = (timeoutMs % 1000) * 1000;
-            int rc = select(sock_ + 1, &rfds, nullptr, nullptr, &tv);
-            if (rc <= 0) {
-                error_ = rc == 0 ? "recv timeout" : "select failed";
-                return false;
-            }
-            ssize_t r = ::recv(sock_, buf + got, static_cast<std::size_t>(n - got), 0);
-            if (r <= 0) {
-                error_ = "connection closed";
-                return false;
-            }
-            got += static_cast<int>(r);
-        }
-        return true;
-    }
-
-    bool sendAll(const std::uint8_t *buf, int n) {
-        int sent = 0;
-        while (sent < n) {
-            ssize_t r = ::send(sock_, buf + sent, static_cast<std::size_t>(n - sent), 0);
-            if (r <= 0) {
-                error_ = "send failed";
-                return false;
-            }
-            sent += static_cast<int>(r);
-        }
-        return true;
-    }
-
-    bool sendFrame(std::int32_t type, std::int32_t version, const char *payload, std::int32_t len) {
-        std::uint8_t hdr[7];
-        hdr[0] = static_cast<std::uint8_t>((type >> 8) & 0xFF);
-        hdr[1] = static_cast<std::uint8_t>(type & 0xFF);
-        hdr[2] = static_cast<std::uint8_t>((len >> 16) & 0xFF);
-        hdr[3] = static_cast<std::uint8_t>((len >> 8) & 0xFF);
-        hdr[4] = static_cast<std::uint8_t>(len & 0xFF);
-        hdr[5] = static_cast<std::uint8_t>((version >> 8) & 0xFF);
-        hdr[6] = static_cast<std::uint8_t>(version & 0xFF);
-        if (!sendAll(hdr, 7)) {
-            return false;
-        }
-        if (len > 0 && !sendAll(reinterpret_cast<const std::uint8_t *>(payload), len)) {
-            return false;
-        }
-        return true;
-    }
-
-    bool recvFrame(std::int32_t &type, std::vector<std::uint8_t> &payload, int timeoutMs) {
-        std::uint8_t hdr[7];
-        if (!recvAll(hdr, 7, timeoutMs)) {
-            return false;
-        }
-        type = (hdr[0] << 8) | hdr[1];
-        std::int32_t len = (hdr[2] << 16) | (hdr[3] << 8) | hdr[4];
-        if (len < 0 || len > 4 * 1024 * 1024) {
-            error_ = "bad frame len";
-            return false;
-        }
-        payload.resize(static_cast<std::size_t>(len));
-        if (len > 0 && !recvAll(payload.data(), len, timeoutMs)) {
-            return false;
-        }
-        return true;
-    }
-
-    int sock_ = -1;
+    TspSocket socket_;
     std::string error_;
     bool streamOn_ = false;
     std::uint8_t clientPk_[32] = {0};

@@ -41,6 +41,15 @@ public:
     const std::string &assetName() const {
         return asset_;
     }
+    // Слот меню: переопределить геометрию (пиксели фреймбуфера).
+    // По умолчанию — кнопка входа слева снизу 200x64.
+    void setSlot(int x, int y, int w, int h) {
+        slot_.x = x;
+        slot_.y = y;
+        slot_.w = w;
+        slot_.h = h;
+        hasSlot_ = true;
+    }
     void draw(std::vector<std::uint32_t> &frame, int w, int h) const {
         if (!tex_ || tex_->pixels.empty() || frame.empty()) {
             return;
@@ -98,7 +107,10 @@ private:
         int h = 0;
     };
     // Фикс-геометрия кнопки входа: 200x64, слева снизу с отступом 24.
-    static Rect rect(int w, int h) {
+    Rect rect(int w, int h) const {
+        if (hasSlot_) {
+            return slot_;
+        }
         Rect rc;
         rc.w = 200;
         rc.h = 64;
@@ -168,4 +180,6 @@ private:
     SupercellSWF *swf_ = nullptr;
     const SWFTexture *tex_ = nullptr;
     std::string asset_;
+    Rect slot_;
+    bool hasSlot_ = false;
 };

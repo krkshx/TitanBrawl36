@@ -15,7 +15,7 @@ public:
     std::int32_t getMessageVersion() const { return version_; }
     ByteStream *getByteStream() { return &stream_; }
     const ByteStream *getByteStream() const { return &stream_; }
-    std::int32_t getEncodingLength() const { return stream_.getOffset(); }
+    std::int32_t getEncodingLength() const { return stream_.getLength(); }
     const char *getMessageBytes() const { return stream_.getByteArray(); }
 private:
     ByteStream stream_;

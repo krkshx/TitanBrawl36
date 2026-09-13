@@ -12,14 +12,68 @@
 #include "../fmod/Sfx.cpp"
 #include "../fmod/SfxLibrary.cpp"
 #include "../helpers/FileSystem.cpp"
-#include "../platform/native/LoginError.cpp"
 #include "../platform/native/NativeDialog.cpp"
 #include "../helpers/Clock.cpp"
 #include "../platform/window/Window.cpp"
 #include <cstdint>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+
+// Аккаунт между запусками: account.dat в корне (id + passToken).
+static bool loadAccount(const std::string &root, std::int64_t &id, std::string &pass) {
+    std::ifstream f(FileSystem::join(root, "account.dat"));
+    if (!f) {
+        return false;
+    }
+    std::string a, p;
+    if (!std::getline(f, a) || !std::getline(f, p)) {
+        return false;
+    }
+    try {
+        id = std::stoll(a);
+    } catch (...) {
+        return false;
+    }
+    pass = p;
+    return id != 0 && !pass.empty();
+}
+
+static void saveAccount(const std::string &root, std::int64_t id, const std::string &pass) {
+    if (id == 0 || pass.empty()) {
+        return;
+    }
+    std::ofstream f(FileSystem::join(root, "account.dat"), std::ios::trunc);
+    f << id << "\n" << pass << "\n";
+}
+
+static std::string lowerHas(const std::string &name, const std::string &needle) {
+    if (needle.size() > name.size()) {
+        return "";
+    }
+    for (std::size_t i = 0; i + needle.size() <= name.size(); i++) {
+        bool ok = true;
+        for (std::size_t k = 0; k < needle.size(); k++) {
+            char a = name[i + k];
+            char b = needle[k];
+            if (a >= 'A' && a <= 'Z') {
+                a = static_cast<char>(a + 32);
+            }
+            if (b >= 'A' && b <= 'Z') {
+                b = static_cast<char>(b + 32);
+            }
+            if (a != b) {
+                ok = false;
+                break;
+            }
+        }
+        if (ok) {
+            return name;
+        }
+    }
+    return "";
+}
 
 static void present(LoadingScreen &screen, UiButton *button, pc::Window &window) {
     screen.draw(window.frame(), window.width(), window.height());
@@ -43,6 +97,94 @@ static bool drainEntryClicks(pc::Window &window, UiButton *button, LoadingScreen
         }
     }
     return hit;
+}
+
+// Меню после OwnHomeData: кнопки из ui.sc, кипалайв, памп входящих.
+// true — окно закрыли (выход из игры), false — коннект потерян (ребут).
+static bool homeMenu(LoadingScreen &screen, pc::Window &window, SupercellSWF &ui, ClientMessaging &net, std::int64_t accountId) {
+    screen.setStatusOverride("MENU id=" + std::to_string(accountId));
+    // Какие экспорты вообще есть под кнопки — в лог, чтобы подобрать иголки.
+    int listed = 0;
+    for (std::size_t i = 0; i < ui.exports.size() && listed < 30; i++) {
+        const std::string &n = ui.exports[i].name;
+        if (!lowerHas(n, "button").empty() || !lowerHas(n, "play").empty() ||
+            !lowerHas(n, "shop").empty() || !lowerHas(n, "brawl").empty() ||
+            !lowerHas(n, "menu").empty()) {
+            std::cout << "uiexport: " << n << "\n";
+            listed++;
+        }
+    }
+    UiButton play, shop, brawlers;
+    bool playOk = play.bind(&ui, "play");
+    bool shopOk = shop.bind(&ui, "shop");
+    bool brawlOk = brawlers.bind(&ui, "brawler");
+    if (!brawlOk) {
+        brawlOk = brawlers.bind(&ui, "button");
+    }
+    std::cout << "menu buttons play=" << (playOk ? play.assetName() : "-")
+              << " shop=" << (shopOk ? shop.assetName() : "-")
+              << " brawlers=" << (brawlOk ? brawlers.assetName() : "-") << "\n";
+    std::int64_t lastAlive = Clock::nowMs();
+    while (window.poll()) {
+        int w = window.width();
+        int h = window.height();
+        int bw = 220;
+        int bh = 64;
+        play.setSlot(w / 2 - bw / 2, h - 24 - bh, bw, bh);
+        shop.setSlot(w - bw - 24, h - 24 - bh, bw, bh);
+        brawlers.setSlot(24, h - 24 - bh, bw, bh);
+        screen.draw(window.frame(), w, h);
+        if (playOk) {
+            play.draw(window.frame(), w, h);
+        }
+        if (shopOk) {
+            shop.draw(window.frame(), w, h);
+        }
+        if (brawlOk) {
+            brawlers.draw(window.frame(), w, h);
+        }
+        window.present();
+        int cx = 0;
+        int cy = 0;
+        while (window.takeClick(cx, cy)) {
+            if (playOk && play.hit(cx, cy, w, h)) {
+                screen.setStatusOverride("PLAY pressed...");
+                std::cout << "menu: play\n";
+            } else if (shopOk && shop.hit(cx, cy, w, h)) {
+                screen.setStatusOverride("SHOP pressed...");
+                std::cout << "menu: shop\n";
+            } else if (brawlOk && brawlers.hit(cx, cy, w, h)) {
+                screen.setStatusOverride("BRAWLERS pressed...");
+                std::cout << "menu: brawlers\n";
+            }
+        }
+        // Кипалайв + памп серверных пушей.
+        if (Clock::nowMs() - lastAlive > 5000) {
+            lastAlive = Clock::nowMs();
+            KeepAliveMessage ka;
+            if (!net.sendGame(ka)) {
+                screen.setStatusOverride("Connection lost. Rebooting...");
+                std::cout << "menu: keepalive send fail: " << net.lastError() << "\n";
+                return false;
+            }
+        }
+        PiranhaMessage *m = net.receiveNext(20);
+        if (m) {
+            std::cout << "menu: incoming type=" << m->getMessageType() << "\n";
+            if (m->getMessageType() == 20103) {
+                screen.setStatusOverride("Server kicked us. Rebooting...");
+                delete m;
+                return false;
+            }
+            delete m;
+        } else if (!net.lastError().empty() && net.lastError() != "recv timeout") {
+            screen.setStatusOverride("Connection lost. Rebooting...");
+            std::cout << "menu: pump fail: " << net.lastError() << "\n";
+            return false;
+        }
+        Clock::sleepMs(30);
+    }
+    return true;
 }
 
 int main(int argc, char **argv) {
@@ -159,74 +301,114 @@ int main(int argc, char **argv) {
         present(screen, &entryButton, window);
         screen.setConnecting();
         present(screen, &entryButton, window);
-        {
-            ClientMessaging net;
-            bool netOk = false;
-            std::string netInfo = "offline";
-            if (net.connect(5000)) {
-                std::uint8_t seedBuf[4];
-                randomBytesTrue(seedBuf, 4);
-                std::int32_t seed = static_cast<std::int32_t>(seedBuf[0] | (seedBuf[1] << 8) | (seedBuf[2] << 16) | (seedBuf[3] << 24));
-                std::vector<std::uint8_t> token;
-                if (net.sendClientHello(seed) && net.receiveServerHello(token)) {
-                    LoginMessage login;
+        // TSP-логин: hello -> pepper -> цепочка до OwnHomeData.
+        // Нативных диалогов нет: ошибка — текстом на экране + автораetry.
+        std::int64_t savedId = 0;
+        std::string savedPass;
+        bool haveSaved = loadAccount(root, savedId, savedPass);
+        ClientMessaging net;
+        bool loggedIn = false;
+        std::size_t homeBytes = 0;
+        std::int64_t accountId = 0;
+        std::string netInfo = "offline";
+        if (net.connect(5000)) {
+            std::vector<std::uint8_t> token;
+            if (net.sendClientHello() && net.receiveServerHello(token)) {
+                LoginMessage login;
+                if (haveSaved) {
+                    login.setAccountId(savedId);
+                    login.setPassToken(savedPass);
+                } else {
                     login.setAccountId(0);
                     login.setPassToken("");
-                    login.setVersion(36, 218);
-                    login.setRndKey(randomIntTrue());
-                    if (net.sendPepperLogin(login, token)) {
-                        PiranhaMessage *first = net.receivePepperResponse(true);
-                        if (first != nullptr) {
-                            netInfo = std::string("first=") + std::to_string(first->getMessageType());
-                            if (first->getMessageType() == 26007) {
-                                PiranhaMessage *second = net.receiveNext(8000);
-                                if (second != nullptr) {
-                                    netInfo += std::string(" second=") + std::to_string(second->getMessageType());
-                                    if (second->getMessageType() == 24101) {
-                                        auto *home = static_cast<OwnHomeDataMessage *>(second);
-                                        netInfo += std::string(" homeBytes=") + std::to_string(home->raw().size());
-                                    }
-                                    if (second->getMessageType() == 20104) {
-                                        netOk = true;
-                                    }
-                                    delete second;
-                                } else {
-                                    netInfo += " second=timeout";
+                }
+                login.setVersion(36, 218);
+                login.setRndKey(net.pathMtu());
+                if (net.sendPepperLogin(login, token)) {
+                    // Первый ответ — pepper-бокс (CreateAccountOk | LoginOk | LoginFailed),
+                    // дальше стрим: ждём LoginOk и OwnHomeData.
+                    PiranhaMessage *first = net.receivePepperResponse(!haveSaved);
+                    if (first != nullptr) {
+                        netInfo = std::string("first=") + std::to_string(first->getMessageType());
+                        bool failed = false;
+                        auto note = [&](PiranhaMessage *m) {
+                            if (m->getMessageType() == 26007) {
+                                auto *c = static_cast<CreateAccountOkMessage *>(m);
+                                if (c->accountId() != 0) {
+                                    accountId = c->accountId();
+                                    saveAccount(root, accountId, c->passToken());
                                 }
-                            } else if (first->getMessageType() == 20104) {
-                                netOk = true;
+                            } else if (m->getMessageType() == 20104) {
+                                auto *o = static_cast<LoginOkMessage *>(m);
+                                if (o->accountId() != 0) {
+                                    accountId = o->accountId();
+                                    saveAccount(root, accountId, o->passToken());
+                                }
+                            } else if (m->getMessageType() == 24101) {
+                                auto *home = static_cast<OwnHomeDataMessage *>(m);
+                                homeBytes = home->raw().size();
+                                if (net.streamOn() || accountId != 0) {
+                                    loggedIn = true;
+                                }
+                            } else if (m->getMessageType() == 20103) {
+                                auto *f = static_cast<LoginFailedMessage *>(m);
+                                netInfo += std::string(" loginFailed=") + std::to_string(f->errorCode());
+                                failed = true;
                             }
-                            delete first;
-                        } else {
-                            netInfo = std::string("pepper-response-fail: ") + net.lastError();
+                        };
+                        note(first);
+                        delete first;
+                        for (int i = 0; i < 10 && !loggedIn && !failed; i++) {
+                            PiranhaMessage *m = net.receiveNext(4000);
+                            if (m == nullptr) {
+                                netInfo += std::string(" wait-fail: ") + net.lastError();
+                                break;
+                            }
+                            netInfo += std::string(" +") + std::to_string(m->getMessageType());
+                            note(m);
+                            delete m;
                         }
                     } else {
-                        netInfo = std::string("pepper-login-fail: ") + net.lastError();
+                        netInfo = std::string("pepper-response-fail: ") + net.lastError();
                     }
                 } else {
-                    netInfo = std::string("hello-fail: ") + net.lastError();
+                    netInfo = std::string("pepper-login-fail: ") + net.lastError();
                 }
             } else {
-                netInfo = std::string("connect-fail: ") + net.lastError();
+                netInfo = std::string("hello-fail: ") + net.lastError();
             }
-            std::cout << "net=" << (netOk ? 1 : 0) << " " << netInfo << " account=" << 0 << "\n";
-            std::int64_t until = Clock::nowMs() + 1500;
+        } else {
+            netInfo = std::string("connect-fail: ") + net.lastError();
+        }
+        std::cout << "net=" << (loggedIn ? 1 : 0) << " " << netInfo
+                  << " account=" << accountId << " homeBytes=" << homeBytes << "\n";
+        if (!loggedIn) {
+            // Без диалога: причина на экране, пауза с прокачкой окна, ребут с лого.
+            screen.setStatusOverride("Connection failed: " + netInfo + ". Retrying...");
+            present(screen, &entryButton, window);
+            std::int64_t until = Clock::nowMs() + 3000;
             while (window.poll() && Clock::nowMs() < until) {
-                // Текст мог смениться кликом — тогда кадр перерисовать, а не blit.
-                if (drainEntryClicks(window, &entryButton, screen) || window.takeResized()) {
+                if (window.takeResized()) {
                     present(screen, &entryButton, window);
                 } else {
                     window.present();
                 }
-                Clock::sleepMs(50);
+                Clock::sleepMs(100);
             }
+            continue;
         }
-        if (!window.poll()) {
-            break;
-        }
+        // OwnHomeData пройден: загрузка дальше как в ориге, затем меню.
+        screen.setStatusOverride("Loading home...");
+        screen.setProgress(0.85f);
+        present(screen, &entryButton, window);
+        Clock::sleepMs(400);
+        screen.setStatusOverride("Entering menu...");
+        screen.setProgress(1.0f);
+        present(screen, &entryButton, window);
         window.save(FileSystem::join(root, "frame.ppm"));
-        bool retry = LoginError::askConnectionFailed(screen.localization());
-        if (!retry) {
+        bool closed = homeMenu(screen, window, ui, net, accountId);
+        window.save(FileSystem::join(root, "frame.ppm"));
+        if (closed) {
             break;
         }
     }

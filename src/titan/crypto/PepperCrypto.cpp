@@ -5,7 +5,20 @@
 #include <cstring>
 #include <vector>
 
+// Пир-ключ pepper-бокса логина (серверный public). Сервер открывает бокс как
+// DH(peer=eeb6, own=b73b), поэтому seal обязан идти к eeb6 — иначе сервер
+// не расшифрует 10101 и молча рвёт TCP (было: pepper-response-fail).
 static const std::uint8_t PEPPER_SERVER_KEY[32] = {
+    0xee, 0xb6, 0x5f, 0x5b, 0x71, 0x4a, 0xa5, 0xce,
+    0xd4, 0xb7, 0xdd, 0x5e, 0xf6, 0xb9, 0x81, 0xf0,
+    0x5f, 0xb3, 0xd1, 0x70, 0x25, 0xdb, 0xe5, 0x8f,
+    0x97, 0x5e, 0x2e, 0x52, 0x30, 0x62, 0x98, 0x52
+};
+
+// Пара LogicSecurityUtil (client): PEPPER_PUBLIC_KEY @ 0xb9fce4 /
+// PEPPER_PRIVATE_KEY @ 0xba6d30, base(priv)==pub проверено — самодостаточная
+// пара (подписи ассетов), к pepper-боксу логина отношения НЕ имеет.
+static const std::uint8_t PEPPER_ASSET_KEY[32] = {
     0xb0, 0x68, 0x5f, 0xe6, 0xb7, 0xca, 0x11, 0x9c,
     0x3a, 0x47, 0x2a, 0x87, 0x86, 0x26, 0x19, 0xa7,
     0x22, 0x60, 0xd1, 0xbb, 0xfb, 0xc4, 0x13, 0x59,
@@ -32,6 +45,10 @@ public:
         return crypto_scalarmult_base(out, sk) == 0;
     }
 
+    // Нонс pepper-бокса: PepperCrypto::Blake2b::Blake2b @ 0x76f178 хранит outlen
+    // и зовёт blake2b_init(S, outlen) — outlen едет в W1 из аргумента ctor
+    // (в декомпиле виден один аргумент, второй — живой W1=24). Парам nn=24,
+    // как и у сервера. Т.е. nonce = BLAKE2b-24, первые 24 байта = весь дайджест.
     static bool blake2b24(std::uint8_t out[24], const std::uint8_t *a, int aLen, const std::uint8_t *b, int bLen, const std::uint8_t *c = nullptr, int cLen = 0) {
         crypto_generichash_state st;
         if (crypto_generichash_init(&st, nullptr, 0, 24) != 0) {
