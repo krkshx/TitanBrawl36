@@ -1,7 +1,11 @@
 #pragma once
 #include "Random.cpp"
 #include "TweetNaCl19.cpp"
+#ifdef TITAN_WITH_SODIUM
 #include <sodium.h>
+#else
+#include "SodiumFallback.cpp"
+#endif
 #include <cstdint>
 #include <cstring>
 #include <vector>

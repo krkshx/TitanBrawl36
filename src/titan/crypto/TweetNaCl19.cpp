@@ -4,10 +4,14 @@
 // (в либе нет строки "expand 32-byte k" среди стандартных констант,
 // стоковый клиент сходится только с 19-раундовым ядром).
 // Остальное (раскладка HSalsa/Salsa, Poly1305, скалярка) — как в оригинале.
-#include <sodium.h>
 #include <cstdint>
 #include <cstring>
 #include <vector>
+#ifdef TITAN_WITH_SODIUM
+#include <sodium.h>
+#else
+#include "SodiumFallback.cpp"
+#endif
 
 namespace tweet19 {
 
