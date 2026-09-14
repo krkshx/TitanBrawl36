@@ -74,8 +74,7 @@ public:
         clearStatusOverride();
         clip_.setStatusText(statusText());
     }
-    void setStatusOverride(const std::string &text) {
-        override_ = text;
+    void setStatusOverride(const std::string &text) {        override_ = text;
         hasOverride_ = true;
         clip_.setStatusText(statusText());
     }
@@ -86,6 +85,11 @@ public:
     }
     bool hasStatusOverride() const {
         return hasOverride_;
+    }
+    void drawLabel(std::vector<std::uint32_t> &frame, int w, int h, const std::string &labelText,
+                   float boxX, float boxY, float boxW, float boxH,
+                   std::uint32_t color, bool outline, std::uint32_t outlineColor) {
+        clip_.drawLabel(frame, w, h, labelText, boxX, boxY, boxW, boxH, color, outline, outlineColor);
     }
     void update(float dt) {
         time_ += dt;

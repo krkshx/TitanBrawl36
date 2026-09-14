@@ -59,6 +59,11 @@ public:
     void setAssetDir(const std::string &assetsDir) {
         renderer_.setAssetDir(assetsDir);
     }
+    void drawLabel(std::vector<std::uint32_t> &frame, int w, int h, const std::string &labelText,
+                   float boxX, float boxY, float boxW, float boxH,
+                   std::uint32_t color, bool outline, std::uint32_t outlineColor) {
+        renderer_.drawLabel(frame, w, h, labelText, boxX, boxY, boxW, boxH, color, outline, outlineColor);
+    }
     bool loaded() const { return loaded_; }
     bool hasLogo() const { return logo_ >= 0; }
     int logoFrames() const {

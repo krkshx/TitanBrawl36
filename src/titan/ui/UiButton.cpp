@@ -8,6 +8,12 @@
 // рисует её прямоугольником слева снизу, отдаёт хит-тест в пикселях фреймбуфера.
 class UiButton {
 public:
+    struct Rect {
+        int x = 0;
+        int y = 0;
+        int w = 0;
+        int h = 0;
+    };
     // needle — подстрока имени экспорта (регистр не важен), напр. "button".
     bool bind(SupercellSWF *swf, const std::string &needle) {
         unbind();
@@ -34,12 +40,23 @@ public:
         swf_ = nullptr;
         tex_ = nullptr;
         asset_.clear();
+        label_.clear();
     }
     bool bound() const {
         return tex_ != nullptr;
     }
     const std::string &assetName() const {
         return asset_;
+    }
+    // Подпись кнопки (аналог GameButton::setText): пустая — не рисуется.
+    void setLabel(const std::string &text) {
+        label_ = text;
+    }
+    const std::string &label() const {
+        return label_;
+    }
+    Rect slotRect(int w, int h) const {
+        return rect(w, h);
     }
     // Слот меню: переопределить геометрию (пиксели фреймбуфера).
     // По умолчанию — кнопка входа слева снизу 200x64.
@@ -100,12 +117,6 @@ public:
         return fx >= rc.x && fx < rc.x + rc.w && fy >= rc.y && fy < rc.y + rc.h;
     }
 private:
-    struct Rect {
-        int x = 0;
-        int y = 0;
-        int w = 0;
-        int h = 0;
-    };
     // Фикс-геометрия кнопки входа: 200x64, слева снизу с отступом 24.
     Rect rect(int w, int h) const {
         if (hasSlot_) {
@@ -180,6 +191,7 @@ private:
     SupercellSWF *swf_ = nullptr;
     const SWFTexture *tex_ = nullptr;
     std::string asset_;
+    std::string label_;
     Rect slot_;
     bool hasSlot_ = false;
 };

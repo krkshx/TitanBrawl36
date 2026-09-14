@@ -124,38 +124,58 @@ static bool homeMenu(LoadingScreen &screen, pc::Window &window, SupercellSWF &ui
     std::cout << "menu buttons play=" << (playOk ? play.assetName() : "-")
               << " shop=" << (shopOk ? shop.assetName() : "-")
               << " brawlers=" << (brawlOk ? brawlers.assetName() : "-") << "\n";
+    // Подписи как в ориге (GameButton::setText): текст поверх скина кнопки.
+    play.setLabel("PLAY");
+    shop.setLabel("SHOP");
+    brawlers.setLabel("BRAWLERS");
     std::int64_t lastAlive = Clock::nowMs();
     while (window.poll()) {
         int w = window.width();
         int h = window.height();
-        int bw = 220;
-        int bh = 64;
-        play.setSlot(w / 2 - bw / 2, h - 24 - bh, bw, bh);
-        shop.setSlot(w - bw - 24, h - 24 - bh, bw, bh);
-        brawlers.setSlot(24, h - 24 - bh, bw, bh);
-        screen.draw(window.frame(), w, h);
+        // Ряд кнопок по центру низа: ориг так же центрирует пару через getX/setX
+        // (сдвиг на -(x1+x2)/2) — считаем общую ширину ряда и стартуем от центра.
+        UiButton *row[3] = {nullptr, nullptr, nullptr};
+        int rowCount = 0;
+        if (brawlOk) {
+            row[rowCount++] = &brawlers;
+        }
         if (playOk) {
-            play.draw(window.frame(), w, h);
+            row[rowCount++] = &play;
         }
         if (shopOk) {
-            shop.draw(window.frame(), w, h);
+            row[rowCount++] = &shop;
         }
-        if (brawlOk) {
-            brawlers.draw(window.frame(), w, h);
+        const int bw = 220;
+        const int bh = 64;
+        const int gap = 40;
+        int rowW = rowCount > 0 ? rowCount * bw + (rowCount - 1) * gap : 0;
+        int rowX = (w - rowW) / 2;
+        int rowY = h - 24 - bh;
+        for (int i = 0; i < rowCount; i++) {
+            row[i]->setSlot(rowX + i * (bw + gap), rowY, bw, bh);
+        }
+        screen.draw(window.frame(), w, h);
+        for (int i = 0; i < rowCount; i++) {
+            row[i]->draw(window.frame(), w, h);
+            if (!row[i]->label().empty()) {
+                UiButton::Rect slot = row[i]->slotRect(w, h);
+                screen.drawLabel(window.frame(), w, h, row[i]->label(),
+                    static_cast<float>(slot.x), static_cast<float>(slot.y),
+                    static_cast<float>(slot.w), static_cast<float>(slot.h),
+                    0xFFFFFFFFu, true, 0xFF000000u);
+            }
         }
         window.present();
         int cx = 0;
         int cy = 0;
         while (window.takeClick(cx, cy)) {
-            if (playOk && play.hit(cx, cy, w, h)) {
-                screen.setStatusOverride("PLAY pressed...");
-                std::cout << "menu: play\n";
-            } else if (shopOk && shop.hit(cx, cy, w, h)) {
-                screen.setStatusOverride("SHOP pressed...");
-                std::cout << "menu: shop\n";
-            } else if (brawlOk && brawlers.hit(cx, cy, w, h)) {
-                screen.setStatusOverride("BRAWLERS pressed...");
-                std::cout << "menu: brawlers\n";
+            for (int i = 0; i < rowCount; i++) {
+                if (!row[i]->hit(cx, cy, w, h)) {
+                    continue;
+                }
+                const std::string &caption = row[i]->label().empty() ? row[i]->assetName() : row[i]->label();
+                screen.setStatusOverride(caption + " pressed...");
+                std::cout << "menu: " << caption << "\n";
             }
         }
         // Кипалайв + памп серверных пушей.

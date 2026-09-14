@@ -92,6 +92,47 @@ public:
         base.setIdentity();
         drawClip(*root, 0, base, frame, w, h);
     }
+    // Подпись кнопки как в ориге (GameButton::setText, TencentLoginState::enter):
+    // центрированный текст игровым шрифтом с обводкой, ужатый под прямоугольник
+    // (аналог MovieClipHelper::autoAdjustText).
+    void drawLabel(std::vector<std::uint32_t> &frame, int w, int h, const std::string &labelText,
+                   float boxX, float boxY, float boxW, float boxH,
+                   std::uint32_t color, bool outline, std::uint32_t outlineColor) {
+        if (labelText.empty() || boxW < 4 || boxH < 4) {
+            return;
+        }
+#ifdef TITAN_HAS_FREETYPE
+        int px = static_cast<int>(boxH * 0.55f);
+        if (px < 1) {
+            px = 1;
+        }
+        fonts_.drawCentered(frame, w, h, labelText, boxX, boxY, boxW, boxH, px, color, outline, outlineColor);
+#else
+        int textW = BitmapFont::measure(labelText);
+        if (textW <= 0) {
+            return;
+        }
+        int sc = static_cast<int>(boxW / textW);
+        int scH = static_cast<int>(boxH / 7);
+        if (scH < sc) {
+            sc = scH;
+        }
+        if (sc < 1) {
+            sc = 1;
+        }
+        int sw = textW * sc;
+        int sh = 7 * sc;
+        int dx = static_cast<int>(boxX + (boxW - sw) * 0.5f);
+        int dy = static_cast<int>(boxY + (boxH - sh) * 0.5f);
+        if (outline) {
+            BitmapFont::drawText(frame, w, h, labelText, dx - sc, dy, sc, outlineColor);
+            BitmapFont::drawText(frame, w, h, labelText, dx + sc, dy, sc, outlineColor);
+            BitmapFont::drawText(frame, w, h, labelText, dx, dy - sc, sc, outlineColor);
+            BitmapFont::drawText(frame, w, h, labelText, dx, dy + sc, sc, outlineColor);
+        }
+        BitmapFont::drawText(frame, w, h, labelText, dx, dy, sc, color);
+#endif
+    }
 private:
     bool setupStage(std::vector<std::uint32_t> &frame, int w, int h) {
         if (!swf_ || frame.empty()) {
