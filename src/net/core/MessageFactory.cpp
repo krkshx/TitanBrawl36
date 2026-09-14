@@ -12,6 +12,7 @@
 #include "../account/TitanDisconnectedMessage.cpp"
 #include "../home/OwnHomeDataMessage.cpp"
 #include "../home/AvailableServerCommandMessage.cpp"
+#include "../home/ChangeAvatarNameMessage.cpp"
 #include "GenericMessage.cpp"
 
 class MessageFactory {
@@ -23,6 +24,7 @@ public:
             case 10107: return new ClientCapabilitiesMessage();
             case 10108: return new KeepAliveMessage();
             case 10110: return new AnalyticEventMessage();
+            case 10212: return new ChangeAvatarNameMessage();
             case 20100: return new ServerHelloMessage();
             case 20103: return new LoginFailedMessage();
             case 20104: return new LoginOkMessage();

@@ -16,6 +16,8 @@ public:
         std::vector<int> v;
     };
     std::vector<Command> commands;
+    // NineSlice либы живёт на клипе (scaling grid, сабтег 31),
+    // а не на шейпе. Своего детекта по вершинам нет.
     bool nineSlice = false;
     std::vector<float> gridX;
     std::vector<float> gridY;

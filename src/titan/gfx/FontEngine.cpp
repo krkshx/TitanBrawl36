@@ -94,6 +94,25 @@ public:
         int lineH = asc - desc;
         int baseline = static_cast<int>(by + (boxH - lineH) * 0.5f) + asc;
         int pen = static_cast<int>(bx + (boxW - measure(text, px)) * 0.5f);
+        drawAt(frame, w, h, text, pen, baseline, px, color, outline, outlineColor);
+    }
+    void drawLeft(std::vector<std::uint32_t> &frame, int w, int h, const std::string &text, float bx, float by, float boxW, float boxH, int px, std::uint32_t color, bool outline, std::uint32_t outlineColor) {
+        if (faces_.empty() || text.empty() || boxW < 4 || boxH < 4) {
+            return;
+        }
+        if (px < 1) {
+            px = 1;
+        }
+        FT_Face face = faces_[0];
+        FT_Set_Pixel_Sizes(face, 0, static_cast<FT_UInt>(px));
+        int asc = static_cast<int>(face->size->metrics.ascender >> 6);
+        int desc = static_cast<int>(face->size->metrics.descender >> 6);
+        int lineH = asc - desc;
+        int baseline = static_cast<int>(by + (boxH - lineH) * 0.5f) + asc;
+        int pen = static_cast<int>(bx);
+        drawAt(frame, w, h, text, pen, baseline, px, color, outline, outlineColor);
+    }
+    void drawAt(std::vector<std::uint32_t> &frame, int w, int h, const std::string &text, int pen, int baseline, int px, std::uint32_t color, bool outline, std::uint32_t outlineColor) {
         if (!outline) {
             drawPass(frame, w, h, text, pen, baseline, px, color, 0, 0);
             return;

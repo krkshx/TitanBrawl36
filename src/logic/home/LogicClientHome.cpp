@@ -10,10 +10,9 @@ class LogicClientHome {
 public:
     LogicDailyData daily;
     LogicConfData conf;
-    std::string str16;
+    std::int64_t long16 = 0;
     std::vector<BaseNotification> notifications;
     bool notifTruncated = false;
-    std::int32_t i76 = 0;
     bool b72 = false;
     std::vector<GatchaDrop> drops;
     std::vector<std::int32_t> refs;
@@ -22,7 +21,10 @@ public:
     void decode(ByteStream &s) {
         daily.decode(s);
         conf.decode(s);
-        str16 = s.readString(900000);
+        // По либе (_ZN15LogicClientHome6decodeEP10ByteStream @ 0x3b1044):
+        // long (+272 = readLong, 8 байт), VInt count, фабрика уведомлений,
+        // затем bool и только потом массив GatchaDrop (у нас было наоборот).
+        long16 = s.readLongLong();
         {
             std::int32_t n = s.readVInt();
             for (std::int32_t i = 0; i < n; i++) {
@@ -37,7 +39,6 @@ public:
                 return;
             }
         }
-        i76 = s.readVInt();
         b72 = s.readBoolean();
         {
             std::int32_t n = s.readVInt();

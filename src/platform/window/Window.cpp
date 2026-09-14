@@ -9,6 +9,7 @@
 #else
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
 #endif
 
 namespace pc {
@@ -72,6 +73,28 @@ public:
         clicks_.erase(clicks_.begin());
         return true;
     }
+    // Ввод текста (экран ника): чанки UTF-8 для добавления и спецкоды:
+    // -1 backspace, -2 enter. true — забрали одно событие.
+    enum {
+        KEY_BACKSPACE = -1,
+        KEY_ENTER = -2
+    };
+    bool takeTextChunk(std::string &chunk) {
+        if (text_.empty()) {
+            return false;
+        }
+        chunk = text_.front();
+        text_.erase(text_.begin());
+        return true;
+    }
+    bool takeSpecialKey(int &code) {
+        if (specials_.empty()) {
+            return false;
+        }
+        code = specials_.front();
+        specials_.erase(specials_.begin());
+        return true;
+    }
     // true один раз после ConfigureNotify с новым размером — надо перерисовать кадр.
     bool takeResized() {
         bool r = resized_;
@@ -110,6 +133,9 @@ public:
             if (e.type == ButtonPress) {
                 // Окно X11 всегда размером с фреймбуфер (resize держит их вровень).
                 pushClick(e.xbutton.x, e.xbutton.y);
+            }
+            if (e.type == KeyPress) {
+                pushKey(e.xkey);
             }
             if (e.type == ConfigureNotify) {
                 int nw = e.xconfigure.width;
@@ -201,6 +227,38 @@ public:
                 self->pushClientClick(hwnd, static_cast<int>(static_cast<short>(LOWORD(lp))), static_cast<int>(static_cast<short>(HIWORD(lp))));
             }
         }
+        if (msg == WM_KEYDOWN) {
+            Window *self = reinterpret_cast<Window *>(GetWindowLongPtrA(hwnd, GWLP_USERDATA));
+            if (self) {
+                if (wp == VK_BACK) {
+                    self->specials_.push_back(KEY_BACKSPACE);
+                } else if (wp == VK_RETURN) {
+                    self->specials_.push_back(KEY_ENTER);
+                }
+            }
+        }
+        if (msg == WM_CHAR) {
+            Window *self = reinterpret_cast<Window *>(GetWindowLongPtrA(hwnd, GWLP_USERDATA));
+            if (self && wp >= 32 && wp != 127) {
+                // BMP -> UTF-8 (латиница/кириллица покрыты; суррогаты склеиваем грубо).
+                char out[4];
+                int n = 0;
+                if (wp < 0x80) {
+                    out[0] = static_cast<char>(wp);
+                    n = 1;
+                } else if (wp < 0x800) {
+                    out[0] = static_cast<char>(0xC0 | (wp >> 6));
+                    out[1] = static_cast<char>(0x80 | (wp & 0x3F));
+                    n = 2;
+                } else {
+                    out[0] = static_cast<char>(0xE0 | (wp >> 12));
+                    out[1] = static_cast<char>(0x80 | ((wp >> 6) & 0x3F));
+                    out[2] = static_cast<char>(0x80 | (wp & 0x3F));
+                    n = 3;
+                }
+                self->text_.emplace_back(out, static_cast<std::size_t>(n));
+            }
+        }
         return DefWindowProcA(hwnd, msg, wp, lp);
     }
     // Клик в клиентских пикселях -> во фреймбуфер (клиент меньше окна из-за рамки).
@@ -231,11 +289,37 @@ private:
         c.y = fy;
         clicks_.push_back(c);
     }
+#if !defined(_WIN32)
+    // KeyPress -> очередь: backspace/enter спецкодами, остальное чанками UTF-8.
+    void pushKey(XKeyEvent &kev) {
+        char buf[32];
+        KeySym ks = NoSymbol;
+        int n = XLookupString(&kev, buf, sizeof(buf), &ks, nullptr);
+        if (ks == XK_BackSpace) {
+            specials_.push_back(KEY_BACKSPACE);
+            return;
+        }
+        if (ks == XK_Return || ks == XK_KP_Enter) {
+            specials_.push_back(KEY_ENTER);
+            return;
+        }
+        if (ks == XK_Escape || n <= 0) {
+            return;
+        }
+        // Фильтр управляющих символов, переводы строк отдельно не нужны.
+        if (n == 1 && (buf[0] < 32 || buf[0] == 127)) {
+            return;
+        }
+        text_.emplace_back(buf, static_cast<std::size_t>(n));
+    }
+#endif
     int w_ = 0;
     int h_ = 0;
     std::string title_;
     std::vector<std::uint32_t> frame_;
     std::vector<Click> clicks_;
+    std::vector<std::string> text_;
+    std::vector<int> specials_;
     bool opened_ = false;
     bool resized_ = false;
 #if defined(_WIN32)

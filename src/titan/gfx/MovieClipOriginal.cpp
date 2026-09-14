@@ -26,13 +26,20 @@ public:
     std::vector<Child> children;
     std::vector<Frame> frames;
     int matrixBankIndex = 0;
+    int bankIndex = 0;
+    // Scaling grid либы (сабтег 31): left/top/right/bottom в единицах клипа.
+    bool hasGrid = false;
+    float gridLeft = 0;
+    float gridTop = 0;
+    float gridRight = 0;
+    float gridBottom = 0;
     void load(ScReader &s, int t) {
         tag = t;
         id = s.readU16();
         fps = s.readU8();
         int frameCount = s.readU16();
         frames.resize(static_cast<std::size_t>(frameCount));
-        if (t == 49 || t == 50) {
+        if (t == 49) {
             int propCount = s.readU8();
             for (int i = 0; i < propCount; i++) {
                 int pt = s.readU8();
@@ -53,7 +60,7 @@ public:
             childIds.push_back(s.readU16());
         }
         std::vector<int> blends;
-        if (t == 12 || t == 35) {
+        if (t == 12 || t >= 35) {
             for (int i = 0; i < childCount; i++) {
                 blends.push_back(s.readU8());
             }
@@ -100,12 +107,27 @@ public:
                     }
                 }
                 frameIndex++;
+            } else if (ft == 41) {
+                // Индекс банка матриц клипа (ScMatrixBank): его элементы
+                // смотрят в matrixBanks[bankIndex], а не в общий массив.
+                if (s.position() < end) {
+                    bankIndex = s.readU8();
+                }
+            } else if (ft == 31) {
+                // Scaling grid либы (MovieClip::load, TAG_SCALING_GRID):
+                // left/top/width/height твипами.
+                if (s.position() + 16 <= end) {
+                    gridLeft = s.readTwip();
+                    gridTop = s.readTwip();
+                    float gw = s.readTwip();
+                    float gh = s.readTwip();
+                    gridRight = gridLeft + gw;
+                    gridBottom = gridTop + gh;
+                    hasGrid = true;
+                }
             }
             while (s.position() < end) {
                 s.readU8();
-            }
-            if (frameIndex >= frameCount) {
-                break;
             }
         }
     }

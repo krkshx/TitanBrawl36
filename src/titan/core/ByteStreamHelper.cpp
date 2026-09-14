@@ -73,6 +73,13 @@ public:
         v->low = s->readInt();
     }
 
+    // Как в либе (_ZN16ByteStreamHelper15decodeLogicLongEP10ByteStreamP9LogicLong @ 0x6641c4):
+    // пара VInt, используется в LogicClientAvatar::decode и декодах карт.
+    static void decodeLogicLong(ByteStream *s, LogicLong *v) {
+        v->high = s->readVInt();
+        v->low = s->readVInt();
+    }
+
     static void writeStringReference(ChecksumEncoder *s, const std::string &v) {
         s->writeStringReference(v);
     }

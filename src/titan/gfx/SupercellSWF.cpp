@@ -76,10 +76,8 @@ public:
         textures.resize(static_cast<std::size_t>(textureCount));
         fields.clear();
         fields.resize(static_cast<std::size_t>(fieldCount));
-        matrices.clear();
-        colors.clear();
-        expectedMatrices = matrixCount;
-        expectedColors = colorCount;
+        matrixBanks.clear();
+        colorBanks.clear();
         expectedClips = clipCount;
         expectedShapes = shapeCount;
         expectedFields = fieldCount;
@@ -207,8 +205,26 @@ public:
     std::vector<ShapeOriginal> shapes;
     std::vector<MovieClipOriginal> clips;
     std::vector<TextFieldOriginal> fields;
-    std::vector<Matrix2x3> matrices;
-    std::vector<ColorTransform> colors;
+    // Банки матриц/трансформов как в либе (ScMatrixBank): банк 0 создаётся
+    // из заголовка, каждый тег 42 открывает новый банк со своими счётчиками.
+    // Индексы элементов клипов смотрят в банк своего клипа (bankIndex, сабтег 41).
+    std::vector<std::vector<Matrix2x3>> matrixBanks;
+    std::vector<std::vector<ColorTransform>> colorBanks;
+    const Matrix2x3 *matrixAt(int bank, int idx) const {
+        static Matrix2x3 ident;
+        if (bank < 0 || bank >= static_cast<int>(matrixBanks.size()) || idx < 0 ||
+            idx >= static_cast<int>(matrixBanks[static_cast<std::size_t>(bank)].size())) {
+            return &ident;
+        }
+        return &matrixBanks[static_cast<std::size_t>(bank)][static_cast<std::size_t>(idx)];
+    }
+    const ColorTransform *colorAt(int bank, int idx) const {
+        if (bank < 0 || bank >= static_cast<int>(colorBanks.size()) || idx < 0 ||
+            idx >= static_cast<int>(colorBanks[static_cast<std::size_t>(bank)].size())) {
+            return nullptr;
+        }
+        return &colorBanks[static_cast<std::size_t>(bank)][static_cast<std::size_t>(idx)];
+    }
     bool useExternalTexture = false;
 private:
     static std::vector<std::uint8_t> readFile(const std::string &path) {
@@ -245,8 +261,12 @@ private:
         std::size_t loadedClips = 0;
         std::size_t loadedTextures = 0;
         std::size_t loadedFields = 0;
-        std::size_t loadedMatrices = 0;
-        std::size_t loadedColors = 0;
+        if (!texFile) {
+            matrixBanks.clear();
+            colorBanks.clear();
+            matrixBanks.emplace_back();
+            colorBanks.emplace_back();
+        }
         while (true) {
             int tag = s.readU8();
             std::int32_t length = s.readI32();
@@ -258,7 +278,7 @@ private:
                 if (texFile) {
                     return loadedTextures == textures.size();
                 }
-                return loadedMatrices == matrices.size() && loadedColors == colors.size() && loadedClips == clips.size() && loadedShapes == shapes.size() && loadedFields == fields.size();
+                return loadedClips == clips.size() && loadedShapes == shapes.size() && loadedFields == fields.size();
             }
             if (isTextureTag(tag)) {
                 if (loadedTextures >= textures.size()) {
@@ -287,15 +307,30 @@ private:
             } else if (tag == 8 || tag == 36) {
                 Matrix2x3 m;
                 m.load(s, tag == 36);
-                matrices.push_back(m);
-                loadedMatrices++;
+                if (matrixBanks.empty()) {
+                    matrixBanks.emplace_back();
+                }
+                matrixBanks.back().push_back(m);
             } else if (tag == 9) {
                 ColorTransform c;
                 c.read(s);
-                colors.push_back(c);
-                loadedColors++;
+                if (colorBanks.empty()) {
+                    colorBanks.emplace_back();
+                }
+                colorBanks.back().push_back(c);
             } else if (tag == 26) {
                 useExternalTexture = true;
+            } else if (tag == 42) {
+                // Новый банк матриц (ScMatrixBank): u16 matrixCount + u16 colorCount,
+                // дальше теги 8/36 и 9 идут в него.
+                if (!texFile) {
+                    if (s.position() + 4 <= end) {
+                        s.readU16();
+                        s.readU16();
+                    }
+                    matrixBanks.emplace_back();
+                    colorBanks.emplace_back();
+                }
             }
             while (s.position() < end) {
                 s.readU8();
@@ -304,8 +339,6 @@ private:
     }
     std::string filename;
     std::vector<std::vector<std::uint8_t>> texRaws_;
-    int expectedMatrices = 0;
-    int expectedColors = 0;
     int expectedClips = 0;
     int expectedShapes = 0;
     int expectedFields = 0;

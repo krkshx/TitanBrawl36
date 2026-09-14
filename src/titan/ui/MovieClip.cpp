@@ -64,6 +64,47 @@ public:
                    std::uint32_t color, bool outline, std::uint32_t outlineColor) {
         renderer_.drawLabel(frame, w, h, labelText, boxX, boxY, boxW, boxH, color, outline, outlineColor);
     }
+    void drawLabelLeft(std::vector<std::uint32_t> &frame, int w, int h, const std::string &labelText,
+                       float boxX, float boxY, float boxW, float boxH, float padX,
+                       std::uint32_t color, bool outline, std::uint32_t outlineColor) {
+        renderer_.drawLabelLeft(frame, w, h, labelText, boxX, boxY, boxW, boxH, padX, color, outline, outlineColor);
+    }
+    int measureLabel(const std::string &text, float boxH) const {
+        return renderer_.measureLabel(text, boxH);
+    }
+    void renderCentered(std::vector<std::uint32_t> &frame, int w, int h, int clipId, float s) const {
+        renderer_.renderCentered(frame, w, h, clipId, s);
+    }
+    void setFieldText(int fieldId, const std::string &text) {
+        renderer_.setFieldText(fieldId, text);
+    }
+    void clearFieldTexts() {
+        renderer_.clearFieldTexts();
+    }
+    void setLiveField(int fieldId) {
+        renderer_.setLiveField(fieldId);
+    }
+    void setLiveText(const std::string &text) {
+        renderer_.setLiveText(text);
+    }
+    void setLiveCaret(bool on) {
+        renderer_.setLiveCaret(on);
+    }
+    void clearLive() {
+        renderer_.clearLive();
+    }
+    void setClipFrame(int clipId, int frame) {
+        renderer_.setClipFrame(clipId, frame);
+    }
+    void clearClipFrames() {
+        renderer_.clearClipFrames();
+    }
+    int measureLiveWidth() {
+        return renderer_.measureLiveWidth();
+    }
+    int liveFieldWidth() {
+        return renderer_.liveFieldWidth();
+    }
     bool loaded() const { return loaded_; }
     bool hasLogo() const { return logo_ >= 0; }
     int logoFrames() const {

@@ -91,6 +91,47 @@ public:
                    std::uint32_t color, bool outline, std::uint32_t outlineColor) {
         clip_.drawLabel(frame, w, h, labelText, boxX, boxY, boxW, boxH, color, outline, outlineColor);
     }
+    void drawLabelLeft(std::vector<std::uint32_t> &frame, int w, int h, const std::string &labelText,
+                       float boxX, float boxY, float boxW, float boxH, float padX,
+                       std::uint32_t color, bool outline, std::uint32_t outlineColor) {
+        clip_.drawLabelLeft(frame, w, h, labelText, boxX, boxY, boxW, boxH, padX, color, outline, outlineColor);
+    }
+    int measureLabel(const std::string &text, float boxH) const {
+        return clip_.measureLabel(text, boxH);
+    }
+    void renderCentered(std::vector<std::uint32_t> &frame, int w, int h, int clipId, float s) const {
+        clip_.renderCentered(frame, w, h, clipId, s);
+    }
+    void setFieldText(int fieldId, const std::string &text) {
+        clip_.setFieldText(fieldId, text);
+    }
+    void clearFieldTexts() {
+        clip_.clearFieldTexts();
+    }
+    void setLiveField(int fieldId) {
+        clip_.setLiveField(fieldId);
+    }
+    void setLiveText(const std::string &text) {
+        clip_.setLiveText(text);
+    }
+    void setLiveCaret(bool on) {
+        clip_.setLiveCaret(on);
+    }
+    void clearLive() {
+        clip_.clearLive();
+    }
+    void setClipFrame(int clipId, int frame) {
+        clip_.setClipFrame(clipId, frame);
+    }
+    void clearClipFrames() {
+        clip_.clearClipFrames();
+    }
+    int measureLiveWidth() {
+        return clip_.measureLiveWidth();
+    }
+    int liveFieldWidth() {
+        return clip_.liveFieldWidth();
+    }
     void update(float dt) {
         time_ += dt;
     }

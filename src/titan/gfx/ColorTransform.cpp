@@ -20,6 +20,22 @@ public:
         greenMultiplier = static_cast<std::uint8_t>(s.readU8());
         blueMultiplier = static_cast<std::uint8_t>(s.readU8());
     }
+    // Композиция вложенных трансформов (ориг множит их по иерархии):
+    // combined(v) = child(parent(v)).
+    static ColorTransform combine(const ColorTransform &parent, const ColorTransform &child) {
+        ColorTransform r;
+        r.redMultiplier = static_cast<std::uint8_t>((parent.redMultiplier * child.redMultiplier) / 255);
+        r.greenMultiplier = static_cast<std::uint8_t>((parent.greenMultiplier * child.greenMultiplier) / 255);
+        r.blueMultiplier = static_cast<std::uint8_t>((parent.blueMultiplier * child.blueMultiplier) / 255);
+        r.alpha = static_cast<std::uint8_t>((parent.alpha * child.alpha) / 255);
+        unsigned ra = (parent.redAddition * child.redMultiplier) / 255 + child.redAddition;
+        unsigned ga = (parent.greenAddition * child.greenMultiplier) / 255 + child.greenAddition;
+        unsigned ba = (parent.blueAddition * child.blueMultiplier) / 255 + child.blueAddition;
+        r.redAddition = static_cast<std::uint8_t>(ra > 255 ? 255 : ra);
+        r.greenAddition = static_cast<std::uint8_t>(ga > 255 ? 255 : ga);
+        r.blueAddition = static_cast<std::uint8_t>(ba > 255 ? 255 : ba);
+        return r;
+    }
     std::uint32_t apply(std::uint32_t c) const {
         unsigned r = (c >> 16) & 0xFF;
         unsigned g = (c >> 8) & 0xFF;

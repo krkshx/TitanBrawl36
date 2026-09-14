@@ -24,7 +24,7 @@ struct LogicBattlePlayerMap {
             return e;
         }
         e.present = true;
-        return decodeBody(s, e);
+        return decodeBody(s);
     }
     static LogicBattlePlayerMap decodeBody(ByteStream &s) {
         LogicBattlePlayerMap e;

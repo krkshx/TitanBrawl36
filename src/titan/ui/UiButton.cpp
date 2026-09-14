@@ -4,8 +4,12 @@
 #include <string>
 #include <vector>
 
-// Кликабельная кнопка из ui.sc: берёт текстуру первого шейпа клипа-экспорта,
-// рисует её прямоугольником слева снизу, отдаёт хит-тест в пикселях фреймбуфера.
+// Кнопка меню как в ориге (GameButton): скин — 9-slice шейп из ui.sc
+// (напр. popover_button_green -> shape с grid), текст — игровым шрифтом
+// поверх (drawLabel). Старый код брал commands[0].texture и растягивал ВЕСЬ
+// атлас 4096x4096 на слот 220x64 — отсюда цветной мусор на скрине.
+// Здесь рендерим шейп с его родными UV (как ClipRenderer::drawTri) и
+// 9-slice растяжкой сетки в слот.
 class UiButton {
 public:
     struct Rect {
@@ -14,36 +18,67 @@ public:
         int w = 0;
         int h = 0;
     };
-    // needle — подстрока имени экспорта (регистр не важен), напр. "button".
-    bool bind(SupercellSWF *swf, const std::string &needle) {
+    // Точное имя экспорта ("popover_button_green"), без подстрок:
+    // поиск по подстроке ("play"/"shop"/"brawler") цеплял первые попавшиеся
+    // клипы (chat_letsplay_gemgrab, shop_item_resourses_gems, ...) — тоже мусор.
+    bool bind(SupercellSWF *swf, const std::string &exactName) {
         unbind();
-        if (!swf || needle.empty()) {
+        if (!swf || exactName.empty()) {
+            return false;
+        }
+        int exportId = -1;
+        for (std::size_t i = 0; i < swf->exports.size(); i++) {
+            if (swf->exports[i].name == exactName) {
+                exportId = swf->exports[i].id;
+                break;
+            }
+        }
+        if (exportId < 0) {
+            unbind();
+            return false;
+        }
+        return bindClipId(swf, exportId, exactName);
+    }
+    // Бинд напрямую по id клипа (кнопки меню лежат внутри HUD-клипов
+    // без собственных экспортов: brawl_button=10274, navi=10183/...).
+    bool bindClip(SupercellSWF *swf, int clipId) {
+        unbind();
+        if (!swf) {
+            return false;
+        }
+        return bindClipId(swf, clipId, "");
+    }
+    // Бинд сырого шейпа (фон поля ввода: 9678): только скин, без иконки.
+    bool bindShape(SupercellSWF *swf, int shapeId) {
+        unbind();
+        if (!swf) {
             return false;
         }
         swf_ = swf;
-        for (std::size_t i = 0; i < swf_->exports.size(); i++) {
-            if (!contains(swf_->exports[i].name, needle)) {
-                continue;
+        for (std::size_t i = 0; i < swf_->shapes.size(); i++) {
+            if (swf_->shapes[i].id == shapeId && !swf_->shapes[i].commands.empty() &&
+                hasLiveTexture(swf_->shapes[i])) {
+                shape_ = &swf_->shapes[i];
+                asset_.clear();
+                measure();
+                return true;
             }
-            const SWFTexture *tex = textureOf(swf_->exports[i].id);
-            if (!tex) {
-                continue;
-            }
-            tex_ = tex;
-            asset_ = swf_->exports[i].name;
-            return true;
         }
         unbind();
         return false;
     }
     void unbind() {
         swf_ = nullptr;
-        tex_ = nullptr;
+        shape_ = nullptr;
+        icon_ = nullptr;
+        badge_ = nullptr;
         asset_.clear();
         label_.clear();
+        minX_ = minY_ = maxX_ = maxY_ = 0;
+        iminX_ = iminY_ = imaxX_ = imaxY_ = 0;
     }
     bool bound() const {
-        return tex_ != nullptr;
+        return shape_ != nullptr;
     }
     const std::string &assetName() const {
         return asset_;
@@ -55,8 +90,37 @@ public:
     const std::string &label() const {
         return label_;
     }
+    // Где рисовать подпись: 0 — по центру слота (PLAY, OK),
+    // 1 — нижняя полоса слота (нави-кнопки: текст под иконкой как в ориге).
+    void setLabelAlign(int align) {
+        labelAlign_ = align;
+    }
     Rect slotRect(int w, int h) const {
         return rect(w, h);
+    }
+    // Прямоугольник подписи: центр слота (0) или нижняя полоса (1, нави).
+    Rect labelRect(int w, int h) const {
+        Rect rc = rect(w, h);
+        if (labelAlign_ == 1) {
+            int top = rc.y + (rc.h * 58) / 100;
+            rc.h = rc.y + rc.h - top;
+            rc.y = top;
+        }
+        return rc;
+    }
+    // Бейдж уведомлений — арт из самой кнопки (notification-шейп либы).
+    bool hasBadge() const {
+        return badge_ != nullptr;
+    }
+    Rect badgeRect(int w, int h) const {
+        Rect rc = rect(w, h);
+        const int s = 26;
+        Rect b;
+        b.w = s;
+        b.h = s;
+        b.x = rc.x + rc.w - s + 4;
+        b.y = rc.y - 4;
+        return b;
     }
     // Слот меню: переопределить геометрию (пиксели фреймбуфера).
     // По умолчанию — кнопка входа слева снизу 200x64.
@@ -68,49 +132,79 @@ public:
         hasSlot_ = true;
     }
     void draw(std::vector<std::uint32_t> &frame, int w, int h) const {
-        if (!tex_ || tex_->pixels.empty() || frame.empty()) {
+        if (!shape_ || !swf_ || frame.empty()) {
             return;
         }
         Rect rc = rect(w, h);
-        for (int y = 0; y < rc.h; y++) {
-            int dy = rc.y + y;
-            if (dy < 0 || dy >= h) {
-                continue;
-            }
-            float v = static_cast<float>(y) / static_cast<float>(rc.h);
-            for (int x = 0; x < rc.w; x++) {
-                int dx = rc.x + x;
-                if (dx < 0 || dx >= w) {
-                    continue;
-                }
-                float u = static_cast<float>(x) / static_cast<float>(rc.w);
-                std::uint32_t src = tex_->sampleBilinear(u, v);
-                unsigned sa = (src >> 24) & 0xFF;
-                if (sa == 0) {
-                    continue;
-                }
-                std::size_t k = static_cast<std::size_t>(dy) * static_cast<std::size_t>(w) + static_cast<std::size_t>(dx);
-                if (sa == 255) {
-                    frame[k] = 0xFF000000u | (src & 0x00FFFFFFu);
-                } else {
-                    std::uint32_t dst = frame[k];
-                    unsigned sr = (src >> 16) & 0xFF;
-                    unsigned sg = (src >> 8) & 0xFF;
-                    unsigned sb = src & 0xFF;
-                    unsigned dr = (dst >> 16) & 0xFF;
-                    unsigned dg = (dst >> 8) & 0xFF;
-                    unsigned db = dst & 0xFF;
-                    unsigned r = (sr * sa + dr * (255 - sa)) / 255;
-                    unsigned g = (sg * sa + dg * (255 - sa)) / 255;
-                    unsigned b = (sb * sa + db * (255 - sa)) / 255;
-                    frame[k] = 0xFF000000u | (r << 16) | (g << 8) | b;
-                }
+        if (rc.w < 4 || rc.h < 4) {
+            return;
+        }
+        float shapeW = maxX_ - minX_;
+        float shapeH = maxY_ - minY_;
+        if (shapeW <= 0 || shapeH <= 0) {
+            return;
+        }
+        // 9-slice маппинг сетки шейпа в слот (как ClipRenderer::mapSlice:
+        // края сохраняют размер, тянется только середина).
+        std::vector<float> mapX;
+        std::vector<float> mapY;
+        bool sliced = false;
+        if (shape_->nineSlice && shape_->gridX.size() >= 2 && shape_->gridY.size() >= 2) {
+            if (mapSlice(shape_->gridX, minX_, maxX_, static_cast<float>(rc.x),
+                         static_cast<float>(rc.x + rc.w), mapX) &&
+                mapSlice(shape_->gridY, minY_, maxY_, static_cast<float>(rc.y),
+                         static_cast<float>(rc.y + rc.h), mapY)) {
+                sliced = true;
             }
         }
+        for (std::size_t ci = 0; ci < shape_->commands.size(); ci++) {
+            const ShapeOriginal::Command &c = shape_->commands[ci];
+            if (c.texture < 0 || c.texture >= static_cast<int>(swf_->textures.size())) {
+                continue;
+            }
+            const SWFTexture &tex = swf_->textures[static_cast<std::size_t>(c.texture)];
+            if (tex.pixels.empty()) {
+                continue;
+            }
+            std::size_t n = c.x.size();
+            if (n < 3 || c.u.size() < n || c.v.size() < n) {
+                continue;
+            }
+            ShapeOriginal::Command mc = c;
+            if (sliced) {
+                bool ok = true;
+                for (std::size_t vi = 0; vi < n; vi++) {
+                    int ix = shape_->gridIndexX(c.x[vi]);
+                    int iy = shape_->gridIndexY(c.y[vi]);
+                    if (ix < 0 || iy < 0 || ix >= static_cast<int>(mapX.size()) ||
+                        iy >= static_cast<int>(mapY.size())) {
+                        ok = false;
+                        break;
+                    }
+                    mc.x[vi] = mapX[static_cast<std::size_t>(ix)];
+                    mc.y[vi] = mapY[static_cast<std::size_t>(iy)];
+                }
+                if (!ok) {
+                    continue;
+                }
+            } else {
+                float sx = static_cast<float>(rc.w) / shapeW;
+                float sy = static_cast<float>(rc.h) / shapeH;
+                for (std::size_t vi = 0; vi < n; vi++) {
+                    mc.x[vi] = static_cast<float>(rc.x) + (c.x[vi] - minX_) * sx;
+                    mc.y[vi] = static_cast<float>(rc.y) + (c.y[vi] - minY_) * sy;
+                }
+            }
+            for (std::size_t i = 1; i + 1 < n; i++) {
+                drawTri(tex, mc, 0, i, i + 1, frame, w, h);
+            }
+        }
+        drawIcon(frame, w, h, rc);
+        drawBadge(frame, w, h, rc);
     }
     // fx/fy — пиксели фреймбуфера (такие отдаёт Window::takeClick).
     bool hit(int fx, int fy, int w, int h) const {
-        if (!tex_) {
+        if (!shape_) {
             return false;
         }
         Rect rc = rect(w, h);
@@ -133,65 +227,539 @@ private:
         (void)w;
         return rc;
     }
-    static bool contains(const std::string &name, const std::string &needle) {
-        if (needle.size() > name.size()) {
-            return false;
-        }
-        for (std::size_t i = 0; i + needle.size() <= name.size(); i++) {
-            bool ok = true;
-            for (std::size_t k = 0; k < needle.size(); k++) {
-                if (lower(name[i + k]) != lower(needle[k])) {
-                    ok = false;
-                    break;
+    void measure() {
+        bool first = true;
+        for (std::size_t i = 0; i < shape_->commands.size(); i++) {
+            const ShapeOriginal::Command &c = shape_->commands[i];
+            for (std::size_t k = 0; k < c.x.size(); k++) {
+                if (first) {
+                    minX_ = maxX_ = c.x[k];
+                    minY_ = maxY_ = c.y[k];
+                    first = false;
+                } else {
+                    if (c.x[k] < minX_) minX_ = c.x[k];
+                    if (c.x[k] > maxX_) maxX_ = c.x[k];
+                    if (c.y[k] < minY_) minY_ = c.y[k];
+                    if (c.y[k] > maxY_) maxY_ = c.y[k];
                 }
             }
-            if (ok) {
+        }
+    }
+    // Поиск скина: экспорт -> клип -> дети кадра 0 (рекурсивно): первый
+    // 9-slice шейп — скин кнопки; запасной — первый шейп с командами.
+    void findSkin(int id, int depth, const ShapeOriginal *&nine, const ShapeOriginal *&any) const {
+        for (std::size_t i = 0; i < swf_->shapes.size(); i++) {
+            if (swf_->shapes[i].id == id) {
+                const ShapeOriginal &sh = swf_->shapes[i];
+                if (!sh.commands.empty()) {
+                    if (!any) {
+                        any = &sh;
+                    }
+                    if (sh.nineSlice && !nine) {
+                        nine = &sh;
+                    }
+                }
+                return;
+            }
+        }
+        if (depth >= 4) {
+            return;
+        }
+        for (std::size_t i = 0; i < swf_->clips.size(); i++) {
+            if (swf_->clips[i].id != id) {
+                continue;
+            }
+            const MovieClipOriginal &clip = swf_->clips[i];
+            if (clip.frames.empty()) {
+                return;
+            }
+            const MovieClipOriginal::Frame &fr = clip.frames[0];
+            for (std::size_t k = 0; k < fr.elements.size(); k++) {
+                const MovieClipOriginal::Element &el = fr.elements[k];
+                if (el.child < 0 || el.child >= static_cast<int>(clip.children.size())) {
+                    continue;
+                }
+                const MovieClipOriginal::Child &ch = clip.children[static_cast<std::size_t>(el.child)];
+                // Текстовые поля ('txt') — не скин.
+                if (!ch.name.empty() && (ch.name == "txt" || ch.name == "text")) {
+                    continue;
+                }
+                findSkin(ch.id, depth + 1, nine, any);
+                if (nine && any) {
+                    return;
+                }
+            }
+            return;
+        }
+    }
+    // Иконка кнопки (второй шейп клипа: картинка поверх скина).
+    // Рисуется с сохранением пропорций в верхней зоне слота.
+    void drawBadge(std::vector<std::uint32_t> &frame, int w, int h, const Rect &rc) const {
+        if (!badge_ || !swf_) {
+            return;
+        }
+        float bw = bmaxX_ - bminX_;
+        float bh = bmaxY_ - bminY_;
+        if (bw <= 0 || bh <= 0) {
+            return;
+        }
+        Rect b = badgeRect(w, h);
+        (void)rc;
+        float k = static_cast<float>(b.w) / bw;
+        float k2 = static_cast<float>(b.h) / bh;
+        if (k2 < k) {
+            k = k2;
+        }
+        if (k <= 0) {
+            return;
+        }
+        float dw = bw * k;
+        float dh = bh * k;
+        float ox = static_cast<float>(b.x) + (static_cast<float>(b.w) - dw) * 0.5f;
+        float oy = static_cast<float>(b.y) + (static_cast<float>(b.h) - dh) * 0.5f;
+        for (std::size_t ci = 0; ci < badge_->commands.size(); ci++) {
+            const ShapeOriginal::Command &c = badge_->commands[ci];
+            if (c.texture < 0 || c.texture >= static_cast<int>(swf_->textures.size())) {
+                continue;
+            }
+            const SWFTexture &tex = swf_->textures[static_cast<std::size_t>(c.texture)];
+            if (tex.pixels.empty()) {
+                continue;
+            }
+            std::size_t n = c.x.size();
+            if (n < 3 || c.u.size() < n || c.v.size() < n) {
+                continue;
+            }
+            ShapeOriginal::Command mc = c;
+            for (std::size_t vi = 0; vi < n; vi++) {
+                mc.x[vi] = ox + (c.x[vi] - bminX_) * k;
+                mc.y[vi] = oy + (c.y[vi] - bminY_) * k;
+            }
+            for (std::size_t i = 1; i + 1 < n; i++) {
+                drawTri(tex, mc, 0, i, i + 1, frame, w, h);
+            }
+        }
+    }
+    void drawIcon(std::vector<std::uint32_t> &frame, int w, int h, const Rect &rc) const {
+        if (!icon_ || !swf_) {
+            return;
+        }
+        float iw = imaxX_ - iminX_;
+        float ih = imaxY_ - iminY_;
+        if (iw <= 0 || ih <= 0) {
+            return;
+        }
+        float zoneH = labelAlign_ == 1 ? static_cast<float>(rc.h) * 0.62f : static_cast<float>(rc.h) * 0.8f;
+        float zoneW = static_cast<float>(rc.w) * 0.8f;
+        float k = zoneW / iw;
+        float k2 = zoneH / ih;
+        if (k2 < k) {
+            k = k2;
+        }
+        if (k <= 0) {
+            return;
+        }
+        float dw = iw * k;
+        float dh = ih * k;
+        float ox = static_cast<float>(rc.x) + (static_cast<float>(rc.w) - dw) * 0.5f;
+        float oy = labelAlign_ == 1 ? static_cast<float>(rc.y) + 4.0f
+                                    : static_cast<float>(rc.y) + (static_cast<float>(rc.h) - dh) * 0.5f;
+        for (std::size_t ci = 0; ci < icon_->commands.size(); ci++) {
+            const ShapeOriginal::Command &c = icon_->commands[ci];
+            if (c.texture < 0 || c.texture >= static_cast<int>(swf_->textures.size())) {
+                continue;
+            }
+            const SWFTexture &tex = swf_->textures[static_cast<std::size_t>(c.texture)];
+            if (tex.pixels.empty()) {
+                continue;
+            }
+            std::size_t n = c.x.size();
+            if (n < 3 || c.u.size() < n || c.v.size() < n) {
+                continue;
+            }
+            ShapeOriginal::Command mc = c;
+            for (std::size_t vi = 0; vi < n; vi++) {
+                mc.x[vi] = ox + (c.x[vi] - iminX_) * k;
+                mc.y[vi] = oy + (c.y[vi] - iminY_) * k;
+            }
+            for (std::size_t i = 1; i + 1 < n; i++) {
+                drawTri(tex, mc, 0, i, i + 1, frame, w, h);
+            }
+        }
+    }
+    bool bindClipId(SupercellSWF *swf, int clipId, const std::string &assetName) {
+        swf_ = swf;
+        const ShapeOriginal *nine = nullptr;
+        const ShapeOriginal *any = nullptr;
+        findSkin(clipId, 0, nine, any);
+        const ShapeOriginal *skin = nine ? nine : any;
+        if (!skin || skin->commands.empty() || !hasLiveTexture(*skin)) {
+            unbind();
+            return false;
+        }
+        shape_ = skin;
+        asset_ = assetName;
+        measure();
+        // Иконка: первый живой шейп, отличный от скина (обход по детям клипа).
+        icon_ = nullptr;
+        findIcon(clipId, 0);
+        if (icon_) {
+            measureIcon();
+        }
+        // Бейдж: шейп из notification-ветки той же кнопки.
+        badge_ = nullptr;
+        findBadge(clipId, 0);
+        if (badge_) {
+            measureBadge();
+        }
+        return true;
+    }
+    static bool hasLiveTextureStatic(const SupercellSWF *swf, const ShapeOriginal &sh) {
+        for (std::size_t i = 0; i < sh.commands.size(); i++) {
+            int ti = sh.commands[i].texture;
+            if (ti >= 0 && ti < static_cast<int>(swf->textures.size()) &&
+                !swf->textures[static_cast<std::size_t>(ti)].pixels.empty()) {
                 return true;
             }
         }
         return false;
     }
-    static char lower(char c) {
-        return (c >= 'A' && c <= 'Z') ? static_cast<char>(c + 32) : c;
+    bool hasLiveTexture(const ShapeOriginal &sh) const {
+        return hasLiveTextureStatic(swf_, sh);
     }
-    // Текстура первого шейпа среди прямых детей клипа-экспорта.
-    const SWFTexture *textureOf(int exportId) const {
+    void findIcon(int id, int depth) {
+        // Сперва иконки под детьми с 'icon' в имени (profile_trophy_icon и т.п.),
+        // иначе — самый крупный живой шейп (логотип кнопки, а не мелочь).
+        float best = 0;
+        const ShapeOriginal *anyBest = nullptr;
+        float anyArea = 0;
+        findIconBest(id, depth, false, best, anyBest, anyArea);
+        if (!icon_ && anyBest) {
+            icon_ = anyBest;
+        }
+    }
+    // Бейдж уведомлений: первый живой шейп под ребёнком 'notification'.
+    void findBadge(int id, int depth) {
+        if (badge_ || depth > 4) {
+            return;
+        }
+        for (std::size_t i = 0; i < swf_->shapes.size(); i++) {
+            if (swf_->shapes[i].id == id) {
+                return;
+            }
+        }
         for (std::size_t i = 0; i < swf_->clips.size(); i++) {
-            if (swf_->clips[i].id != exportId) {
+            if (swf_->clips[i].id != id) {
                 continue;
             }
             const MovieClipOriginal &clip = swf_->clips[i];
-            for (std::size_t c = 0; c < clip.children.size(); c++) {
-                const ShapeOriginal *shape = findShape(clip.children[c].id);
-                if (!shape || shape->commands.empty()) {
-                    continue;
-                }
-                int ti = shape->commands[0].texture;
-                if (ti < 0 || ti >= static_cast<int>(swf_->textures.size())) {
-                    continue;
-                }
-                const SWFTexture &tex = swf_->textures[static_cast<std::size_t>(ti)];
-                if (tex.pixels.empty()) {
-                    continue;
-                }
-                return &tex;
+            if (clip.frames.empty()) {
+                return;
             }
-            return nullptr;
+            const MovieClipOriginal::Frame &fr = clip.frames[0];
+            for (std::size_t k = 0; k < fr.elements.size(); k++) {
+                const MovieClipOriginal::Element &el = fr.elements[k];
+                if (el.child < 0 || el.child >= static_cast<int>(clip.children.size())) {
+                    continue;
+                }
+                const MovieClipOriginal::Child &ch = clip.children[static_cast<std::size_t>(el.child)];
+                if (ch.name == "notification") {
+                    const ShapeOriginal *nine = nullptr;
+                    const ShapeOriginal *any = nullptr;
+                    findSkin(ch.id, depth + 1, nine, any);
+                    const ShapeOriginal *sk = nine ? nine : any;
+                    if (sk && sk != shape_ && sk != icon_) {
+                        badge_ = sk;
+                        return;
+                    }
+                    return;
+                }
+                findBadge(ch.id, depth + 1);
+                if (badge_) {
+                    return;
+                }
+            }
+            return;
         }
-        return nullptr;
     }
-    const ShapeOriginal *findShape(int id) const {
+    void measureBadge() {
+        bool first = true;
+        for (std::size_t i = 0; i < badge_->commands.size(); i++) {
+            const ShapeOriginal::Command &c = badge_->commands[i];
+            for (std::size_t k = 0; k < c.x.size(); k++) {
+                if (first) {
+                    bminX_ = bmaxX_ = c.x[k];
+                    bminY_ = bmaxY_ = c.y[k];
+                    first = false;
+                } else {
+                    if (c.x[k] < bminX_) bminX_ = c.x[k];
+                    if (c.x[k] > bmaxX_) bmaxX_ = c.x[k];
+                    if (c.y[k] < bminY_) bminY_ = c.y[k];
+                    if (c.y[k] > bmaxY_) bmaxY_ = c.y[k];
+                }
+            }
+        }
+    }
+    // Оверлеи либы — не иконки: анимации, прогресс-бары, тиры, ранги, бейджи.
+    static bool isOverlayName(const std::string &name) {        static const char *k[] = {"notification", "txt", "hit_area", "anim", "progress",
+                                  "highlight", "tier", "rank", nullptr};
+        for (int i = 0; k[i]; i++) {
+            const char *p = k[i];
+            std::size_t n = 0;
+            while (p[n]) {
+                n++;
+            }
+            if (n > name.size()) {
+                continue;
+            }
+            for (std::size_t s = 0; s + n <= name.size(); s++) {
+                bool ok = true;
+                for (std::size_t j = 0; j < n; j++) {
+                    char a = name[s + j];
+                    if (a >= 'A' && a <= 'Z') {
+                        a = static_cast<char>(a + 32);
+                    }
+                    if (a != p[j]) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    static bool hasIconName(const std::string &name) {
+        if (name.size() < 4) {
+            return false;
+        }
+        for (std::size_t i = 0; i + 4 <= name.size(); i++) {
+            if ((name[i] == 'i' || name[i] == 'I') && (name[i + 1] == 'c' || name[i + 1] == 'C') &&
+                (name[i + 2] == 'o' || name[i + 2] == 'O') && (name[i + 3] == 'n' || name[i + 3] == 'N')) {
+                return true;
+            }
+        }
+        return false;
+    }
+    // Иконка — самый крупный живой шейп, отличный от скина (логотип кнопки,
+    // а не мелочь вроде прогресс-баров: у brawl_pass это icon_brawl_pass).
+    void findIconBest(int id, int depth, bool iconBranch, float &best,
+                      const ShapeOriginal *&anyBest, float &anyArea) {
+        if (depth > 4) {
+            return;
+        }
         for (std::size_t i = 0; i < swf_->shapes.size(); i++) {
             if (swf_->shapes[i].id == id) {
-                return &swf_->shapes[i];
+                const ShapeOriginal &sh = swf_->shapes[i];
+                if (&sh != shape_ && !sh.commands.empty() && hasLiveTexture(sh)) {
+                    float a = shapeArea(sh);
+                    if (iconBranch) {
+                        if (a > best) {
+                            best = a;
+                            icon_ = &sh;
+                        }
+                    } else if (a > anyArea) {
+                        anyArea = a;
+                        anyBest = &sh;
+                    }
+                }
+                return;
             }
         }
-        return nullptr;
+        for (std::size_t i = 0; i < swf_->clips.size(); i++) {
+            if (swf_->clips[i].id != id) {
+                continue;
+            }
+            const MovieClipOriginal &clip = swf_->clips[i];
+            if (clip.frames.empty()) {
+                return;
+            }
+            const MovieClipOriginal::Frame &fr = clip.frames[0];
+            for (std::size_t k = 0; k < fr.elements.size(); k++) {
+                const MovieClipOriginal::Element &el = fr.elements[k];
+                if (el.child < 0 || el.child >= static_cast<int>(clip.children.size())) {
+                    continue;
+                }
+                const MovieClipOriginal::Child &ch = clip.children[static_cast<std::size_t>(el.child)];
+                if (!ch.name.empty() && isOverlayName(ch.name)) {
+                    continue;
+                }
+                findIconBest(ch.id, depth + 1, iconBranch || hasIconName(ch.name), best, anyBest, anyArea);
+            }
+            return;
+        }
+    }
+    static float shapeArea(const ShapeOriginal &sh) {
+        bool first = true;
+        float minX = 0, maxX = 0, minY = 0, maxY = 0;
+        for (std::size_t i = 0; i < sh.commands.size(); i++) {
+            const ShapeOriginal::Command &c = sh.commands[i];
+            for (std::size_t k = 0; k < c.x.size(); k++) {
+                if (first) {
+                    minX = maxX = c.x[k];
+                    minY = maxY = c.y[k];
+                    first = false;
+                } else {
+                    if (c.x[k] < minX) minX = c.x[k];
+                    if (c.x[k] > maxX) maxX = c.x[k];
+                    if (c.y[k] < minY) minY = c.y[k];
+                    if (c.y[k] > maxY) maxY = c.y[k];
+                }
+            }
+        }
+        if (first) {
+            return 0;
+        }
+        return (maxX - minX) * (maxY - minY);
+    }
+    void measureIcon() {
+        bool first = true;
+        for (std::size_t i = 0; i < icon_->commands.size(); i++) {
+            const ShapeOriginal::Command &c = icon_->commands[i];
+            for (std::size_t k = 0; k < c.x.size(); k++) {
+                if (first) {
+                    iminX_ = imaxX_ = c.x[k];
+                    iminY_ = imaxY_ = c.y[k];
+                    first = false;
+                } else {
+                    if (c.x[k] < iminX_) iminX_ = c.x[k];
+                    if (c.x[k] > imaxX_) imaxX_ = c.x[k];
+                    if (c.y[k] < iminY_) iminY_ = c.y[k];
+                    if (c.y[k] > imaxY_) imaxY_ = c.y[k];
+                }
+            }
+        }
+    }
+    // со сдвигом от краёв (как ClipRenderer::mapSlice, но в пиксели слота).
+    static bool mapSlice(const std::vector<float> &grid, float gmin, float gmax,
+                         float dst0, float dst1, std::vector<float> &mapped) {
+        std::size_t n = grid.size();
+        if (n < 2 || gmax <= gmin || dst1 <= dst0) {
+            return false;
+        }
+        mapped.clear();
+        mapped.resize(n);
+        // Нормируем сетку относительно границ шейпа.
+        for (std::size_t i = 0; i < n; i++) {
+            float t = (grid[i] - gmin) / (gmax - gmin);
+            if (t < 0) t = 0;
+            if (t > 1) t = 1;
+            if (i == 0) {
+                mapped[i] = dst0;
+            } else if (i + 1 == n) {
+                mapped[i] = dst1;
+            } else if (i * 2 < n) {
+                mapped[i] = dst0 + (grid[i] - gmin);
+            } else {
+                mapped[i] = dst1 - (gmax - grid[i]);
+            }
+            (void)t;
+        }
+        for (std::size_t i = 0; i + 1 < n; i++) {
+            if (mapped[i + 1] < mapped[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    // Растер треугольника шейпа с его UV (как ClipRenderer::drawTri, но
+    // координаты уже в пикселях фреймбуфера — без stage-трансформа).
+    static void drawTri(const SWFTexture &tex, const ShapeOriginal::Command &c,
+                        std::size_t i0, std::size_t i1, std::size_t i2,
+                        std::vector<std::uint32_t> &frame, int w, int h) {
+        float ax = c.x[i0];
+        float ay = c.y[i0];
+        float bx = c.x[i1];
+        float by = c.y[i1];
+        float cx = c.x[i2];
+        float cy = c.y[i2];
+        float au = c.u[i0] / 65535.0f;
+        float av = c.v[i0] / 65535.0f;
+        float bu = c.u[i1] / 65535.0f;
+        float bv = c.v[i1] / 65535.0f;
+        float cu = c.u[i2] / 65535.0f;
+        float cv = c.v[i2] / 65535.0f;
+        float minX = ax;
+        if (bx < minX) minX = bx;
+        if (cx < minX) minX = cx;
+        float maxX = ax;
+        if (bx > maxX) maxX = bx;
+        if (cx > maxX) maxX = cx;
+        float minY = ay;
+        if (by < minY) minY = by;
+        if (cy < minY) minY = cy;
+        float maxY = ay;
+        if (by > maxY) maxY = by;
+        if (cy > maxY) maxY = cy;
+        int x0 = static_cast<int>(minX);
+        int x1 = static_cast<int>(maxX) + 1;
+        int y0 = static_cast<int>(minY);
+        int y1 = static_cast<int>(maxY) + 1;
+        if (x0 < 0) x0 = 0;
+        if (y0 < 0) y0 = 0;
+        if (x1 > w) x1 = w;
+        if (y1 > h) y1 = h;
+        float den = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy);
+        if (den > -0.0001f && den < 0.0001f) {
+            return;
+        }
+        for (int y = y0; y < y1; y++) {
+            for (int x = x0; x < x1; x++) {
+                float px = x + 0.5f;
+                float py = y + 0.5f;
+                float l0 = ((by - cy) * (px - cx) + (cx - bx) * (py - cy)) / den;
+                float l1 = ((cy - ay) * (px - cx) + (ax - cx) * (py - cy)) / den;
+                float l2 = 1.0f - l0 - l1;
+                if (l0 < 0 || l1 < 0 || l2 < 0) {
+                    continue;
+                }
+                float u = l0 * au + l1 * bu + l2 * cu;
+                float v = l0 * av + l1 * bv + l2 * cv;
+                std::uint32_t src = tex.sampleBilinear(u, v);
+                unsigned sa = (src >> 24) & 0xFF;
+                if (sa == 0) {
+                    continue;
+                }
+                std::size_t kk = static_cast<std::size_t>(y) * static_cast<std::size_t>(w) + static_cast<std::size_t>(x);
+                if (sa == 255) {
+                    frame[kk] = 0xFF000000u | (src & 0x00FFFFFFu);
+                } else {
+                    std::uint32_t dst = frame[kk];
+                    unsigned sr = (src >> 16) & 0xFF;
+                    unsigned sg = (src >> 8) & 0xFF;
+                    unsigned sb = src & 0xFF;
+                    unsigned dr = (dst >> 16) & 0xFF;
+                    unsigned dg = (dst >> 8) & 0xFF;
+                    unsigned db = dst & 0xFF;
+                    unsigned r = (sr * sa + dr * (255 - sa)) / 255;
+                    unsigned g = (sg * sa + dg * (255 - sa)) / 255;
+                    unsigned b = (sb * sa + db * (255 - sa)) / 255;
+                    frame[kk] = 0xFF000000u | (r << 16) | (g << 8) | b;
+                }
+            }
+        }
     }
     SupercellSWF *swf_ = nullptr;
-    const SWFTexture *tex_ = nullptr;
+    const ShapeOriginal *shape_ = nullptr;
+    const ShapeOriginal *icon_ = nullptr;
+    const ShapeOriginal *badge_ = nullptr;
     std::string asset_;
     std::string label_;
+    int labelAlign_ = 0;
     Rect slot_;
     bool hasSlot_ = false;
+    float minX_ = 0;
+    float minY_ = 0;
+    float maxX_ = 0;
+    float maxY_ = 0;
+    float iminX_ = 0;
+    float iminY_ = 0;
+    float imaxX_ = 0;
+    float imaxY_ = 0;
+    float bminX_ = 0;
+    float bminY_ = 0;
+    float bmaxX_ = 0;
+    float bmaxY_ = 0;
 };

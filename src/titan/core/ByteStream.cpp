@@ -183,7 +183,13 @@ public:
 
     virtual bool readBoolean() {
         if (bitOffset_ == 0) {
+            if (offset_ >= length_ || offset_ >= static_cast<std::int32_t>(buffer_.size())) {
+                return false;
+            }
             offset_++;
+        }
+        if (offset_ <= 0 || offset_ > length_ || offset_ > static_cast<std::int32_t>(buffer_.size())) {
+            return false;
         }
         bool v = (buffer_[static_cast<std::size_t>(offset_ - 1)] & (1 << bitOffset_)) != 0;
         bitOffset_ = (bitOffset_ + 1) & 7;
@@ -197,11 +203,17 @@ public:
 
     virtual std::int32_t readInt8() {
         bitOffset_ = 0;
+        if (!canRead(1)) {
+            return 0;
+        }
         return static_cast<std::int8_t>(buffer_[static_cast<std::size_t>(offset_++)]);
     }
 
     virtual std::int32_t readInt16() {
         bitOffset_ = 0;
+        if (!canRead(2)) {
+            return 0;
+        }
         std::int32_t b0 = buffer_[static_cast<std::size_t>(offset_++)];
         std::int32_t b1 = buffer_[static_cast<std::size_t>(offset_++)];
         return static_cast<std::int16_t>((b0 << 8) | b1);
@@ -209,6 +221,9 @@ public:
 
     virtual std::int32_t readInt24() {
         bitOffset_ = 0;
+        if (!canRead(3)) {
+            return 0;
+        }
         std::int32_t b0 = buffer_[static_cast<std::size_t>(offset_++)];
         std::int32_t b1 = buffer_[static_cast<std::size_t>(offset_++)];
         std::int32_t b2 = buffer_[static_cast<std::size_t>(offset_++)];
@@ -221,6 +236,9 @@ public:
 
     virtual std::int32_t readShort() {
         bitOffset_ = 0;
+        if (!canRead(2)) {
+            return 0;
+        }
         std::int32_t b0 = buffer_[static_cast<std::size_t>(offset_++)];
         std::int32_t b1 = buffer_[static_cast<std::size_t>(offset_++)];
         return static_cast<std::int16_t>((b0 << 8) | b1);
@@ -228,24 +246,42 @@ public:
 
     virtual std::int32_t readByte() {
         bitOffset_ = 0;
+        if (!canRead(1)) {
+            return 0;
+        }
         return static_cast<std::int32_t>(buffer_[static_cast<std::size_t>(offset_++)]);
     }
 
     virtual std::int32_t readVInt() {
         bitOffset_ = 0;
+        if (!canRead(1)) {
+            return 0;
+        }
         std::uint8_t b0 = buffer_[static_cast<std::size_t>(offset_++)];
         std::int32_t r = b0 & 0x3F;
         if ((b0 & 0x40) != 0) {
             if ((b0 & 0x80) != 0) {
+                if (!canRead(1)) {
+                    return static_cast<std::int32_t>(static_cast<std::uint32_t>(r) | 0xFFFFE000u);
+                }
                 std::uint8_t b1 = buffer_[static_cast<std::size_t>(offset_++)];
                 r = (r & 0xFFFFE03F) | ((b1 & 0x7F) << 6);
                 if ((b1 & 0x80) != 0) {
+                    if (!canRead(1)) {
+                        return static_cast<std::int32_t>(static_cast<std::uint32_t>(r) | 0xFFFFE000u);
+                    }
                     std::uint8_t b2 = buffer_[static_cast<std::size_t>(offset_++)];
                     std::uint32_t t = (static_cast<std::uint32_t>(r) & 0xFFF01FFF) | static_cast<std::uint32_t>((b2 & 0x7F) << 13);
                     if ((b2 & 0x80) != 0) {
+                        if (!canRead(1)) {
+                            return static_cast<std::int32_t>(t | 0xFFF00000u);
+                        }
                         std::uint8_t b3 = buffer_[static_cast<std::size_t>(offset_++)];
                         std::uint32_t t2 = (t & 0xF80FFFFF) | static_cast<std::uint32_t>((b3 & 0x7F) << 20);
                         if ((b3 & 0x80) != 0) {
+                            if (!canRead(1)) {
+                                return static_cast<std::int32_t>(t2 | 0xF8000000u);
+                            }
                             std::uint8_t b4 = buffer_[static_cast<std::size_t>(offset_++)];
                             return static_cast<std::int32_t>((t2 & 0x7FFFFFF) | (static_cast<std::uint32_t>(b4) << 27) | 0x80000000u);
                         }
@@ -258,15 +294,27 @@ public:
             return static_cast<std::int32_t>(static_cast<std::uint32_t>(b0) | 0xFFFFFFC0u);
         }
         if ((b0 & 0x80) != 0) {
+            if (!canRead(1)) {
+                return r;
+            }
             std::uint8_t b1 = buffer_[static_cast<std::size_t>(offset_++)];
             r = (r & 0xFFFFE03F) | ((b1 & 0x7F) << 6);
             if ((b1 & 0x80) != 0) {
+                if (!canRead(1)) {
+                    return r;
+                }
                 std::uint8_t b2 = buffer_[static_cast<std::size_t>(offset_++)];
                 r = (r & 0xFFF01FFF) | ((b2 & 0x7F) << 13);
                 if ((b2 & 0x80) != 0) {
+                    if (!canRead(1)) {
+                        return r;
+                    }
                     std::uint8_t b3 = buffer_[static_cast<std::size_t>(offset_++)];
                     r = (r & 0xF80FFFFF) | ((b3 & 0x7F) << 20);
                     if ((b3 & 0x80) != 0) {
+                        if (!canRead(1)) {
+                            return r;
+                        }
                         std::uint8_t b4 = buffer_[static_cast<std::size_t>(offset_++)];
                         r = (r & 0x7FFFFFF) | (b4 << 27);
                     }
@@ -317,7 +365,7 @@ public:
     virtual std::vector<std::uint8_t> readBytes(std::int32_t length, std::int32_t maxLength) {
         bitOffset_ = 0;
         std::vector<std::uint8_t> out;
-        if (length < 0 || length > maxLength) {
+        if (length < 0 || length > maxLength || !canRead(length)) {
             return out;
         }
         out.reserve(static_cast<std::size_t>(length));
@@ -365,7 +413,21 @@ public:
     static const char *CHARSET;
 
 private:
+    bool canRead(std::int32_t n) const {
+        if (n < 0 || offset_ < 0) {
+            return false;
+        }
+        std::int64_t end = static_cast<std::int64_t>(offset_) + n;
+        std::int64_t have = static_cast<std::int64_t>(buffer_.size());
+        if (length_ < have) {
+            have = length_;
+        }
+        return end <= have;
+    }
     std::int32_t readIntFromByteArray() {
+        if (!canRead(4)) {
+            return 0;
+        }
         std::uint32_t b0 = buffer_[static_cast<std::size_t>(offset_++)];
         std::uint32_t b1 = buffer_[static_cast<std::size_t>(offset_++)];
         std::uint32_t b2 = buffer_[static_cast<std::size_t>(offset_++)];
@@ -374,7 +436,7 @@ private:
     }
 
     std::string readRawString(std::int32_t n, std::int32_t maxLength) {
-        if (n > maxLength) {
+        if (n < 0 || n > maxLength || !canRead(n)) {
             return std::string();
         }
         std::string s;

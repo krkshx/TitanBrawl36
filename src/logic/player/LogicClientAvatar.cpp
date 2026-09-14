@@ -19,11 +19,19 @@ public:
     std::int32_t tail[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     bool ok = false;
 
+    // getNameSetByUser = *(a1+192) @ 0x613d30, isTutorialState = *(a1+200)<2 @ 0x6c88ec.
+    // tail[11] — 12-й VInt хвоста = *(a1+200).
+    bool nameSetByUser() const { return b0; }
+    bool tutorialState() const { return tail[11] < 2; }
+
     void decode(ByteStream &s) {
         LogicLong a, b, cc;
-        s.readLong(&a);
-        s.readLong(&b);
-        s.readLong(&cc);
+        // В либе (_ZN17LogicClientAvatar6decodeEP10ByteStream @ 0x6e6688):
+        // 3x decodeLogicLong (пары VInt), имя (200), bool, Int (фикс! +216),
+        // проверка кол-ва слотов == 8, 8 массивов слотов, 12x VInt.
+        ByteStreamHelper::decodeLogicLong(&s, &a);
+        ByteStreamHelper::decodeLogicLong(&s, &b);
+        ByteStreamHelper::decodeLogicLong(&s, &cc);
         high0 = a.high;
         low0 = a.low;
         high1 = b.high;
@@ -32,7 +40,7 @@ public:
         low2 = cc.low;
         name = s.readString(200);
         b0 = s.readBoolean();
-        v0 = s.readVInt();
+        v0 = s.readInt();
         for (int i = 0; i < 8; i++) {
             std::int32_t n = s.readVInt();
             for (std::int32_t j = 0; j < n; j++) {
