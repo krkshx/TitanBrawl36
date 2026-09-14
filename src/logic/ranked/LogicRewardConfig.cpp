@@ -1,6 +1,6 @@
 #pragma once
 #include "LogicCondition.cpp"
-#include "../../data/LogicGemOffer.cpp"
+#include "../data/LogicGemOffer.cpp"
 
 struct LogicRewardConfig {
     bool hasCondition = false;

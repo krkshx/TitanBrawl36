@@ -1,10 +1,10 @@
 #pragma once
 #include "EventSlot.cpp"
-#include "../../../titan/core/ByteStreamHelper.cpp"
-#include "../../data/ChronosTextEntry.cpp"
-#include "../../data/ChronosFileEntry.cpp"
-#include "../../data/LogicGemOffer.cpp"
-#include "../../data/LogicBattlePlayerMap.cpp"
+#include "../../titan/core/ByteStreamHelper.cpp"
+#include "../data/ChronosTextEntry.cpp"
+#include "../data/ChronosFileEntry.cpp"
+#include "../data/LogicGemOffer.cpp"
+#include "../data/LogicBattlePlayerMap.cpp"
 #include "../ranked/LogicRankedSeason.cpp"
 #include <string>
 #include <vector>

@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../titan/core/ByteStream.cpp"
+#include "../../titan/core/ByteStream.cpp"
 #include <cstdint>
 
 struct VanityItemProp {

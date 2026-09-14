@@ -1,5 +1,5 @@
 #pragma once
-#include "../../data/LogicGemOffer.cpp"
+#include "../data/LogicGemOffer.cpp"
 #include <cstdint>
 
 struct TimedOffer {

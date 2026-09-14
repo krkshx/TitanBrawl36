@@ -1,8 +1,8 @@
 #pragma once
 #include "LogicConfData.cpp"
 #include "../player/LogicDailyData.cpp"
-#include "../../data/GatchaDrop.cpp"
-#include "../../data/LogicDataSlot.cpp"
+#include "../data/GatchaDrop.cpp"
+#include "../data/LogicDataSlot.cpp"
 #include <string>
 #include <vector>
 

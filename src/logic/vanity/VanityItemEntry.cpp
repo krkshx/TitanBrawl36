@@ -1,6 +1,6 @@
 #pragma once
 #include "VanityItemProp.cpp"
-#include "../../../titan/core/ByteStreamHelper.cpp"
+#include "../../titan/core/ByteStreamHelper.cpp"
 #include <vector>
 
 struct VanityItemEntry {

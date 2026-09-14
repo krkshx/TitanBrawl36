@@ -1,6 +1,6 @@
 #pragma once
 #include "../home/LogicClientHome.cpp"
-#include "../../data/LogicDataSlot.cpp"
+#include "../data/LogicDataSlot.cpp"
 #include <string>
 #include <vector>
 

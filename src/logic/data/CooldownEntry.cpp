@@ -1,6 +1,6 @@
 #pragma once
-#include "../../../titan/core/ByteStream.cpp"
-#include "../../../titan/core/ByteStreamHelper.cpp"
+#include "../../titan/core/ByteStream.cpp"
+#include "../../titan/core/ByteStreamHelper.cpp"
 #include <cstdint>
 
 struct CooldownEntry {

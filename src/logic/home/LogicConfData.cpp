@@ -1,10 +1,10 @@
 #pragma once
 #include "EventData.cpp"
-#include "../../data/IntValueEntry.cpp"
-#include "../../data/CooldownEntry.cpp"
-#include "../../data/TimedIntValueEntry.cpp"
-#include "../../data/ReleaseEntry.cpp"
-#include "../../data/ChronosTextEntry.cpp"
+#include "../data/IntValueEntry.cpp"
+#include "../data/CooldownEntry.cpp"
+#include "../data/TimedIntValueEntry.cpp"
+#include "../data/ReleaseEntry.cpp"
+#include "../data/ChronosTextEntry.cpp"
 #include "../notification/BaseNotification.cpp"
 #include "../notification/NotificationFactory.cpp"
 #include <vector>

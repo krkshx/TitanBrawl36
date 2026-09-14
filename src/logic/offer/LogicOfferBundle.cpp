@@ -1,6 +1,6 @@
 #pragma once
-#include "../../data/LogicGemOffer.cpp"
-#include "../../data/ChronosTextEntry.cpp"
+#include "../data/LogicGemOffer.cpp"
+#include "../data/ChronosTextEntry.cpp"
 #include <cstdint>
 #include <string>
 #include <vector>
