@@ -41,13 +41,15 @@ public:
         }
     }
     static int pixelBytes(int t) {
+        // Таблица SupercellFlash (pixel_format_table): RGBA8 лежат под
+        // индексами 0,1,5,7,8,9 (4 байта); 2-байтные — только 2 (RGBA4),
+        // 3 (RGB5_A1), 4 (RGB565), 6 (LUMINANCE8_ALPHA8); 10 (LUMINANCE8).
+        // Старый код считал 8 двухбайтным — при таком типе поток текстур
+        // разъезжался и вся атласная графика после него кривилась.
         if (t == 10) {
             return 1;
         }
-        if (t == 2 || t == 3 || t == 4 || t == 8) {
-            return 2;
-        }
-        if (t == 6) {
+        if (t == 2 || t == 3 || t == 4 || t == 6) {
             return 2;
         }
         return 4;
@@ -79,7 +81,7 @@ public:
             }
             return;
         }
-        if (type == 2 || type == 8) {
+        if (type == 2) {
             std::size_t n = count < inSize / 2 ? count : inSize / 2;
             for (std::size_t i = 0; i < n; i++) {
                 std::uint32_t v = in[2 * i] | (static_cast<std::uint32_t>(in[2 * i + 1]) << 8);

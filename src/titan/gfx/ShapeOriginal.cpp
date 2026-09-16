@@ -98,6 +98,10 @@ private:
         }
     }
     void detectGrid() {
+        // Сетка шейпа нужна ТОЛЬКО UiButton (9-slice растяжка скина кнопки
+        // в слот — как GameButton в либе). ClipRenderer её больше не
+        // использует: scaling grid либы (сабтег 31) живёт на MovieClip,
+        // а поголовное применение shape-грида к HUD давало «волны».
         gridX.clear();
         gridY.clear();
         nineSlice = false;

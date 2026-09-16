@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-// Аккаунт между запусками: account.dat в корне (id + passToken).
 static bool loadAccount(const std::string &root, std::int64_t &id, std::string &pass) {
     std::ifstream f(FileSystem::join(root, "account.dat"));
     if (!f) {
@@ -84,7 +83,7 @@ static void fillRect(std::vector<std::uint32_t> &frame, int w, int h,
     }
 }
 
-// Плавный переход: чёрная вуаль поверх кадра (0..255).
+
 static void fadeOver(std::vector<std::uint32_t> &frame, int w, int h, int alpha) {
     if (alpha <= 0) {
         return;
@@ -95,8 +94,7 @@ static void fadeOver(std::vector<std::uint32_t> &frame, int w, int h, int alpha)
     fillRect(frame, w, h, 0, 0, w, h, static_cast<std::uint32_t>(alpha) << 24);
 }
 
-// Музыка лобби по теме (HomeScreen::enter: playMusic(ThemeMusic)):
-// themes.csv -> ThemeMusic -> music.csv -> файл, лупом.
+
 static std::string themeMusicPath(const std::string &assetsDir, int themeId) {
     if (themeId <= 0) {
         return std::string();
@@ -122,12 +120,7 @@ static void playClick(const std::string &assetsDir, bool brawl) {
     Sfx::play(FileSystem::join(assetsDir, f));
 }
 
-// Тема фона из OwnHomeData. Ориг (HomeScreen::enter):
-// LogicConfData::getIntValue(conf, 1, defaultTheme).
-// Полный декод daily пока не в sync с либой, поэтому два пути:
-// 1) честный декод LogicClientHome (заработает полностью позже),
-// 2) якорный скан массива IntValueEntry: пара (1, 41xxxxxx) + следом (50,1).
-// Возвращает globalId темы (41xxxxxx) или -1.
+
 static int resolveThemeId(const std::vector<char> &raw) {
     if (!raw.empty()) {
         ByteStream hs;
@@ -178,8 +171,6 @@ struct ThemeBg {
         if (themeId <= 0) {
             return false;
         }
-        // Instance id в globalId 0-based (Shelly = 16000000): строка themes.csv = inst+1
-        // (строка 0 таблицы — типы колонок).
         int inst = themeId % 1000000;
         CsvTable themes;
         if (!themes.load(FileSystem::join(assetsDir, FileSystem::join("csv_logic", "themes.csv")))) {
@@ -219,8 +210,7 @@ struct ThemeBg {
             return false;
         }
         renderer.bind(&bg);
-        // Оживляем фон как в ориге: иконки-частицы — анимированный клип
-        // (у c1a/vp — 600 кадров), крутим его таймлайн по времени.
+
         animClipId = -1;
         animFrames = 0;
         animFps = 30;
@@ -239,9 +229,7 @@ struct ThemeBg {
         if (!ok) {
             return;
         }
-        // Фон почти целиком — 432 инстанса частиц (600 кадров): полный
-        // рерастр каждый кадр жрёт ~30мс CPU. Частицы кэшируем на 15 FPS,
-        // меню поверх всё равно рисуется каждый кадр.
+
         std::int64_t now = Clock::nowMs();
         if (!cacheValid_ || cacheW_ != w || cacheH_ != h || cacheFile_ != file ||
             now - cacheT0_ > 66) {
@@ -339,21 +327,6 @@ static std::string trimSpaces(const std::string &s) {
     return s.substr(a, b - a);
 }
 
-// Экран ввода ника как в ориге (TID_ENTER_NAME_TITLE/BODY + OK):
-// новый аккаунт (имя не задано) выбирает ник перед главным меню.
-// Возвращает 0 — окно закрыли, 1 — ник отправлен (можно в меню), 2 — связь потеряна.
-// Экран ввода ника строго по либе (EnterNamePopup @ 0x646458):
-// попап create_name_popup из ui.sc, поля title_txt/body_txt/name_input_field,
-// кнопка button_continue (f0/f1 = enabled/disabled), max 15 символов,
-// ChangeAvatarNameMessage по OK. Возвращает 0/1/2.
-// Экран ввода ника по EnterNamePopup (@ 0x646458), ассеты строго из либы:
-// попап create_name_popup (11563): поле title_txt (11116, size 40),
-// body_txt (11190, size 20), name_input_field (11192, size 28),
-// фон поля — шейп 9678 (9-slice), кнопка button_continue (11559, f0/f1),
-// max 15 символов, forbidden <>&+эмодзи, OK -> ChangeAvatarNameMessage.
-// Статичные матрицы попапа в sc вырождены (сдвиг/поворот — их переписывает
-// рантайм PopupBase: центрирование + scale-in анимация), поэтому топ-уровень
-// раскладываем как ориг после анимации; вся графика/стили/тексты — из либы.
 static const TextFieldOriginal *nameFieldById(const SupercellSWF &ui, int fieldId) {
     for (std::size_t i = 0; i < ui.fields.size(); i++) {
         if (ui.fields[i].id == fieldId) {
@@ -364,7 +337,7 @@ static const TextFieldOriginal *nameFieldById(const SupercellSWF &ui, int fieldI
 }
 
 static bool nameForbidden(const std::string &chunk) {
-    // EnterNamePopup: запрещены < > & + эмодзи (addEmojiToForbiddenCharacters).
+
     for (std::size_t i = 0; i < chunk.size();) {
         unsigned char c = static_cast<unsigned char>(chunk[i]);
         if (c == '<' || c == '>' || c == '&') {
@@ -458,7 +431,7 @@ static int nameScreen(LoadingScreen &screen, pc::Window &window, SupercellSWF &u
         } else {
             screen.draw(window.frame(), w, h);
         }
-        // Дим + контент по центру (PopupBase: дим + центрирование).
+
         fillRect(window.frame(), w, h, 0, 0, w, h, 0xAA000000u);
         int cx = w / 2;
         // Заголовок (стиль поля title_txt из либы).
@@ -659,6 +632,22 @@ struct MenuUi {
         renderer.clearFieldTexts();
         renderer.clearClipFrames();
         renderer.clearLive();
+        // Ивент-кнопки правого слота по дефолту скрыты (в ориге их гасит
+        // HomePage по активным событиям; офлайн — нет событий):
+        // connection (переподключение), raid/warning, spectate, alliance_war,
+        // pro_league/championship/ranked (слот текущего ивента показывает
+        // event_container), important_notice. Пустые слоты команды 2/3
+        // (player_2/3_area) тоже скрыты — иначе их короны/пины/скор рисуются
+        // поверх панелей инвайтов. Остаются brawl_container (ИГРАТЬ),
+        // event_container, rank_mode_label, player_1_area.
+        // TODO: зажигать по парсу событий LogicClientHome из OwnHomeData.
+        static const int kHiddenByDefault[] = {
+            10265, 10277, 10278, 10279, 10281, 10283, 10285, 10294, 10319,
+            10424, 10429,
+        };
+        for (std::size_t hi = 0; hi < sizeof(kHiddenByDefault) / sizeof(kHiddenByDefault[0]); hi++) {
+            renderer.setHiddenClip(kHiddenByDefault[hi], true);
+        }
         // Подписи кнопок (setTextByTID в ориге) — тексты в их же поля.
         renderer.setButtonText(10274, screen.text("TID_BATTLE", "PLAY"));
         renderer.setButtonText(10183, screen.text("TID_NAVI_4", "Brawlers"));
@@ -683,48 +672,84 @@ struct MenuUi {
         }
         std::cout << "mainscreen MISS " << name << "\n";
     }
-    // Позиция маинскрина — screen-контейнер либы
-    // (MovieClipHelper::createScreenContainer: 0/1 центр, 2 верх-центр,
-    // 3 низ-центр, 4 низ-право, 5 лево-центр, 6 право-центр,
-    // 7 верх-лево, 8 верх-право, 9 низ-лево).
+    // Якорение HUD-контейнеров 1-в-1 как в либе
+    // (MovieClipHelper::createScreenContainer, 0x569748):
+    //ステージ: ширина фиксирована 1288, высота адаптивная (v16 = h/s),
+    // масштаб width-driven s = w/1288 (v12), screen = design*s без сдвигов.
+    // Контейнеры ставятся origin в точки: центр (v15/2,v16/2), верх-центр
+    // (v15/2,0), низ-центр (v15/2,v16), левый-центр (0,v16/2) и т.д. —
+    // через setPixelSnappedXY, БЕЗ докинга по границам контента.
+    // Контент внутри уже лежит относительно origin (top_bar ±630 вокруг
+    // центра, top_right уходит влево от правого края и т.п. — замерено).
+    // Старый bounds-докинг сдвигал всё на (min/center контента) и тащил
+    // на экран припаркованные за вьюпортом варианты — «всё съехало».
     Matrix2x3 anchorBase(const std::string &name, int w, int h) const {
-        float s = renderer.stageScale(w, h);
+        float s = w / 1288.0f;
+        if (s <= 0) {
+            s = 1;
+        }
+        float dh = h / s;
+        float px = 644.0f;
+        float py = dh * 0.5f;
+        if (name == "mainscreen_hud_top") {
+            px = 644.0f;
+            py = 0.0f;
+        } else if (name == "mainscreen_hud_top_left") {
+            px = 0.0f;
+            py = 0.0f;
+        } else if (name == "mainscreen_hud_top_right") {
+            px = 1288.0f;
+            py = 0.0f;
+        } else if (name == "mainscreen_hud_left") {
+            px = 0.0f;
+            py = dh * 0.5f;
+        } else if (name == "mainscreen_hud_right") {
+            px = 1288.0f;
+            py = dh * 0.5f;
+        } else if (name == "mainscreen_hud_bottom_left") {
+            px = 0.0f;
+            py = dh;
+        } else if (name == "mainscreen_hud_bottom_right") {
+            px = 1288.0f;
+            py = dh;
+        } else {
+            px = 644.0f;
+            py = dh * 0.5f;
+        }
         Matrix2x3 base;
         base.setIdentity();
         base.a = s;
         base.d = s;
-        base.x = w * 0.5f;
-        base.y = h * 0.5f;
-        if (name == "mainscreen_hud_left") {
-            base.x = 6.0f;
-            base.y = h * 0.5f;
-        } else if (name == "mainscreen_hud_right") {
-            base.x = w - 6.0f;
-            base.y = h * 0.5f;
-        } else if (name == "mainscreen_hud_top_left") {
-            base.x = 6.0f;
-            base.y = 6.0f;
-        } else if (name == "mainscreen_hud_top_right") {
-            base.x = w - 6.0f;
-            base.y = 6.0f;
-        } else if (name == "mainscreen_hud_bottom_left") {
-            base.x = 6.0f;
-            base.y = h - 6.0f;
-        } else if (name == "mainscreen_hud_bottom_right") {
-            base.x = w - 6.0f;
-            base.y = h - 6.0f;
-        } else if (name == "mainscreen_hud_top") {
-            base.y = 6.0f;
-        } else if (name == "mainscreen_center") {
-            base.y = h * 0.5f;
-        }
+        base.x = px * s;
+        base.y = py * s;
         return base;
     }
     void draw(std::vector<std::uint32_t> &frame, int w, int h) {
-        renderer.setAnimate(true, Clock::nowMs());
-        for (std::size_t i = 0; i < mainscreens.size(); i++) {
-            renderer.renderWithBase(frame, w, h, mainscreens[i].clipId,
-                                    anchorBase(mainscreens[i].name, w, h));
+        // Кэш статики HUD (как ThemeBg::cache_): полный рерастр 8 клипов
+        // каждый кадр на CPU — главная причина лагов. Статика кэшируется,
+        // анимация (клипы с >1 кадром) тикает с тем же шагом 66мс, что фон.
+        std::int64_t now = Clock::nowMs();
+        if (!cacheValid_ || cacheW_ != w || cacheH_ != h || now - cacheT0_ > 66) {
+            renderer.setAnimate(true, now);
+            for (std::size_t i = 0; i < mainscreens.size(); i++) {
+                renderer.renderWithBase(frame, w, h, mainscreens[i].clipId,
+                                        anchorBase(mainscreens[i].name, w, h));
+            }
+            cache_ = frame;
+            cacheW_ = w;
+            cacheH_ = h;
+            cacheT0_ = now;
+            cacheValid_ = true;
+            return;
+        }
+        if (cache_.size() == frame.size()) {
+            frame = cache_;
+        } else {
+            renderer.setAnimate(true, now);
+            for (std::size_t i = 0; i < mainscreens.size(); i++) {
+                renderer.renderWithBase(frame, w, h, mainscreens[i].clipId,
+                                        anchorBase(mainscreens[i].name, w, h));
+            }
         }
     }
     const MenuHit *hitAt(int fx, int fy) const {
@@ -732,6 +757,11 @@ struct MenuUi {
         (void)fy;
         return nullptr;
     }
+    std::vector<std::uint32_t> cache_;
+    int cacheW_ = 0;
+    int cacheH_ = 0;
+    std::int64_t cacheT0_ = 0;
+    bool cacheValid_ = false;
 };
 
 // Меню после OwnHomeData: фон темы + кнопки-скины из ui.sc, кипалайв, памп входящих.

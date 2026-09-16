@@ -29,10 +29,14 @@ public:
         return load(paths);
     }
     bool loadBundled(const std::string &assetsDir) {
-        // Первым — Pusia-Bold: именно им рисуется игровой текст (статус загрузки и т.д.).
+        // Первым — Lilita One: им набраны ~все TextField ui.sc (1300+ полей,
+        // дамп ui.sc: "Lilita One" tag 33/44; Pusia-Bold в полях не встречается).
+        // Старый порядок (Pusia первым) давал чужой кернинг/ширины — текст
+        // выглядел «не как в ориге». faces_[0] = игровой шрифт.
         std::vector<std::string> paths;
-        paths.push_back(assetsDir + "/font/Pusia-Bold.otf");
         paths.push_back(assetsDir + "/font/LilitaOne-Regular.ttf");
+        paths.push_back(assetsDir + "/font/Brawl_Stars_Deputy.otf");
+        paths.push_back(assetsDir + "/font/Pusia-Bold.otf");
         paths.push_back(assetsDir + "/titan/fonts/droid_sans_fallback.ttf");
         std::vector<std::string> system = NativeFont::systemFallbacks();
         for (std::size_t i = 0; i < system.size(); i++) {
@@ -42,8 +46,9 @@ public:
     }
     bool loadSystem(const std::string &assetsDir, const std::string &family, bool bold) {
         std::vector<std::string> paths = NativeFont::candidatesFor(family, bold);
-        paths.push_back(assetsDir + "/font/Pusia-Bold.otf");
         paths.push_back(assetsDir + "/font/LilitaOne-Regular.ttf");
+        paths.push_back(assetsDir + "/font/Brawl_Stars_Deputy.otf");
+        paths.push_back(assetsDir + "/font/Pusia-Bold.otf");
         paths.push_back(assetsDir + "/titan/fonts/droid_sans_fallback.ttf");
         std::vector<std::string> system = NativeFont::systemFallbacks();
         for (std::size_t i = 0; i < system.size(); i++) {
@@ -103,6 +108,11 @@ public:
         if (px < 1) {
             px = 1;
         }
+        // Автоужатие как в drawCentered (MovieClipHelper::autoAdjustText):
+        // длинные строки ника/кнопок не должны вылезать из поля.
+        while (px > 1 && measure(text, px) > static_cast<int>(boxW)) {
+            px--;
+        }
         FT_Face face = faces_[0];
         FT_Set_Pixel_Sizes(face, 0, static_cast<FT_UInt>(px));
         int asc = static_cast<int>(face->size->metrics.ascender >> 6);
@@ -110,6 +120,25 @@ public:
         int lineH = asc - desc;
         int baseline = static_cast<int>(by + (boxH - lineH) * 0.5f) + asc;
         int pen = static_cast<int>(bx);
+        drawAt(frame, w, h, text, pen, baseline, px, color, outline, outlineColor);
+    }
+    void drawRight(std::vector<std::uint32_t> &frame, int w, int h, const std::string &text, float bx, float by, float boxW, float boxH, int px, std::uint32_t color, bool outline, std::uint32_t outlineColor) {
+        if (faces_.empty() || text.empty() || boxW < 4 || boxH < 4) {
+            return;
+        }
+        if (px < 1) {
+            px = 1;
+        }
+        while (px > 1 && measure(text, px) > static_cast<int>(boxW)) {
+            px--;
+        }
+        FT_Face face = faces_[0];
+        FT_Set_Pixel_Sizes(face, 0, static_cast<FT_UInt>(px));
+        int asc = static_cast<int>(face->size->metrics.ascender >> 6);
+        int desc = static_cast<int>(face->size->metrics.descender >> 6);
+        int lineH = asc - desc;
+        int baseline = static_cast<int>(by + (boxH - lineH) * 0.5f) + asc;
+        int pen = static_cast<int>(bx + boxW - measure(text, px));
         drawAt(frame, w, h, text, pen, baseline, px, color, outline, outlineColor);
     }
     void drawAt(std::vector<std::uint32_t> &frame, int w, int h, const std::string &text, int pen, int baseline, int px, std::uint32_t color, bool outline, std::uint32_t outlineColor) {

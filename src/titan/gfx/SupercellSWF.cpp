@@ -251,7 +251,10 @@ private:
         return t == 2 || t == 18;
     }
     static bool isClipTag(int t) {
-        return t == 3 || t == 10 || t == 12 || t == 14 || t == 35;
+        // 49 = TAG_MOVIE_CLIP_6 (custom properties, SupercellFlash):
+        // MovieClipOriginal::load его понимает, без него такие клипы
+        // молча пропадали бы из clips.
+        return t == 3 || t == 10 || t == 12 || t == 14 || t == 35 || t == 49;
     }
     static bool isFieldTag(int t) {
         return t == 7 || t == 15 || t == 20 || t == 21 || t == 25 || t == 33 || t == 43 || t == 44 || t == 46;

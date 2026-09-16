@@ -1,5 +1,6 @@
 #pragma once
 #include "../gfx/SupercellSWF.cpp"
+#include <cmath>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -195,9 +196,7 @@ public:
                     mc.y[vi] = static_cast<float>(rc.y) + (c.y[vi] - minY_) * sy;
                 }
             }
-            for (std::size_t i = 1; i + 1 < n; i++) {
-                drawTri(tex, mc, 0, i, i + 1, frame, w, h);
-            }
+            drawCommand(tex, mc, frame, w, h);
         }
         drawIcon(frame, w, h, rc);
         drawBadge(frame, w, h, rc);
@@ -335,9 +334,7 @@ private:
                 mc.x[vi] = ox + (c.x[vi] - bminX_) * k;
                 mc.y[vi] = oy + (c.y[vi] - bminY_) * k;
             }
-            for (std::size_t i = 1; i + 1 < n; i++) {
-                drawTri(tex, mc, 0, i, i + 1, frame, w, h);
-            }
+            drawCommand(tex, mc, frame, w, h);
         }
     }
     void drawIcon(std::vector<std::uint32_t> &frame, int w, int h, const Rect &rc) const {
@@ -382,9 +379,7 @@ private:
                 mc.x[vi] = ox + (c.x[vi] - iminX_) * k;
                 mc.y[vi] = oy + (c.y[vi] - iminY_) * k;
             }
-            for (std::size_t i = 1; i + 1 < n; i++) {
-                drawTri(tex, mc, 0, i, i + 1, frame, w, h);
-            }
+            drawCommand(tex, mc, frame, w, h);
         }
     }
     bool bindClipId(SupercellSWF *swf, int clipId, const std::string &assetName) {
@@ -664,10 +659,48 @@ private:
         }
         return true;
     }
+    // Ребро контура для AA (как ClipRenderer::PolyEdge).
+    struct PolyEdge {
+        float ax = 0;
+        float ay = 0;
+        float dx = 0;
+        float dy = 0;
+        float invLen = 0;
+    };
+    // Фэн mapped-команды с контурным AA.
+    static void drawCommand(const SWFTexture &tex, const ShapeOriginal::Command &mc,
+                            std::vector<std::uint32_t> &frame, int w, int h) {
+        std::size_t n = mc.x.size();
+        if (n < 3 || n > 256 || mc.y.size() < n) {
+            return;
+        }
+        PolyEdge edges[256];
+        std::size_t ne = 0;
+        for (std::size_t vi = 0; vi < n; vi++) {
+            std::size_t vj = (vi + 1) % n;
+            float dx = mc.x[vj] - mc.x[vi];
+            float dy = mc.y[vj] - mc.y[vi];
+            float len = static_cast<float>(std::sqrt(dx * dx + dy * dy));
+            if (len < 0.0001f) {
+                continue;
+            }
+            edges[ne].ax = mc.x[vi];
+            edges[ne].ay = mc.y[vi];
+            edges[ne].dx = dx;
+            edges[ne].dy = dy;
+            edges[ne].invLen = 1.0f / len;
+            ne++;
+        }
+        for (std::size_t i = 1; i + 1 < n; i++) {
+            drawTri(tex, mc, 0, i, i + 1, edges, ne, frame, w, h);
+        }
+    }
     // Растер треугольника шейпа с его UV (как ClipRenderer::drawTri, но
     // координаты уже в пикселях фреймбуфера — без stage-трансформа).
+    // AA — только по контуру команды (edges), не по рёбрам треугольника.
     static void drawTri(const SWFTexture &tex, const ShapeOriginal::Command &c,
                         std::size_t i0, std::size_t i1, std::size_t i2,
+                        const PolyEdge *edges, std::size_t ne,
                         std::vector<std::uint32_t> &frame, int w, int h) {
         float ax = c.x[i0];
         float ay = c.y[i0];
@@ -715,11 +748,38 @@ private:
                 if (l0 < 0 || l1 < 0 || l2 < 0) {
                     continue;
                 }
+                float cov = 1.0f;
+                if (ne > 0) {
+                    float md = 1e30f;
+                    for (std::size_t ei = 0; ei < ne; ei++) {
+                        const PolyEdge &e = edges[ei];
+                        float cr = e.dx * (py - e.ay) - e.dy * (px - e.ax);
+                        if (cr < 0) {
+                            cr = -cr;
+                        }
+                        float dd = cr * e.invLen;
+                        if (dd < md) {
+                            md = dd;
+                        }
+                    }
+                    cov = md + 0.5f;
+                    if (cov <= 0.0f) {
+                        continue;
+                    }
+                    if (cov > 1.0f) {
+                        cov = 1.0f;
+                    }
+                }
                 float u = l0 * au + l1 * bu + l2 * cu;
                 float v = l0 * av + l1 * bv + l2 * cv;
                 std::uint32_t src = tex.sampleBilinear(u, v);
                 unsigned sa = (src >> 24) & 0xFF;
-                if (sa == 0) {
+                if (cov < 1.0f) {
+                    sa = static_cast<unsigned>(sa * cov);
+                    if (sa == 0) {
+                        continue;
+                    }
+                } else if (sa == 0) {
                     continue;
                 }
                 std::size_t kk = static_cast<std::size_t>(y) * static_cast<std::size_t>(w) + static_cast<std::size_t>(x);

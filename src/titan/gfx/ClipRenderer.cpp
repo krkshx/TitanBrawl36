@@ -6,6 +6,7 @@
 #include "BitmapFont.cpp"
 #endif
 #include "SupercellSWF.cpp"
+#include <cmath>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -16,6 +17,8 @@ class ClipRenderer {
 public:
     void bind(SupercellSWF *swf) {
         swf_ = swf;
+        boxCache_.clear();
+        hiddenClips_.clear();
         rebuildIndex();
     }
     void setBarFrame(int frame) {
@@ -89,6 +92,7 @@ public:
         if (!setupStage(frame, w, h, true)) {
             return;
         }
+        renderScale_ = scale_;
         const MovieClipOriginal *root = findClip(rootId);
         if (!root) {
             return;
@@ -115,6 +119,9 @@ public:
     }
     // Рендер с явной базовой матрицей (якорение HUD как в ориге).
     // Stage-маппинг тождественный: всё несёт base.
+    // renderScale_ берём из базы (равномерный масштаб a~=d): размер шрифта
+    // TextField (f.size — единицы клипа) обязан умножаться на него, иначе
+    // текст в лобби рисуется в 1/0.66 раз крупнее и «съезжает» из полей.
     void renderWithBase(std::vector<std::uint32_t> &frame, int w, int h, int rootId,
                         const Matrix2x3 &base) {
         scaleInnerId_ = -1;
@@ -124,11 +131,96 @@ public:
         scale_ = 1;
         ox_ = 0;
         oy_ = 0;
+        float bs = base.a >= 0 ? base.a : -base.a;
+        float bs2 = base.d >= 0 ? base.d : -base.d;
+        renderScale_ = (bs + bs2) * 0.5f;
+        if (renderScale_ <= 0) {
+            renderScale_ = 1;
+        }
         const MovieClipOriginal *root = findClip(rootId);
         if (!root) {
             return;
         }
         drawClip(*root, 0, base, nullptr, frame, w, h);
+    }
+    // Границы клипа в его локальных единицах (кадр 0), с рекурсией во
+    // вложенные клипы: для докинга HUD-контейнеров к краям экрана.
+    // boundsOf считает только прямые шейпы — здесь спускаемся глубже.
+    bool measureClip(int rootId, float &minX, float &minY, float &maxX, float &maxY) const {
+        const MovieClipOriginal *root = findClip(rootId);
+        if (!root) {
+            return false;
+        }
+        Matrix2x3 ident;
+        ident.setIdentity();
+        bool any = false;
+        boundsOfDeep(*root, 0, ident, minX, minY, maxX, maxY, any, 0);
+        return any && maxX > minX && maxY > minY;
+    }
+    void boundsOfDeep(const MovieClipOriginal &clip, int fi, const Matrix2x3 &parent,
+                      float &minX, float &minY, float &maxX, float &maxY, bool &any, int depth) const {
+        if (depth > 6 || clip.frames.empty()) {
+            return;
+        }
+        if (fi < 0) {
+            fi = 0;
+        }
+        if (fi >= static_cast<int>(clip.frames.size())) {
+            fi = static_cast<int>(clip.frames.size()) - 1;
+        }
+        const MovieClipOriginal::Frame &fr = clip.frames[static_cast<std::size_t>(fi)];
+        for (std::size_t k = 0; k < fr.elements.size(); k++) {
+            const MovieClipOriginal::Element &el = fr.elements[k];
+            if (el.child < 0 || el.child >= static_cast<int>(clip.children.size())) {
+                continue;
+            }
+            const MovieClipOriginal::Child &ch = clip.children[static_cast<std::size_t>(el.child)];
+            Matrix2x3 local = elementMatrix(el.matrix, clip.bankIndex);
+            Matrix2x3 world = local;
+            world.multiply(parent);
+            if (const ShapeOriginal *sh = findShape(ch.id)) {
+                for (std::size_t ci = 0; ci < sh->commands.size(); ci++) {
+                    const ShapeOriginal::Command &c = sh->commands[ci];
+                    for (std::size_t vi = 0; vi < c.x.size(); vi++) {
+                        float x = world.applyX(c.x[vi], c.y[vi]);
+                        float y = world.applyY(c.x[vi], c.y[vi]);
+                        if (!any) {
+                            minX = maxX = x;
+                            minY = maxY = y;
+                            any = true;
+                        } else {
+                            if (x < minX) minX = x;
+                            if (x > maxX) maxX = x;
+                            if (y < minY) minY = y;
+                            if (y > maxY) maxY = y;
+                        }
+                    }
+                }
+            } else if (const MovieClipOriginal *sub = findClip(ch.id)) {
+                boundsOfDeep(*sub, 0, world, minX, minY, maxX, maxY, any, depth + 1);
+            } else if (const TextFieldOriginal *f = findField(ch.id)) {
+                float cx0 = world.applyX(static_cast<float>(f->left), static_cast<float>(f->top));
+                float cy0 = world.applyY(static_cast<float>(f->left), static_cast<float>(f->top));
+                float cx1 = world.applyX(static_cast<float>(f->right), static_cast<float>(f->bottom));
+                float cy1 = world.applyY(static_cast<float>(f->right), static_cast<float>(f->bottom));
+                float loX = cx0 < cx1 ? cx0 : cx1;
+                float hiX = cx0 < cx1 ? cx1 : cx0;
+                float loY = cy0 < cy1 ? cy0 : cy1;
+                float hiY = cy0 < cy1 ? cy1 : cy0;
+                if (!any) {
+                    minX = loX;
+                    maxX = hiX;
+                    minY = loY;
+                    maxY = hiY;
+                    any = true;
+                } else {
+                    if (loX < minX) minX = loX;
+                    if (hiX > maxX) maxX = hiX;
+                    if (loY < minY) minY = loY;
+                    if (hiY > maxY) maxY = hiY;
+                }
+            }
+        }
     }
     float stageScale(int w, int h) const {
         float s = w / 1288.0f;
@@ -174,6 +266,22 @@ public:
     }
     void clearClipFrames() {
         clipFrames_.clear();
+    }
+    // Скрытые клипы (игра гасит ивент-кнопки по состоянию событий:
+    // HomePage прячет неактивные event-кнопки через visible=false).
+    // Офлайн-дефолт задаёт MenuUi (потом — по парсу событий home).
+    void setHiddenClip(int clipId, bool hidden) {
+        if (hidden) {
+            hiddenClips_[clipId] = true;
+        } else {
+            hiddenClips_.erase(clipId);
+        }
+    }
+    void clearHidden() {
+        hiddenClips_.clear();
+    }
+    bool isHidden(int clipId) const {
+        return hiddenClips_.find(clipId) != hiddenClips_.end();
     }
     // Рендер с явной базой + центрирование попапа (EnterNamePopup).
     void renderCentered(std::vector<std::uint32_t> &frame, int w, int h, int rootId, float s) {
@@ -272,6 +380,7 @@ public:
         scale_ = 1;
         ox_ = 0;
         oy_ = 0;
+        renderScale_ = s;
         Matrix2x3 base;
         base.setIdentity();
         base.x = w * 0.5f;
@@ -558,11 +667,22 @@ private:
         }
     }
 public:
-    // Оживление таймлайнов (MovieClipPlayer в либе): клипы с >1 кадром
-    // крутятся по времени. Без этого меню статично как в бокс-симуляторе.
+    // Оживление таймлайнов (MovieClipPlayer в либе): по времени крутятся
+    // ТОЛЬКО безлейбловые клипы (настоящие лупы: частицы, спиннеры).
+    // Клипы с лейблами кадров (button idle/ready, hamburger appear/
+    // disappear) — стейт-машины: ориг ставит их через gotoAndStop(label),
+    // дефолт — кадр 0. Крутить их по wall-clock = мигающие кнопки.
     void setAnimate(bool on, std::int64_t ms) {
         animate_ = on;
         animMs_ = ms;
+    }
+    static bool hasLabeledFrame(const MovieClipOriginal &clip) {
+        for (std::size_t i = 0; i < clip.frames.size(); i++) {
+            if (clip.frames[i].hasLabel && !clip.frames[i].label.empty()) {
+                return true;
+            }
+        }
+        return false;
     }
     void drawClip(const MovieClipOriginal &clip, int frameIndex, const Matrix2x3 &parent, const ColorTransform *parentCt, std::vector<std::uint32_t> &frame, int w, int h) {
         if (clip.frames.empty()) {
@@ -572,7 +692,7 @@ public:
         auto cfit = clipFrames_.find(clip.id);
         if (cfit != clipFrames_.end()) {
             fi = cfit->second;
-        } else if (animate_ && clip.frames.size() > 1) {
+        } else if (animate_ && clip.frames.size() > 1 && !hasLabeledFrame(clip)) {
             int fps = clip.fps > 0 ? clip.fps : 30;
             fi = static_cast<int>((animMs_ * fps / 1000) % static_cast<int>(clip.frames.size()));
         }
@@ -583,6 +703,11 @@ public:
             fi = static_cast<int>(clip.frames.size()) - 1;
         }
         const MovieClipOriginal::Frame &fr = clip.frames[static_cast<std::size_t>(fi)];
+        // Стек вариантов одного слота (pro_league/championship/ranked на
+        // одной матрице): игра кажет один, остальным ставит visible=false
+        // по состоянию событий. Статично рисуем первый (см. isStackedVariant).
+        std::vector<SeenSlot> seenSlot_;
+        seenSlot_.reserve(fr.elements.size());
         for (std::size_t k = 0; k < fr.elements.size(); k++) {
             const MovieClipOriginal::Element &el = fr.elements[k];
             if (el.child < 0 || el.child >= static_cast<int>(clip.children.size())) {
@@ -591,6 +716,22 @@ public:
             const MovieClipOriginal::Child &ch = clip.children[static_cast<std::size_t>(el.child)];
             if (!ch.name.empty() && skipClip(ch.name)) {
                 continue;
+            }
+            if (isHidden(ch.id)) {
+                continue;
+            }
+            Matrix2x3 localEarly = elementMatrix(el.matrix, clip.bankIndex);
+            if (el.matrix != 65535 &&
+                isStackedVariant(seenSlot_, el.matrix, ch.id, localEarly.x, localEarly.y)) {
+                continue;
+            }
+            if (el.matrix != 65535) {
+                SeenSlot ss;
+                ss.matrix = el.matrix;
+                ss.childId = ch.id;
+                ss.tx = localEarly.x;
+                ss.ty = localEarly.y;
+                seenSlot_.push_back(ss);
             }
             Matrix2x3 local = elementMatrix(el.matrix, clip.bankIndex);
             // Cover фон: внутренний клип масштабируется (setScale в ориге).
@@ -683,11 +824,124 @@ public:
         }
         return local;
     }
+    // У клипа есть видимый текст: поле 'txt' с заданным текстом кнопки
+    // или именованное поле из fieldTexts_. Рекурсивно (текст PLAY лежит
+    // в brawl_button внутри brawl_container). Глубина 3 — хватает.
+    bool clipHasText(int clipId) const {
+        return clipHasTextDeep(clipId, 0);
+    }
+    bool clipHasTextDeep(int clipId, int depth) const {
+        const MovieClipOriginal *c = findClip(clipId);
+        if (!c || c->frames.empty() || depth > 3) {
+            return false;
+        }
+        const MovieClipOriginal::Frame &fr = c->frames[0];
+        for (std::size_t k = 0; k < fr.elements.size(); k++) {
+            const MovieClipOriginal::Element &el = fr.elements[k];
+            if (el.child < 0 || el.child >= static_cast<int>(c->children.size())) {
+                continue;
+            }
+            const MovieClipOriginal::Child &ch = c->children[static_cast<std::size_t>(el.child)];
+            if (ch.name == "txt") {
+                auto bit = buttonTexts_.find(c->id);
+                if (bit != buttonTexts_.end() && !bit->second.empty()) {
+                    return true;
+                }
+            } else if (findField(ch.id)) {
+                auto fit = fieldTexts_.find(ch.id);
+                if (fit != fieldTexts_.end() && !fit->second.empty()) {
+                    return true;
+                }
+            } else if (findClip(ch.id)) {
+                if (clipHasTextDeep(ch.id, depth + 1)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    struct ChildBox {
+        bool ok = false;
+        float w = 0;
+        float h = 0;
+    };
+    ChildBox childBox(int id) const {
+        auto it = boxCache_.find(id);
+        if (it != boxCache_.end()) {
+            return it->second;
+        }
+        ChildBox b;
+        float x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+        if (measureClip(id, x0, y0, x1, y1)) {
+            b.ok = true;
+            b.w = x1 - x0;
+            b.h = y1 - y0;
+        }
+        boxCache_[id] = b;
+        return b;
+    }
+    // Стек вариантов одного слота: игра кажет один, остальным ставит
+    // visible=false по состоянию событий.
+    // Слот кадра: матрица + локальная позиция + ребёнок.
+    struct SeenSlot {
+        int matrix = 0;
+        int childId = 0;
+        float tx = 0;
+        float ty = 0;
+    };
+    // 1) ТОЧНАЯ матрица + разный id = варианты всегда (pro_league/
+    //    championship/ranked на 60756, raid/warning на 60753). Зеркала
+    //    безопасны: у них один id на всех повторах (ph_* = 10439).
+    // 2) БЛИЗКАЯ позиция (±8) + разный id = вариант, только если у
+    //    уже нарисованного есть текст, а у нового нет (brawl с PLAY
+    //    против пустого spectate). Декор-стеки без текста (бар+тикет)
+    //    рисуются оба — как в ориге.
+    // Одинаковый id дважды — намеренный дабл-дро (свечение).
+    // Identity-матрицы (65535) исключены вызывающим.
+    bool isStackedVariant(const std::vector<SeenSlot> &seen, int matrix, int childId,
+                          float tx, float ty) const {
+        for (std::size_t i = 0; i < seen.size(); i++) {
+            const SeenSlot &s = seen[i];
+            if (s.childId == childId) {
+                continue;
+            }
+            if (s.matrix == matrix) {
+                return true;
+            }
+            float dx = s.tx > tx ? s.tx - tx : tx - s.tx;
+            float dy = s.ty > ty ? s.ty - ty : ty - s.ty;
+            if (dx >= 8.0f || dy >= 8.0f) {
+                continue;
+            }
+            if (clipHasText(s.childId) && !clipHasText(childId)) {
+                return true;
+            }
+        }
+        return false;
+    }
     static bool useNativeFont(const TextFieldOriginal &f) {
         if (f.deviceFont) {
             return true;
         }
         return NativeFont::isSystemFamily(f.font);
+    }
+    // Горизонтальный align поля либы (TextField::get_horizontal_align,
+    // SupercellFlash): bit0=Right, bit1=Center, bit2=Justify, иначе Left.
+    // В ui.sc: 18=center, 16=left, 2=center. Раньше всё рисовалось
+    // по центру — подписи уезжали («кривые»). Вертикаль в лобби
+    // однострочная — оставляем центрирование по Y как в ориге.
+    // Возврат: 0=left, 1=center, 2=right.
+    static int alignH(const TextFieldOriginal &f) {
+        if (f.align & 1) {
+            return 2;
+        }
+        if (f.align & 2) {
+            return 1;
+        }
+        if (f.align & 4) {
+            return 1;
+        }
+        return 0;
     }
     static std::uint32_t outlineColorFor(const TextFieldOriginal &f) {
         if (!f.outline) {
@@ -699,8 +953,14 @@ public:
         }
         return c;
     }
-    // Та же математика nineSlice, но без heap-аллокаций горячего цикла:
-    // сетки маленькие (2-4 значения), всё на стеке вызывающего.
+    // Ребро границы полигона в пикселях экрана (для AA только по контуру).
+    struct PolyEdge {
+        float ax = 0;
+        float ay = 0;
+        float dx = 0;
+        float dy = 0;
+        float invLen = 0;
+    };
     static bool mapSlice(const float *grid, std::size_t n, float scale, float trans, float *mapped) {
         if (n < 2 || n > 16) {
             return false;
@@ -747,47 +1007,12 @@ public:
     void drawShape(const ShapeOriginal &shape, const Matrix2x3 &local, const Matrix2x3 &parent, const ColorTransform *ct, std::vector<std::uint32_t> &frame, int w, int h) {
         Matrix2x3 world = local;
         world.multiply(parent);
-        if (shape.nineSlice && world.b == 0.0f && world.c == 0.0f && world.a > 0.0f && world.d > 0.0f) {
-            std::vector<float> mapX;
-            std::vector<float> mapY;
-            if (mapSlice(shape.gridX, world.a, world.x, mapX) && mapSlice(shape.gridY, world.d, world.y, mapY)) {
-                for (std::size_t ci = 0; ci < shape.commands.size(); ci++) {
-                    const ShapeOriginal::Command &c = shape.commands[ci];
-                    if (c.texture < 0 || c.texture >= static_cast<int>(swf_->textures.size())) {
-                        continue;
-                    }
-                    const SWFTexture &tex = swf_->textures[static_cast<std::size_t>(c.texture)];
-                    if (tex.pixels.empty()) {
-                        continue;
-                    }
-                    std::size_t n = c.x.size();
-                    if (n < 3) {
-                        continue;
-                    }
-                    ShapeOriginal::Command mc = c;
-                    bool ok = true;
-                    for (std::size_t vi = 0; vi < n; vi++) {
-                        int ix = shape.gridIndexX(c.x[vi]);
-                        int iy = shape.gridIndexY(c.y[vi]);
-                        if (ix < 0 || iy < 0) {
-                            ok = false;
-                            break;
-                        }
-                        mc.x[vi] = mapX[static_cast<std::size_t>(ix)];
-                        mc.y[vi] = mapY[static_cast<std::size_t>(iy)];
-                    }
-                    if (!ok) {
-                        continue;
-                    }
-                    Matrix2x3 ident;
-                    ident.setIdentity();
-                    for (std::size_t i = 1; i + 1 < n; i++) {
-                        drawTri(tex, mc, 0, i, i + 1, ident, ct, frame, w, h);
-                    }
-                }
-                return;
-            }
-        }
+        // 9-slice здесь НЕ применяем: scaling grid либы (сабтег 31)
+        // принадлежит MovieClip, а не Shape. Старый код тянул
+        // эвристический shape.nineSlice при любом осевом stage-масштабе
+        // и волнил весь HUD. Неравномерную растяжку в слот делает
+        // UiButton::draw по своей сетке; Cover-фон масштабируется
+        // целиком через scaleInner_. Поэтому всегда прямой проход.
         for (std::size_t ci = 0; ci < shape.commands.size(); ci++) {
             const ShapeOriginal::Command &c = shape.commands[ci];
             if (c.texture < 0 || c.texture >= static_cast<int>(swf_->textures.size())) {
@@ -798,21 +1023,47 @@ public:
                 continue;
             }
             std::size_t n = c.x.size();
-            if (n < 3) {
+            if (n < 3 || n > 256 || c.u.size() < n || c.v.size() < n) {
                 continue;
             }
+            // Вершины в пикселях экрана один раз (не на треугольник).
+            float sx[256];
+            float sy[256];
+            for (std::size_t vi = 0; vi < n; vi++) {
+                sx[vi] = toX(world.applyX(c.x[vi], c.y[vi]));
+                sy[vi] = toY(world.applyY(c.x[vi], c.y[vi]));
+            }
+            // Граница полигона для AA (см. drawTri): только контур,
+            // диагонали фэна — не рёбра, иначе швы на каждой спице.
+            PolyEdge edges[256];
+            std::size_t ne = 0;
+            for (std::size_t vi = 0; vi < n; vi++) {
+                std::size_t vj = (vi + 1) % n;
+                float dx = sx[vj] - sx[vi];
+                float dy = sy[vj] - sy[vi];
+                float len = static_cast<float>(std::sqrt(dx * dx + dy * dy));
+                if (len < 0.0001f) {
+                    continue;
+                }
+                edges[ne].ax = sx[vi];
+                edges[ne].ay = sy[vi];
+                edges[ne].dx = dx;
+                edges[ne].dy = dy;
+                edges[ne].invLen = 1.0f / len;
+                ne++;
+            }
             for (std::size_t i = 1; i + 1 < n; i++) {
-                drawTri(tex, c, 0, i, i + 1, world, ct, frame, w, h);
+                drawTri(tex, c, 0, i, i + 1, sx, sy, edges, ne, ct, frame, w, h);
             }
         }
     }
-    void drawTri(const SWFTexture &tex, const ShapeOriginal::Command &c, std::size_t i0, std::size_t i1, std::size_t i2, const Matrix2x3 &m, const ColorTransform *ct, std::vector<std::uint32_t> &frame, int w, int h) {
-        float ax = toX(m.applyX(c.x[i0], c.y[i0]));
-        float ay = toY(m.applyY(c.x[i0], c.y[i0]));
-        float bx = toX(m.applyX(c.x[i1], c.y[i1]));
-        float by = toY(m.applyY(c.x[i1], c.y[i1]));
-        float cx = toX(m.applyX(c.x[i2], c.y[i2]));
-        float cy = toY(m.applyY(c.x[i2], c.y[i2]));
+    void drawTri(const SWFTexture &tex, const ShapeOriginal::Command &c, std::size_t i0, std::size_t i1, std::size_t i2, const float *sx, const float *sy, const PolyEdge *edges, std::size_t ne, const ColorTransform *ct, std::vector<std::uint32_t> &frame, int w, int h) {
+        float ax = sx[i0];
+        float ay = sy[i0];
+        float bx = sx[i1];
+        float by = sy[i1];
+        float cx = sx[i2];
+        float cy = sy[i2];
         float au = c.u[i0] / 65535.0f;
         float av = c.v[i0] / 65535.0f;
         float bu = c.u[i1] / 65535.0f;
@@ -843,6 +1094,10 @@ public:
         if (den > -0.0001f && den < 0.0001f) {
             return;
         }
+        // Покрытие для ровных краёв (AA как у GPU в ориге) — ТОЛЬКО по
+        // границе полигона: расстояние до ближайшего ребра контура.
+        // Диагонали фэна рёбрами не считаются, иначе тёмные швы на каждой
+        // спице (кресты через весь фон и грани на панелях).
         for (int y = y0; y < y1; y++) {
             for (int x = x0; x < x1; x++) {
                 float px = x + 0.5f;
@@ -852,6 +1107,28 @@ public:
                 float l2 = 1.0f - l0 - l1;
                 if (l0 < 0 || l1 < 0 || l2 < 0) {
                     continue;
+                }
+                float cov = 1.0f;
+                if (ne > 0) {
+                    float md = 1e30f;
+                    for (std::size_t ei = 0; ei < ne; ei++) {
+                        const PolyEdge &e = edges[ei];
+                        float cr = e.dx * (py - e.ay) - e.dy * (px - e.ax);
+                        if (cr < 0) {
+                            cr = -cr;
+                        }
+                        float dd = cr * e.invLen;
+                        if (dd < md) {
+                            md = dd;
+                        }
+                    }
+                    cov = md + 0.5f;
+                    if (cov <= 0.0f) {
+                        continue;
+                    }
+                    if (cov > 1.0f) {
+                        cov = 1.0f;
+                    }
                 }
                 float u = l0 * au + l1 * bu + l2 * cu;
                 float v = l0 * av + l1 * bv + l2 * cv;
@@ -863,7 +1140,25 @@ public:
                 if (sa == 0) {
                     continue;
                 }
+                // Непрозрачные тексели без трансформов: швы между соседними
+                // квадами (9-slice панели!) нельзя блендить — иначе тёмная
+                // сетка по каждому стыку (как MSAA-резолв в ориге: сэмпл
+                // либо целиком фигуры, либо фон). Порог 0.5 по покрытию.
+                // Полупрозрачное — блендим с покрытием как раньше.
                 std::size_t kk = static_cast<std::size_t>(y) * static_cast<std::size_t>(w) + static_cast<std::size_t>(x);
+                if (sa == 255 && !ct) {
+                    if (cov < 0.5f) {
+                        continue;
+                    }
+                    frame[kk] = 0xFF000000u | (src & 0x00FFFFFFu);
+                    continue;
+                }
+                if (cov < 1.0f) {
+                    sa = static_cast<unsigned>(sa * cov);
+                    if (sa == 0) {
+                        continue;
+                    }
+                }
                 if (sa == 255) {
                     frame[kk] = 0xFF000000u | (src & 0x00FFFFFFu);
                 } else {
@@ -910,7 +1205,7 @@ public:
             return;
         }
 #ifdef TITAN_HAS_FREETYPE
-        int px = static_cast<int>(f.size * scale_);
+        int px = static_cast<int>(f.size * renderScale_);
         if (px < 1) {
             px = 1;
         }
@@ -960,10 +1255,23 @@ public:
         }
         std::uint32_t col = static_cast<std::uint32_t>(f.color);
         std::uint32_t ocol = outlineColorFor(f);
+        int ah = alignH(f);
         if (useNativeFont(f)) {
-            nativeFonts_.drawCentered(frame, w, h, text, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+            if (ah == 0) {
+                nativeFonts_.drawLeft(frame, w, h, text, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+            } else if (ah == 2) {
+                nativeFonts_.drawRight(frame, w, h, text, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+            } else {
+                nativeFonts_.drawCentered(frame, w, h, text, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+            }
         } else {
-            fonts_.drawCentered(frame, w, h, text, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+            if (ah == 0) {
+                fonts_.drawLeft(frame, w, h, text, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+            } else if (ah == 2) {
+                fonts_.drawRight(frame, w, h, text, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+            } else {
+                fonts_.drawCentered(frame, w, h, text, x0, y0, boxW, boxH, px, col, f.outline, ocol);
+            }
         }
 #else
         int tw = BitmapFont::measure(text);
@@ -1026,10 +1334,14 @@ public:
     std::map<int, std::string> fieldTexts_;
     // Кадры клипов (состояния кнопок).
     std::map<int, int> clipFrames_;
+    // Скрытые клипы (см. setHiddenClip).
+    std::map<int, bool> hiddenClips_;
     // Живое поле ввода ника.
     int liveFieldId_ = -1;
     std::string liveText_;
     bool liveCaret_ = false;
     bool animate_ = false;
     std::int64_t animMs_ = 0;
+    // Кэш размеров детей для детекта стек-вариантов (чистится в bind).
+    mutable std::unordered_map<int, ChildBox> boxCache_;
 };
